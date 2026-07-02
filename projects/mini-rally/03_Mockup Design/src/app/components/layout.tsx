@@ -22,8 +22,8 @@ import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBa
 
 export const NAV_ITEMS: { key: Page; label: string; icon: React.ReactNode; children?: { key: Page; label: string; icon: React.ReactNode }[] }[] = [
   { key: "home", label: "Home", icon: <Home size={12} /> },
-  { key: "backlog", label: "Plan", icon: <Calendar size={12} />, children: [{ key: "backlog", label: "Backlog", icon: <AlignJustify size={12} /> }] },
-  { key: "track", label: "Iteration Status", icon: <Activity size={12} /> },
+  { key: "backlog", label: "Plan", icon: <Calendar size={12} />, children: [{ key: "backlog", label: "Backlog", icon: <AlignJustify size={12} /> }, { key: "iterations", label: "Timeboxes", icon: <RotateCw size={12} /> }] },
+  { key: "track", label: "Track", icon: <Activity size={12} />, children: [{ key: "track", label: "Iteration Status", icon: <Activity size={12} /> }, { key: "teamBoard", label: "Team board", icon: <LayoutGrid size={12} /> }, { key: "teamStatus", label: "Team status", icon: <ListChecks size={12} /> }] },
   { key: "quality", label: "Quality", icon: <CheckCircle size={12} /> },
   { key: "portfolio", label: "Portfolio", icon: <Package size={12} /> },
   { key: "releases", label: "Releases", icon: <Tag size={12} /> },
@@ -42,7 +42,7 @@ export function TopNav({
 }) {
   const [wsOpen, setWsOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
-  const [planOpen, setPlanOpen] = useState(false);
+  const [openNavKey, setOpenNavKey] = useState<Page | null>(null);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set(["NXP"]));
   const roles: Role[] = ["Workspace Admin", "Project Manager", "Product Owner", "Developer", "Tester", "Viewer"];
   function toggleProject(key: string) {
@@ -101,8 +101,7 @@ export function TopNav({
                   );
                 })}
               </div>
-              <div className="border-t border-[#e2e6eb] mt-1 pt-1 px-1.5 flex items-center">
-                <button onClick={() => { onCreateProject(); setWsOpen(false); }} className="flex-1 flex items-center gap-2 px-2 py-1.5 text-[10px] text-left rounded hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><Plus size={11} /> New Project</button>
+              <div className="border-t border-[#e2e6eb] mt-1 pt-1 px-1.5 flex items-center justify-end">
                 <button onClick={() => { onNavigate("projects"); setWsOpen(false); }} className="flex items-center gap-1 px-2 py-1.5 text-[10px] rounded hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><Settings size={11} /> Manage</button>
               </div>
             </div>
@@ -111,27 +110,31 @@ export function TopNav({
       </div>
 
       <nav className="flex items-center gap-0.5 flex-1">
-        {NAV_ITEMS.map(({ key, label, icon, children }) => children ? (
+        {NAV_ITEMS.map(({ key, label, icon, children }) => {
+          const active = currentPage === key || Boolean(children?.some(child => child.key === currentPage));
+          const open = openNavKey === key;
+          return children ? (
           <div key={label} className="relative">
-            <div className="flex items-center rounded transition-colors" style={{ backgroundColor: currentPage === key ? "rgba(255,255,255,0.16)" : "transparent" }}>
-              <button onClick={() => { onNavigate(key); setPlanOpen(false); }} className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 text-[11px] font-medium" style={{ color: currentPage === key ? "#ffffff" : "rgba(255,255,255,0.65)" }}>{icon}{label}</button>
-              <button aria-label={`Open ${label} menu`} onClick={() => { setPlanOpen(o => !o); setWsOpen(false); setUserOpen(false); }} className="pr-2 py-1" style={{ color: currentPage === key ? "#ffffff" : "rgba(255,255,255,0.55)" }}><ChevronDown size={9} /></button>
+            <div className="flex items-center rounded transition-colors" style={{ backgroundColor: active ? "rgba(255,255,255,0.16)" : "transparent" }}>
+              <button onClick={() => { onNavigate(key); setOpenNavKey(null); }} className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 text-[11px] font-medium" style={{ color: active ? "#ffffff" : "rgba(255,255,255,0.65)" }}>{icon}{label}</button>
+              <button aria-label={`Open ${label} menu`} onClick={() => { setOpenNavKey(current => current === key ? null : key); setWsOpen(false); setUserOpen(false); }} className="pr-2 py-1" style={{ color: active ? "#ffffff" : "rgba(255,255,255,0.55)" }}><ChevronDown size={9} /></button>
             </div>
-            {planOpen && (
+            {open && (
               <div className="absolute left-0 top-full mt-1 w-44 bg-white rounded shadow-lg z-50 py-1" style={{ border: "1px solid #d9dee7" }}>
                 <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>{label}</div>
-                {children.map(child => <button key={child.key} onClick={() => { onNavigate(child.key); setPlanOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-left hover:bg-[#f4f6f9]" style={{ color: currentPage === child.key ? "#1d3f73" : "#1a2234", backgroundColor: currentPage === child.key ? "#edf2fb" : "transparent", fontWeight: currentPage === child.key ? 600 : 400 }}>{child.icon}<span className="flex-1">{child.label}</span>{currentPage === child.key && <Check size={11} />}</button>)}
+                {children.map(child => <button key={child.key} onClick={() => { onNavigate(child.key); setOpenNavKey(null); }} className="w-full flex items-center gap-2 px-3 py-2 text-[11px] text-left hover:bg-[#f4f6f9]" style={{ color: currentPage === child.key ? "#1d3f73" : "#1a2234", backgroundColor: currentPage === child.key ? "#edf2fb" : "transparent", fontWeight: currentPage === child.key ? 600 : 400 }}>{child.icon}<span className="flex-1">{child.label}</span>{currentPage === child.key && <Check size={11} />}</button>)}
               </div>
             )}
           </div>
         ) : (
-          <button key={key} onClick={() => { onNavigate(key); setPlanOpen(false); }} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded transition-colors"
+          <button key={key} onClick={() => { onNavigate(key); setOpenNavKey(null); }} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded transition-colors"
             style={{ backgroundColor: currentPage === key ? "rgba(255,255,255,0.16)" : "transparent", color: currentPage === key ? "#ffffff" : "rgba(255,255,255,0.65)" }}
             onMouseEnter={e => { if (currentPage !== key) { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#fff"; } }}
             onMouseLeave={e => { if (currentPage !== key) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
             {icon}{label}
           </button>
-        ))}
+        );
+        })}
       </nav>
 
       <div className="flex items-center gap-1">
@@ -230,9 +233,12 @@ export function ContextBar({ currentPage, currentProject, currentTeam }: { curre
   if (currentPage === "settings" || currentPage === "notifications") return null;
   const crumbs: Record<Page, string[]> = {
     home: ["ACME Space Inc.", "Home"],
-    projects: ["ACME Space Inc.", "Projects"],
+    projects: ["ACME Space Inc.", "Manage"],
     backlog: [currentProject.name, "Plan", "Backlog"],
-    track: [currentProject.name, "Iteration Status"],
+    iterations: [currentProject.name, "Plan", "Timeboxes"],
+    track: [currentProject.name, "Track", "Iteration Status"],
+    teamBoard: [currentProject.name, "Track", "Team board"],
+    teamStatus: [currentProject.name, "Track", "Team status"],
     quality: [currentProject.name, "Quality", "Defects"],
     portfolio: [currentProject.name, "Portfolio", "Initiatives"],
     releases: [currentProject.name, "Releases"],
@@ -253,12 +259,12 @@ export function ContextBar({ currentPage, currentProject, currentTeam }: { curre
         ))}
       </div>
       <div className="flex-1" />
-      {currentPage !== "backlog" && (
+      {!["projects", "backlog", "iterations", "track", "teamBoard", "teamStatus"].includes(currentPage) && (
         <div className="flex items-center gap-4" style={{ borderLeft: "1px solid #e2e6eb", paddingLeft: "1rem" }}>
           {["home", "projects"].includes(currentPage) && <CtxSelect label="Company" value="ACME Space Inc." />}
           {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} />}
-          {currentPage === "track" && <CtxSelect label="Release" value="Q4 2024" />}
-          {currentPage === "track" && <CtxSelect label="Sprint" value="Sprint 24.3" />}
+          {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Release" value="Q4 2024" />}
+          {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Iteration" value="Sprint 24.3" />}
           {currentPage === "releases" && <CtxSelect label="Status" value="All Releases" />}
           {currentPage === "reports" && <CtxSelect label="Period" value="Last 6 Sprints" />}
           {!["home", "projects"].includes(currentPage) && <CtxSelect label="Team" value={currentTeam} />}

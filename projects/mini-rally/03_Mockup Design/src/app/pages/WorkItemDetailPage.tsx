@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { AlignLeft, AtSign, Bold, ChevronLeft, Code2, FileText, History, ImagePlus, Italic, Link2, List, ListChecks, ListOrdered, Maximize2, Minimize2, MoreHorizontal, Plus, Redo2, Strikethrough, Table2, Underline, Undo2 } from "lucide-react";
-import { type Role, type ScopeProject, type StatusType, type WorkItem, OWNERS, SCOPE_PROJECTS } from "../model";
+import { type Role, type ScopeProject, type StatusType, type WorkItem, OWNERS, SCOPE_PROJECTS, ITERATIONS_DATA } from "../model";
 import { Avatar, TypeBadge } from "../components/shared";
 
 type DetailTab = "details" | "tasks" | "history";
@@ -15,6 +15,7 @@ const TASK_ROWS = [
 const WORK_ITEM_STATE_OPTIONS = ["Idea", "Defined", "In-Progress", "Completed", "Accepted", "Release"];
 const DEFECT_PRIORITY_OPTIONS = ["Low", "Normal", "High", "Urgent", "None"];
 const DEFECT_PRIORITY_DEFAULTS: Record<string, string> = { Low: "Low", Medium: "Normal", High: "High", Critical: "Urgent" };
+const WORK_ITEM_ITERATION_OPTIONS = Array.from(new Set([...ITERATIONS_DATA.map(iteration => iteration.name), "Unscheduled"]));
 
 type TaskRow = (typeof TASK_ROWS)[number];
 
@@ -406,7 +407,7 @@ export function WorkItemDetailPage({ item, role, project, team: initialTeam, onB
           {item.type === "Defect" && <Field label="Priority"><select className={fieldClass} style={fieldStyle} defaultValue={DEFECT_PRIORITY_DEFAULTS[item.priority] ?? "None"}>{DEFECT_PRIORITY_OPTIONS.map(priority => <option key={priority}>{priority}</option>)}</select></Field>}
           <Field label="Plan Estimate"><input className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={item.planEstimate} /></Field>
           <Field label="Release"><select className={fieldClass} style={fieldStyle} defaultValue={item.release}>{[item.release, "Q1 2025", "Q2 2025", "Unscheduled"].filter((value, index, values) => values.indexOf(value) === index).map(release => <option key={release}>{release}</option>)}</select></Field>
-          <Field label="Iteration"><select className={fieldClass} style={fieldStyle} defaultValue={item.iteration}>{[item.iteration, "Sprint 24.4", "Sprint 25.1", "Unscheduled"].filter((value, index, values) => values.indexOf(value) === index).map(iteration => <option key={iteration}>{iteration}</option>)}</select></Field>
+          <Field label="Iteration"><select className={fieldClass} style={fieldStyle} defaultValue={item.iteration}>{[item.iteration, ...WORK_ITEM_ITERATION_OPTIONS].filter((value, index, values) => values.indexOf(value) === index).map(iteration => <option key={iteration}>{iteration}</option>)}</select></Field>
         </aside>
         )}
       </div>

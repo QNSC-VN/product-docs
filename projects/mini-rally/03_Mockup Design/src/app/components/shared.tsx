@@ -59,12 +59,14 @@ export function TypeBadge({ type }: { type: WorkItemType }) {
 }
 
 export const STATUS_CFG: Record<StatusType, { bg: string; text: string; border: string; dot: string }> = {
+  Idea: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1", dot: "#94a3b8" },
   Defined: { bg: "#eef3fb", text: "#2558a6", border: "#bdd0ef", dot: "#2558a6" },
   "In-Progress": { bg: "#fef5e4", text: "#8a5808", border: "#f5d899", dot: "#e59f0c" },
   "Code Review": { bg: "#f0f7ff", text: "#0369a1", border: "#bae6fd", dot: "#0ea5e9" },
   Testing: { bg: "#faf5ff", text: "#7e22ce", border: "#e9d5ff", dot: "#a855f7" },
   Completed: { bg: "#eef6f0", text: "#1e6930", border: "#a8d5b3", dot: "#2a8c3f" },
   Accepted: { bg: "#eaf0fb", text: "#1d3f73", border: "#99b8e0", dot: "#1d3f73" },
+  Release: { bg: "#f5f3ff", text: "#6d28d9", border: "#d0c6f5", dot: "#7c3aed" },
 };
 
 export function StatusBadge({ status }: { status: StatusType }) {

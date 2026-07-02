@@ -1,7 +1,7 @@
 ﻿export type Role = "Workspace Admin" | "Project Manager" | "Product Owner" | "Developer" | "Tester" | "Viewer";
-export type Page = "home" | "projects" | "backlog" | "track" | "quality" | "portfolio" | "releases" | "reports" | "notifications" | "settings";
+export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "releases" | "reports" | "notifications" | "settings";
 export type WorkItemType = "Story" | "Defect" | "Task" | "Feature";
-export type StatusType = "Defined" | "In-Progress" | "Code Review" | "Testing" | "Completed" | "Accepted";
+export type StatusType = "Idea" | "Defined" | "In-Progress" | "Code Review" | "Testing" | "Completed" | "Accepted" | "Release";
 export type PriorityType = "Critical" | "High" | "Medium" | "Low";
 
 export interface Owner { name: string; initials: string; color: string; }
@@ -41,6 +41,14 @@ export interface ReleaseItem {
   startDate: string; releaseDate: string; progress: number;
   totalItems: number; completedItems: number; openDefects: number; blockedItems: number;
   owner: Owner; description: string;
+}
+export interface IterationItem {
+  id: string; name: string; theme: string; state: "Planning" | "Committed" | "Accepted";
+  projectKey: string; team: string; startDate: string; endDate: string;
+  project: string; plannedVelocity: number; taskEstimate: number;
+  capacity: number; plannedPoints: number; acceptedPoints: number;
+  itemCount: number; defectCount: number; blockedCount: number;
+  owner: Owner; goal: string; history: string[];
 }
 export interface WorkspaceUser {
   name: string; email: string; role: Role;
@@ -139,7 +147,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Per-user notification preference center with channel routing and digest options",
     status: "Defined", priority: "Low", owner: OWNERS[4], project: "NXP",
     planEstimate: 5, taskCount: 5, completedTasks: 0, taskEstimate: 0, todoEstimate: 0,
-    iteration: "Unplanned", release: "Q1 2025", tags: ["notifications", "ux"],
+    iteration: "Unscheduled", release: "Q1 2025", tags: ["notifications", "ux"],
     commentCount: 1,
     description: "Users receive all notifications via email with no granularity. This story introduces a preference center for channel selection (email, Slack, in-app) and digest schedules per event type.",
     lastUpdated: "Oct 19, 2024",
@@ -169,7 +177,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Markdown rendering support in work item description and comment fields",
     status: "Defined", priority: "Medium", owner: OWNERS[2], project: "NXP",
     planEstimate: 5, taskCount: 4, completedTasks: 0, taskEstimate: 0, todoEstimate: 0,
-    iteration: "Unplanned", release: "Q1 2025", tags: ["editor", "formatting"],
+    iteration: "Unscheduled", release: "Q1 2025", tags: ["editor", "formatting"],
     description: "Teams rely on code snippets, tables, and formatting in work item descriptions. Adding Markdown support with a toggle between edit and rendered preview modes will improve documentation quality.",
     lastUpdated: "Oct 18, 2024",
   },
@@ -207,7 +215,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Report export generates corrupt XLSX file for datasets over 10,000 rows",
     status: "Defined", priority: "High", owner: OWNERS[3], project: "NXP",
     planEstimate: 3, taskCount: 2, completedTasks: 0,
-    iteration: "Unplanned", release: "Q4 2024", tags: ["export", "reporting"],
+    iteration: "Unscheduled", release: "Q4 2024", tags: ["export", "reporting"],
     description: "When exporting reports containing more than 10,000 rows, the resulting XLSX file fails to open in Excel. LibreOffice reports an XML structure error on the shared strings table.",
     lastUpdated: "Oct 20, 2024",
   },
@@ -355,6 +363,49 @@ export const RELEASES_DATA: ReleaseItem[] = [
   { id: "REL-004", name: "Nexus Platform v3.3", version: "v3.3.0", status: "Released", startDate: "Jul 1, 2024", releaseDate: "Sep 30, 2024", progress: 100, totalItems: 18, completedItems: 18, openDefects: 0, blockedItems: 0, owner: OWNERS[0], description: "Released on schedule. Included board view, CSV import, and SSO foundation." },
 ];
 
+export const ITERATIONS_DATA: IterationItem[] = [
+  {
+    id: "IT-24-2", name: "Sprint 24.2", theme: "Q4 hardening", state: "Accepted", projectKey: "NXP", team: "Core Platform",
+    startDate: "2024-09-30 12:00 AM EST", endDate: "2024-10-11 11:59 PM EST", project: "Nexus Platform 2025",
+    plannedVelocity: 52, taskEstimate: 118, capacity: 50, plannedPoints: 52, acceptedPoints: 49,
+    itemCount: 8, defectCount: 1, blockedCount: 0, owner: OWNERS[4],
+    goal: "Finish backlog export, database upgrade, and notification fixes before Q4 release hardening.",
+    history: ["Started Sep 30 by Tom Brennan", "Closed Oct 11 with 49 accepted points", "3 unfinished points moved to Sprint 24.3"],
+  },
+  {
+    id: "IT-24-3", name: "Sprint 24.3", theme: "Authentication stability", state: "Committed", projectKey: "NXP", team: "Core Platform",
+    startDate: "2024-10-14 12:00 AM EST", endDate: "2024-10-28 11:59 PM EST", project: "Nexus Platform 2025",
+    plannedVelocity: 47, taskEstimate: 106, capacity: 54, plannedPoints: 47, acceptedPoints: 16,
+    itemCount: 9, defectCount: 2, blockedCount: 1, owner: OWNERS[0],
+    goal: "Stabilize authentication, resolve high priority defects, and keep reporting work visible for Q4 readiness.",
+    history: ["Created Oct 10 by Marcus Webb", "Started Oct 14 with 9 committed items", "Scope adjusted Oct 21 after timezone defect triage"],
+  },
+  {
+    id: "IT-24-4", name: "Sprint 24.4", theme: "Q1 platform prep", state: "Planning", projectKey: "NXP", team: "Core Platform",
+    startDate: "2024-10-29 12:00 AM EST", endDate: "2024-11-12 11:59 PM EST", project: "Nexus Platform 2025",
+    plannedVelocity: 31, taskEstimate: 72, capacity: 48, plannedPoints: 31, acceptedPoints: 0,
+    itemCount: 6, defectCount: 0, blockedCount: 0, owner: OWNERS[0],
+    goal: "Prepare Q1 platform work while keeping remaining Q4 release items small and testable.",
+    history: ["Created Oct 18 by Marcus Webb", "Capacity reviewed Oct 22"],
+  },
+  {
+    id: "IT-25-1", name: "Sprint 25.1", theme: "Reporting dashboard", state: "Planning", projectKey: "NXP", team: "Data & Reporting",
+    startDate: "2025-01-06 12:00 AM EST", endDate: "2025-01-17 11:59 PM EST", project: "Nexus Platform 2025",
+    plannedVelocity: 42, taskEstimate: 0, capacity: 42, plannedPoints: 0, acceptedPoints: 0,
+    itemCount: 0, defectCount: 0, blockedCount: 0, owner: OWNERS[3],
+    goal: "Initial planning placeholder for reporting dashboard work.",
+    history: ["Created Oct 20 by Priya Nair"],
+  },
+  {
+    id: "IT-24-5", name: "Sprint 24.5", theme: "Identity calendar realignment", state: "Planning", projectKey: "NXP", team: "Identity & Access",
+    startDate: "2024-11-13 12:00 AM EST", endDate: "2024-11-26 11:59 PM EST", project: "Nexus Platform 2025",
+    plannedVelocity: 36, taskEstimate: 0, capacity: 36, plannedPoints: 0, acceptedPoints: 0,
+    itemCount: 0, defectCount: 0, blockedCount: 0, owner: OWNERS[1],
+    goal: "Placeholder after team calendar realignment.",
+    history: ["Created Oct 15 by Sarah Chen"],
+  },
+];
+
 export const WORKSPACE_USERS: WorkspaceUser[] = [
   { name: "Marcus Webb", email: "marcus.webb@acme.com", role: "Workspace Admin", status: "Active", lastLogin: "Oct 22, 2024 9:14 AM", owner: OWNERS[0] },
   { name: "Sarah Chen", email: "sarah.chen@acme.com", role: "Developer", status: "Active", lastLogin: "Oct 22, 2024 8:45 AM", owner: OWNERS[1] },
@@ -408,7 +459,7 @@ export const PERMISSIONS_MATRIX = [
   { action: "Manage Users & Roles", roles: ["Workspace Admin"] },
   { action: "Manage Workspace Settings", roles: ["Workspace Admin"] },
   { action: "Manage Project Settings", roles: ["Workspace Admin", "Project Manager"] },
-  { action: "Manage Sprints", roles: ["Workspace Admin", "Project Manager"] },
+  { action: "Manage Iterations", roles: ["Workspace Admin", "Project Manager"] },
   { action: "Manage Releases", roles: ["Workspace Admin", "Project Manager", "Product Owner"] },
   { action: "Prioritize Backlog", roles: ["Workspace Admin", "Project Manager", "Product Owner"] },
   { action: "Create Defects", roles: ["Workspace Admin", "Project Manager", "Product Owner", "Developer", "Tester"] },

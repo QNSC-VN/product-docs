@@ -1,6 +1,6 @@
 # Phase 1 — Mockup Coverage Checklist
 
-Ngày đồng bộ: 2026-06-24
+Ngày đồng bộ: 2026-06-28
 
 ## 1. Phase scope đã chốt
 
@@ -13,6 +13,7 @@ Phase 1 tập trung vào Core Work Item Management:
 5. Estimate / To Do / Actual Time Tracking.
 6. Description / Notes / Attachments / Release Notes.
 7. Basic Activity Log / Revision History.
+8. Manage Projects / Teams / Users, bao gồm Create Team.
 
 Không nằm trong Phase 1:
 
@@ -23,6 +24,7 @@ Không nằm trong Phase 1:
 - Release planning đầy đủ.
 - Report/analytics nâng cao.
 - Notification/workflow automation.
+- Team capacity/velocity planning chi tiết.
 
 ## 2. Mockup coverage summary
 
@@ -57,6 +59,11 @@ Không nằm trong Phase 1:
 | Task Detail | Right fields State/Owner/Project/Team/Work Product/Estimate/To Do/Actual | ✅ | `WorkItemDetailPage.tsx` | State chỉ Defined/In-Progress/Completed |
 | Activity Log | Work Item Revision History | ✅ | `WorkItemDetailPage.tsx` | Basic activity log table |
 | Activity Log | Task Revision History | ✅ | `WorkItemDetailPage.tsx` | Basic activity log theo task |
+| Manage | Workspace menu mở Manage page | ✅ | `ProjectsPage.tsx`, `layout.tsx` | Breadcrumb hiển thị `ACME Space Inc. > Manage` |
+| Manage Projects | Projects tab giữ list/create/edit/archive project | ✅ | `ProjectsPage.tsx` | Đã có từ trước, đưa vào Manage tab |
+| Manage Teams | Teams tab list/filter/create/edit/deactive team | ✅ | `ProjectsPage.tsx` | List không có Members/Capacity/Velocity/Actions columns |
+| Manage Teams | Create/Edit Team modal | ✅ | `ProjectsPage.tsx` | Tabs `Team Info` và `Members`; Members có search/filter |
+| Manage Users | Users tab list/filter/invite/edit/deactivate user | ✅ | `ProjectsPage.tsx` | Invite User có role và team membership; không assign project trực tiếp |
 
 ## 3. DB coverage / gaps cần dev xử lý
 
@@ -65,6 +72,9 @@ Không nằm trong Phase 1:
 | Story/Defect/Task core | `work_items.type` | ✅ | Dùng chung `work_items`, không tạo bảng task riêng |
 | Parent Story → Task | `work_items.parent_id` | ✅ | Task có `type='task'`, `parent_id` trỏ tới Story/Defect |
 | Project/Team | `work_items.project_id`, `work_items.team_id`, `project_teams` | ✅ | Validate team thuộc project |
+| Manage Project | `projects`, project membership/link tables | ✅ | Phase 1 có Manage > Projects |
+| Manage Team | `teams`, `project_teams`, `team_members` | ✅ | Create Team từ Manage; list không show capacity/velocity |
+| Manage User | `users`, workspace/team membership tables | ✅ | Invite/edit user, role, team membership; project access derive từ team |
 | Schedule State / Flow State | `work_items.schedule_state`, `work_items.flow_state` | ✅ | Work Item Detail dùng 2 state riêng theo quyết định mới |
 | Owner | `work_items.assignee_id` | ✅ | Join `users` |
 | Plan Estimate | `work_items.story_point` | ✅ | Mapping tên UI `Plan Estimate` → DB `story_point` |
@@ -88,6 +98,16 @@ Không nằm trong Phase 1:
 | P1-DC-004 | `Actual` nhập tay | Lưu vào `work_items.actual_hours`; phase sau mới cân nhắc aggregate từ time entries |
 | P1-DC-005 | Work Item sidebar dùng `Schedule State` và `Flow State` | `Status` sidebar đổi thành `Flow State`; options: Idea/Defined/In-Progress/Completed/Accepted/Release |
 | P1-DC-006 | Defect Detail sidebar hiển thị `Priority` | Chỉ show với Defect; options: Low/Normal/High/Urgent/None |
+| P1-DC-008 | Manage là entry point cho Projects/Teams/Users | Workspace dropdown `Manage` mở màn Manage |
+| P1-DC-009 | Team list không hiển thị Members/Capacity/Velocity/Actions | Team list chỉ cần Key, Team, Project, Status, Lead, Updated |
+| P1-DC-010 | Create/Edit Team vẫn có chọn Members | Membership nằm trong tab `Members`, có search/filter |
+| P1-DC-011 | Team Capacity/Velocity không thuộc Manage Team Phase 1 | Nếu cần sẽ define ở Iteration planning phase |
+| P1-DC-012 | User chỉ assign vào Team, không assign Project trực tiếp | Project access derive từ Team -> Project |
+| P1-DC-013 | Invite email join flow là nghiệp vụ mục tiêu | Trước mắt backend có thể add/invite qua DB/API; email token flow triển khai sau |
+| P1-DC-014 | User status dùng Active/Invited/Deactive | Bỏ Suspended/Archived trong User management |
+| P1-DC-015 | Team status dùng Active/Deactive | Deactive team giữ lịch sử nhưng không dùng trong selector active |
+| P1-DC-016 | Team list không có Actions column | Click Team row để mở edit modal |
+| P1-DC-017 | Team modal có 2 tab Team Info/Members | Thiết kế đồng nhất với User modal |
 
 ## 5. Kết luận mockup
 
