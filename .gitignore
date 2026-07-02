@@ -1,0 +1,23 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Node / build artifacts (mockup prototype apps)
+node_modules/
+dist/
+build/
+.next/
+out/
+*.log
+
+# Env
+.env
+.env.local
+
+# Editor
+.vscode/
+.idea/
+
+# Temp / draft office files
+~$*
+*.tmp
