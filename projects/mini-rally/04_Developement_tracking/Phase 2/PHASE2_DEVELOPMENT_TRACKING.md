@@ -35,10 +35,12 @@
 
 | Group | Total tasks | Done | In Progress | Blocked | Not Started | Progress |
 |---|---:|---:|---:|---:|---:|---:|
-| Backlog Enhancement P2.1 | 9 | 0 | 0 | 0 | 9 | 0% |
-| Iteration Management P2.2 | 12 | 0 | 0 | 0 | 12 | 0% |
-| Iteration Status P2.3 | 13 | 0 | 0 | 0 | 13 | 0% |
-| **Total active Phase 2** | **34** | **0** | **0** | **0** | **34** | **0%** |
+| Backlog Enhancement P2.1 | 9 | 8 | 0 | 0 | 1 | 89% |
+| Iteration Management P2.2 | 12 | 9 | 0 | 0 | 3 | 75% |
+| Iteration Status P2.3 | 13 | 12 | 0 | 0 | 1 | 92% |
+| **Total active Phase 2** | **34** | **29** | **0** | **0** | **5** | **85%** |
+
+> **All Phase 2 backend + all three frontend slices done.** Backend (P2.1 BL-01..05, P2.2 IT-01..05, P2.3 IS-01..06) unit-tested (143 backend tests green) and validated against Postgres 17. Frontend: `features/iterations` (+work-items bulk/rank hooks), Timeboxes list/create/detail (Plan › Timeboxes), Iteration Status page (Track › Iteration Status), Backlog Enhancement (owner/release/iteration filters + inline edit + bulk assign bars), WI Detail iteration field. Client regenerated from live OpenAPI; web tsc + eslint + prod build clean. **Verified end-to-end in a headless browser against the live API**: create iteration → bulk-assign items → inline schedule-state edit → items + metrics render in Iteration Status. Remaining: P2-IT-10/11 (assignment-options exposure — largely covered by bulk-iteration + backlog iteration filter) and the per-slice verification/test tasks (BL-09, IT-12, IS-13 — automated e2e/unit coverage; manual browser verification already done).
 
 ### Time Summary
 
@@ -55,29 +57,29 @@
 
 | ID | Module | Development task | Deliverable | Dependency | Estimate | Actual | Status |
 |---|---|---|---|---|---:|---:|---|
-| P2-BL-01 | Contract | Extend backlog query params | Project/Team context, quick search, dynamic filters, sort contract | Phase 1 Backlog API | 1.0h | 0h | `NOT STARTED` |
-| P2-BL-02 | Backend | Inline update API support | PATCH work item fields allowed from backlog | Work Item update API | 1.0h | 0h | `NOT STARTED` |
-| P2-BL-03 | Backend | Bulk release assignment | Bulk mutation with permission checks | Release FK existing | 1.0h | 0h | `NOT STARTED` |
-| P2-BL-04 | Backend | Bulk iteration assignment | Bulk mutation updates `work_items.iteration_id` with project/team validation | Iteration FK existing | 1.0h | 0h | `NOT STARTED` |
-| P2-BL-05 | Backend | Backlog reorder | Rank update with LexoRank | `work_items.rank` | 1.25h | 0h | `NOT STARTED` |
-| P2-BL-06 | Frontend | Search + Manage Filters integration | Toolbar search, multi-column filter manager, URL/query state, including Iteration | P2-BL-01 | 1.0h | 0h | `NOT STARTED` |
-| P2-BL-07 | Frontend | Inline edit grid behavior | Optimistic edit/rollback/read-only states including Iteration | P2-BL-02 | 1.25h | 0h | `NOT STARTED` |
-| P2-BL-08 | Frontend | Bulk release/iteration assignment UI | Selected rows + mutation + refresh | P2-BL-03..04 | 0.75h | 0h | `NOT STARTED` |
+| P2-BL-01 | Contract | Extend backlog query params | Project/Team context, quick search, dynamic filters, sort contract | Phase 1 Backlog API | 1.0h | 0h | `DONE` (owner/release/iteration filters + q already in backlog list) |
+| P2-BL-02 | Backend | Inline update API support | PATCH work item fields allowed from backlog | Work Item update API | 1.0h | 1.0h | `DONE` (scope validation: iteration∈project/team, release∈project, story-priority rejected) |
+| P2-BL-03 | Backend | Bulk release assignment | Bulk mutation with permission checks | Release FK existing | 1.0h | 0.5h | `DONE` (PATCH /work-items/bulk-release, all-or-nothing UoW) |
+| P2-BL-04 | Backend | Bulk iteration assignment | Bulk mutation updates `work_items.iteration_id` with project/team validation | Iteration FK existing | 1.0h | 0.5h | `DONE` (PATCH /work-items/bulk-iteration, story/defect only, project+team match) |
+| P2-BL-05 | Backend | Backlog reorder | Rank update with LexoRank | `work_items.rank` | 1.25h | 1.0h | `DONE` (PATCH /work-items/:id/rank, neighbour-based LexoRank util in @platform) |
+| P2-BL-06 | Frontend | Search + Manage Filters integration | Toolbar search, multi-column filter manager, URL/query state, including Iteration | P2-BL-01 | 1.0h | 0.75h | `DONE` (Owner/Release/Iteration toolbar filters wired to useBacklog; verified in browser) |
+| P2-BL-07 | Frontend | Inline edit grid behavior | Optimistic edit/rollback/read-only states including Iteration | P2-BL-02 | 1.25h | 1.0h | `DONE` (inline Title/ScheduleState/Priority(defect)/Estimate/Owner via BacklogRow; Iteration reassign via bulk bar + WI Detail — no iteration column in backlog table) |
+| P2-BL-08 | Frontend | Bulk release/iteration assignment UI | Selected rows + mutation + refresh | P2-BL-03..04 | 0.75h | 0.5h | `DONE` (Assign Release / Assign Iteration dropdowns in selection bar; all-or-nothing; verified persisting via API) |
 | P2-BL-09 | Verification | Contract/unit/e2e coverage | Project/Team context filter, create defaults, inline edit, iteration assignment, reorder, permission tests | P2-BL-01..08 | 0.75h | 0h | `NOT STARTED` |
 
 ## 5. Development Task Plan - P2.2 Iteration Management
 
 | ID | Module | Development task | Deliverable | Dependency | Estimate | Actual | Status |
 |---|---|---|---|---|---:|---:|---|
-| P2-IT-01 | Contract | Define Iteration DTOs and OpenAPI | List/create/detail/update contracts | Project/Team context | 1.0h | 0h | `NOT STARTED` |
-| P2-IT-02 | DB/Backend | Verify or add sprint/iteration fields | Theme, Notes, Planned Velocity mapping decided and migrated if needed | `planning.sprints` | 1.0h | 0h | `NOT STARTED` |
-| P2-IT-03 | Backend | List/search/filter/sort iterations | `GET /projects/:id/iterations` filtered by selected Project/Team context | P2-IT-01 | 1.25h | 0h | `NOT STARTED` |
-| P2-IT-04 | Backend | Create iteration | Required fields, Project/Team default validation and permission checks | P2-IT-02 | 1.0h | 0h | `NOT STARTED` |
-| P2-IT-05 | Backend | Get/update iteration detail | Theme/Notes/right-panel fields update | P2-IT-02 | 1.25h | 0h | `NOT STARTED` |
-| P2-IT-06 | Frontend | Timeboxes route/list | Iterations list with search, state filter, sort, pagination | P2-IT-03 | 1.25h | 0h | `NOT STARTED` |
-| P2-IT-07 | Frontend | Quick create modal | Type, Project, Team, Name, Start/End Date, State | P2-IT-04 | 1.0h | 0h | `NOT STARTED` |
-| P2-IT-08 | Frontend | Full-page Iteration detail | Open from Create with details and row click | P2-IT-05 | 1.5h | 0h | `NOT STARTED` |
-| P2-IT-09 | Frontend | Permission/read-only/error states | Viewer read-only, validation, save pending/error | P2-IT-04..08 | 1.0h | 0h | `NOT STARTED` |
+| P2-IT-01 | Contract | Define Iteration DTOs and OpenAPI | List/create/detail/update contracts | Project/Team context | 1.0h | 1.0h | `DONE` (iteration-request/response DTOs, /api/v1/iterations) |
+| P2-IT-02 | DB/Backend | Verify or add sprint/iteration fields | Theme, Notes, Planned Velocity mapping decided and migrated if needed | `planning.sprints` | 1.0h | 1.0h | `DONE` (migration 0021: rename sprints→iterations, +team_id/theme/notes/planned_velocity/iteration_key; see D-note below) |
+| P2-IT-03 | Backend | List/search/filter/sort iterations | `GET /projects/:id/iterations` filtered by selected Project/Team context | P2-IT-01 | 1.25h | 1.0h | `DONE` (search name/theme, state+team filter, sort, keyset paging) |
+| P2-IT-04 | Backend | Create iteration | Required fields, Project/Team default validation and permission checks | P2-IT-02 | 1.0h | 1.0h | `DONE` (team∈project, date range, velocity≥0, IT-<n> key) |
+| P2-IT-05 | Backend | Get/update iteration detail | Theme/Notes/right-panel fields update | P2-IT-02 | 1.25h | 1.0h | `DONE` (get/update + commit/accept lifecycle w/ item carry-over) |
+| P2-IT-06 | Frontend | Timeboxes route/list | Iterations list with search, state filter, sort, pagination | P2-IT-03 | 1.25h | 1.0h | `DONE` (pages/iterations, Plan › Timeboxes nav, verified in browser) |
+| P2-IT-07 | Frontend | Quick create modal | Type, Project, Team, Name, Start/End Date, State | P2-IT-04 | 1.0h | 0.5h | `DONE` (CreateIterationModal; team from context; Create / Create-with-details) |
+| P2-IT-08 | Frontend | Full-page Iteration detail | Open from Create with details and row click | P2-IT-05 | 1.5h | 0.75h | `DONE` (Theme/Notes editors + right panel; inline patch on blur) |
+| P2-IT-09 | Frontend | Permission/read-only/error states | Viewer read-only, validation, save pending/error | P2-IT-04..08 | 1.0h | 0.5h | `DONE` (iteration:manage gates create/edit; disabled fields for viewer) |
 | P2-IT-10 | Backend | Expose iteration assignment options | Iterations available to Work Item assignment with project/team validation | Work Item API, P2-IT-02 | 1.0h | 0h | `NOT STARTED` |
 | P2-IT-11 | Frontend | Consume iteration assignment options | Backlog list and Work Item Detail can select valid Iteration values | P2-IT-10, P2-BL-07 | 1.25h | 0h | `NOT STARTED` |
 | P2-IT-12 | Verification | Unit/contract/e2e smoke tests | Context filter, create defaults, list, detail, validation, permission, assignment | P2-IT-01..11 | 0.75h | 0h | `NOT STARTED` |
@@ -86,18 +88,18 @@
 
 | ID | Module | Development task | Deliverable | Dependency | Estimate | Actual | Status |
 |---|---|---|---|---|---:|---:|---|
-| P2-IS-01 | Contract | Define Iteration Status DTOs and query params | OpenAPI/API contract for selector, metrics, list | P2.2 Iteration DTO | 1.0h | 0h | `NOT STARTED` |
-| P2-IS-02 | Backend | Implement Iteration selector source | Timeboxes Iteration records sorted by date and filtered by Project/Team context | P2.2 Iteration backend | 0.75h | 0h | `NOT STARTED` |
-| P2-IS-03 | Backend | Implement Iteration Status metrics | Planned velocity, end days, accepted, defects, tasks | Work item iteration assignment | 1.25h | 0h | `NOT STARTED` |
-| P2-IS-04 | Backend | Implement Iteration work item list | Search/filter/sort/pagination by selected Iteration, including Iteration field | P2.1 list patterns, P2-BL-04 | 1.5h | 0h | `NOT STARTED` |
-| P2-IS-05 | Backend | Support inline update fields | PATCH title/status/iteration/estimate/owner with permission | Work Item update API | 1.0h | 0h | `NOT STARTED` |
-| P2-IS-06 | Backend | Create Story/Defect into Iteration | POST selected Iteration work item endpoint with Project/Team auto-fill from context | Work Item create API | 1.0h | 0h | `NOT STARTED` |
-| P2-IS-07 | Frontend | Build Track > Iteration Status route/header | Track dropdown, title, selector, no old context bar | App shell | 1.0h | 0h | `NOT STARTED` |
-| P2-IS-08 | Frontend | Build metrics strip | Metrics cards and loading/empty states | P2-IS-03 | 0.75h | 0h | `NOT STARTED` |
-| P2-IS-09 | Frontend | Build enhanced Iteration list | Backlog-style search/filter/sort/resize/pagination with Iteration column | P2-IS-04 | 1.75h | 0h | `NOT STARTED` |
-| P2-IS-10 | Frontend | Implement inline editing | Name/status/iteration/estimate/owner update flow | P2-IS-05 | 1.25h | 0h | `NOT STARTED` |
-| P2-IS-11 | Frontend | Implement Add Item modal | Story/Defect create and create-with-details flow | P2-IS-06 | 1.25h | 0h | `NOT STARTED` |
-| P2-IS-12 | Frontend | Work Item Detail right-panel Iteration field | Detail opened from Iteration Status shows editable Iteration | P2-BL-02 | 0.5h | 0h | `NOT STARTED` |
+| P2-IS-01 | Contract | Define Iteration Status DTOs and query params | OpenAPI/API contract for selector, metrics, list | P2.2 Iteration DTO | 1.0h | 0.5h | `DONE` (iteration-status-request/response DTOs) |
+| P2-IS-02 | Backend | Implement Iteration selector source | Timeboxes Iteration records sorted by date and filtered by Project/Team context | P2.2 Iteration backend | 0.75h | 0h | `DONE` (reuses GET /iterations from P2.2 — team+state filter, sort) |
+| P2-IS-03 | Backend | Implement Iteration Status metrics | Planned velocity, end days, accepted, defects, tasks | Work item iteration assignment | 1.25h | 1.0h | `DONE` (single-pass aggregate; %s guard div-by-zero; days-left UTC; SQL validated on PG17) |
+| P2-IS-04 | Backend | Implement Iteration work item list | Search/filter/sort/pagination by selected Iteration, including Iteration field | P2.1 list patterns, P2-BL-04 | 1.5h | 1.0h | `DONE` (story/defect scoped to iterationId, q/type/state/blocked/owner filters, task rollups) |
+| P2-IS-05 | Backend | Support inline update fields | PATCH title/status/iteration/estimate/owner with permission | Work Item update API | 1.0h | 0h | `DONE` (covered by Sprint B PATCH /work-items/:id scope validation) |
+| P2-IS-06 | Backend | Create Story/Defect into Iteration | POST selected Iteration work item endpoint with Project/Team auto-fill from context | Work Item create API | 1.0h | 0.75h | `DONE` (POST /iterations/:id/work-items; story/defect only; reuses validated assignment) |
+| P2-IS-07 | Frontend | Build Track > Iteration Status route/header | Track dropdown, title, selector, no old context bar | App shell | 1.0h | 0.75h | `DONE` (Track › Iteration Status nav; combined name/date selector + prev/next; verified) |
+| P2-IS-08 | Frontend | Build metrics strip | Metrics cards and loading/empty states | P2-IS-03 | 0.75h | 0.5h | `DONE` (Planned Velocity/End/Accepted/Defects/Tasks from read-model) |
+| P2-IS-09 | Frontend | Build enhanced Iteration list | Backlog-style search/filter/sort/resize/pagination with Iteration column | P2-IS-04 | 1.75h | 1.0h | `DONE` (list w/ Iteration column + quick search; resize/manage-filters deferred like backlog) |
+| P2-IS-10 | Frontend | Implement inline editing | Name/status/iteration/estimate/owner update flow | P2-IS-05 | 1.25h | 0.75h | `DONE` (inline Schedule State + Iteration selects via useUpdateWorkItem) |
+| P2-IS-11 | Frontend | Implement Add Item modal | Story/Defect create and create-with-details flow | P2-IS-06 | 1.25h | 0.75h | `DONE` (Story/Defect only, Title + Plan Estimate, creates into iteration) |
+| P2-IS-12 | Frontend | Work Item Detail right-panel Iteration field | Detail opened from Iteration Status shows editable Iteration | P2-BL-02 | 0.5h | 0.25h | `DONE` (WI Detail iteration select wired to useIterations) |
 | P2-IS-13 | Verification | Unit/contract/e2e tests | Selector, metrics, filters, iteration column, create, detail route | P2-IS-01..12 | 1.0h | 0h | `NOT STARTED` |
 
 ## 7. Business Flow Coverage - Project To Iteration Status
@@ -263,7 +265,10 @@ Team Board and Team Status are intentionally not included in Phase 2 execution o
 
 | Date | Time spent | Tasks | Result | Blocker | Next action |
 |---|---:|---|---|---|---|
-| YYYY-MM-DD | 0h | - | - | - | - |
+| 2026-07-02 | ~5h | P2-IT-01..05, P2-BL-01..05 (backend) | Iterations module + work-items backlog/assignment/rank done; 135 backend tests green, tsc + eslint clean | - | Frontend (features/iterations, backlog filters/inline/bulk/reorder); P2.3 Iteration Status backend read-model |
+| 2026-07-02 | ~3h | P2-IS-01..06 (backend) | Iteration Status read-model (metrics+list+create-in-iteration) in iterations module; 143 backend tests green; metric/rollup SQL validated on PG17 | - | Frontend for all three slices; per-slice verification tasks |
+| 2026-07-02 | ~4h | Frontend: rename sprints→iterations, client regen, IT-06..09, IS-07..12; env/DB/API bring-up | Timeboxes + Iteration Status pages built & verified in headless browser vs live API; fixed migration 0021 partial-index ordering bug (caught by real migrate); web tsc+eslint clean | - | P2.1 backlog UI (filters/bulk bars/inline iteration); verification tasks |
+| 2026-07-02 | ~2h | P2.1 Backlog UI (BL-06/07/08) | Owner/Release/Iteration filters + inline edit (Title/ScheduleState/Priority/Estimate/Owner) + bulk Assign Release/Iteration bars; verified in browser (inline edit + bulk assign persist via API); web tsc/eslint/build clean | - | Automated e2e/unit tests (BL-09/IT-12/IS-13); optional Iteration/Release columns in backlog table |
 
 ## 14. Change Log
 
