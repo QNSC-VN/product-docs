@@ -37,7 +37,7 @@ export interface Initiative {
 }
 export interface ReleaseItem {
   id: string; name: string; version: string;
-  status: "Planned" | "In Progress" | "Released" | "Cancelled" | "Archived";
+  status: "Planning" | "Active" | "Accepted";
   startDate: string; releaseDate: string; progress: number;
   totalItems: number; completedItems: number; openDefects: number; blockedItems: number;
   owner: Owner; description: string;
@@ -357,10 +357,10 @@ export const INITIATIVES: Initiative[] = [
 ];
 
 export const RELEASES_DATA: ReleaseItem[] = [
-  { id: "REL-001", name: "Nexus Platform Q4 2024", version: "v3.4.0", status: "In Progress", startDate: "Oct 1, 2024", releaseDate: "Nov 1, 2024", progress: 58, totalItems: 24, completedItems: 14, openDefects: 3, blockedItems: 1, owner: OWNERS[0], description: "Q4 2024 release covering enterprise auth, CSV export, and critical defect fixes." },
-  { id: "REL-002", name: "Nexus Platform Q1 2025", version: "v3.5.0", status: "Planned", startDate: "Nov 1, 2024", releaseDate: "Feb 1, 2025", progress: 12, totalItems: 38, completedItems: 5, openDefects: 2, blockedItems: 0, owner: OWNERS[0], description: "Q1 2025 release including advanced reporting module, notification center, and markdown support." },
-  { id: "REL-003", name: "Nexus Platform Q2 2025", version: "v4.0.0", status: "Planned", startDate: "Feb 1, 2025", releaseDate: "May 1, 2025", progress: 0, totalItems: 52, completedItems: 0, openDefects: 0, blockedItems: 0, owner: OWNERS[3], description: "Major v4.0 with mobile app, portfolio hierarchy, and redesigned reporting dashboards." },
-  { id: "REL-004", name: "Nexus Platform v3.3", version: "v3.3.0", status: "Released", startDate: "Jul 1, 2024", releaseDate: "Sep 30, 2024", progress: 100, totalItems: 18, completedItems: 18, openDefects: 0, blockedItems: 0, owner: OWNERS[0], description: "Released on schedule. Included board view, CSV import, and SSO foundation." },
+  { id: "REL-001", name: "Nexus Platform Q4 2024", version: "v3.4.0", status: "Active", startDate: "Oct 1, 2024", releaseDate: "Nov 1, 2024", progress: 58, totalItems: 24, completedItems: 14, openDefects: 3, blockedItems: 1, owner: OWNERS[0], description: "Q4 2024 release covering enterprise auth, CSV export, and critical defect fixes." },
+  { id: "REL-002", name: "Nexus Platform Q1 2025", version: "v3.5.0", status: "Planning", startDate: "Nov 1, 2024", releaseDate: "Feb 1, 2025", progress: 12, totalItems: 38, completedItems: 5, openDefects: 2, blockedItems: 0, owner: OWNERS[0], description: "Q1 2025 release including advanced reporting module, notification center, and markdown support." },
+  { id: "REL-003", name: "Nexus Platform Q2 2025", version: "v4.0.0", status: "Planning", startDate: "Feb 1, 2025", releaseDate: "May 1, 2025", progress: 0, totalItems: 52, completedItems: 0, openDefects: 0, blockedItems: 0, owner: OWNERS[3], description: "Major v4.0 with mobile app, portfolio hierarchy, and redesigned reporting dashboards." },
+  { id: "REL-004", name: "Nexus Platform v3.3", version: "v3.3.0", status: "Accepted", startDate: "Jul 1, 2024", releaseDate: "Sep 30, 2024", progress: 100, totalItems: 18, completedItems: 18, openDefects: 0, blockedItems: 0, owner: OWNERS[0], description: "Accepted on schedule. Included board view, CSV import, and SSO foundation." },
 ];
 
 export const ITERATIONS_DATA: IterationItem[] = [

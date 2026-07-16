@@ -79,9 +79,9 @@ export function ReleaseRow({ rel, expanded, onToggle }: { rel: ReleaseItem; expa
 export function ReleasesPage({ role }: { role: Role }) {
   const [expanded, setExpanded] = useState<string | null>("REL-001");
   const total = RELEASES_DATA.length;
-  const inProgress = RELEASES_DATA.filter(r => r.status === "In Progress").length;
-  const released = RELEASES_DATA.filter(r => r.status === "Released").length;
-  const planned = RELEASES_DATA.filter(r => r.status === "Planned").length;
+  const active = RELEASES_DATA.filter(r => r.status === "Active").length;
+  const accepted = RELEASES_DATA.filter(r => r.status === "Accepted").length;
+  const planning = RELEASES_DATA.filter(r => r.status === "Planning").length;
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -90,7 +90,7 @@ export function ReleasesPage({ role }: { role: Role }) {
         {can.manageBacklog(role) && <button className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#1d3f73")}><Plus size={12} /> Create Release</button>}
       </div>
       <div className="flex items-stretch bg-white shrink-0" style={{ borderBottom: "1px solid #e2e6eb", height: 52 }}>
-        {[{ label: "Total Releases", value: String(total), color: "#1a2234" }, { label: "In Progress", value: String(inProgress), color: "#8a5808" }, { label: "Released", value: String(released), color: "#1e6930" }, { label: "Planned", value: String(planned), color: "#475569" }].map((m, i) => (
+        {[{ label: "Total Releases", value: String(total), color: "#1a2234" }, { label: "Active", value: String(active), color: "#8a5808" }, { label: "Accepted", value: String(accepted), color: "#1e6930" }, { label: "Planning", value: String(planning), color: "#475569" }].map((m, i) => (
           <div key={m.label} className="flex flex-col justify-center px-5 gap-0.5" style={{ borderLeft: i > 0 ? "1px solid #e2e6eb" : undefined }}>
             <span className="text-[9px] uppercase tracking-widest font-semibold" style={{ color: "#8c94a6" }}>{m.label}</span>
             <span className="text-[17px] font-semibold leading-none" style={{ color: m.color }}>{m.value}</span>

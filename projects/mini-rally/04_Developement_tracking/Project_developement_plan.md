@@ -147,9 +147,9 @@ Thay cho `Track`:
 - Quick create.
 - Bulk actions.
 
-### 12. Board
+### 12. Board (Future Backlog)
 
-Baseline update 2026-06-28: Board execution, Team Board and Team Status move to Phase 3. Do not implement this under Phase 2.
+Baseline update 2026-07-12: Team Status moves to Phase 3. Team Board, board drag/drop execution, WIP limit and board transition validation are moved to Backlog for the future. Do not implement these in current planned phases unless BA re-prioritizes the board.
 
 - Status columns.
 - Drag/drop đổi status.
@@ -188,14 +188,14 @@ Baseline update 2026-06-28: Board execution, Team Board and Team Status move to 
 - Release activity/history.
 - Released/Cancelled/Archived states.
 
-### 14A. Team Board / Team Status
+### 14A. Team Status
 
-Baseline update 2026-06-28:
+Baseline update 2026-07-12:
 
-- Team Board.
-- Team Status.
-- Board drag/drop execution.
-- WIP limits and transition validation.
+- Team Status dashboard/table grouped by member.
+- Task-level execution visibility for the selected Iteration.
+- Capacity and Task inline edit according to Phase 3.1 SRS.
+- Team Board is not part of Phase 3.
 
 ## Phase 4 — Collaboration và Governance
 
@@ -399,7 +399,7 @@ Các phần Phase 2 còn lại cần SRS riêng trước khi dev:
 
 - P2.2 Timeboxes / Iterations, including assignment of existing Backlog Story/Defect items into an Iteration.
 - P2.3 Iteration Status linked with Backlog.
-- Team Board, Team Status and Board drag/drop execution move to Phase 3.
+- Team Status moves to Phase 3. Team Board and Board drag/drop execution move to Backlog for the future.
 
 ## Phase 2.2 Current Baseline - 2026-06-26
 
@@ -455,7 +455,8 @@ Phase 2.3 is **Iteration Status** under `Track`.
 BA decisions:
 
 - Phase 2 implements only `Iteration Status` under Track.
-- `Team Board` and `Team Status` are moved to Phase 3.
+- `Team Status` moves to Phase 3.
+- `Team Board` moves to Backlog for the future.
 - Iteration selector reads Iteration records created in `Plan > Timeboxes`.
 - Iteration selector is filtered by the current workspace selector Project/Team context.
 - Iteration Status list reads Backlog/work_items assigned to the selected Iteration.
@@ -471,14 +472,19 @@ Detailed documents:
 - [`Phase 2/PHASE2_MOCKUP_CHECKLIST.md`](Phase%202/PHASE2_MOCKUP_CHECKLIST.md)
 - [`Phase 2/PHASE2_DEVELOPMENT_TRACKING.md`](Phase%202/PHASE2_DEVELOPMENT_TRACKING.md)
 
-## Phase 3 Scope Update - 2026-06-28
+## Phase 3 / Future Backlog Scope Update - 2026-07-12
 
-Phase 3 now includes these Track follow-ups:
+Phase 3 includes this Track follow-up:
+
+- Team Status.
+
+Backlog for the future includes these optional Team Board follow-ups:
 
 - Team Board.
-- Team Status.
 - Board drag/drop execution.
+- WIP limits and board transition validation.
 
-Placeholder document:
+Scope documents:
 
-- [`Phase 3/01_Team_Board_Team_Status/SRS.md`](Phase%203/01_Team_Board_Team_Status/SRS.md)
+- [`Phase 3/01_Team_Status/SRS.md`](Phase%203/01_Team_Status/SRS.md)
+- [`Future_Backlog/01_Team_Board.md`](Future_Backlog/01_Team_Board.md)

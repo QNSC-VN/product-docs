@@ -74,6 +74,7 @@ Nghiệp vụ chính:
 | P2-BL-FR-001A | Changing workspace selector Project/Team refreshes Backlog and only shows records in that Project/Team. |
 | P2-BL-FR-001B | Create Work Item defaults Project and Team from the current workspace selector context. |
 | P2-BL-FR-001C | Workspace Admin may override Project and Team during create/edit, but selected Team must be valid for selected Project. |
+| P2-BL-FR-001D | `All Teams` is allowed as a Phase 2 context; permission-specific create/edit restrictions are deferred. |
 | P2-BL-FR-002 | Backlog chỉ hiển thị Story và Defect; không hiển thị Task/Feature như backlog item độc lập. |
 | P2-BL-FR-003 | User có thể search theo `item_key` hoặc `title` bằng quick search `Search work...` ở toolbar. |
 | P2-BL-FR-004 | Filter gồm Type, Schedule State, Defect Priority, Owner, Release và Iteration. |
@@ -272,6 +273,7 @@ Request:
 Rules:
 
 - API computes new LexoRank between neighbors.
+- Phase 2 move up/down controls must call this API behavior; they are not visual-only mock controls.
 - Do not update every row for normal moves.
 - If rank space is exhausted, run rebalance under project/backlog lock.
 

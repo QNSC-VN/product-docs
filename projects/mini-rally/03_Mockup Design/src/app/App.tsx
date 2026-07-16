@@ -4,6 +4,7 @@ import { type Page, type Role, type ScopeProject, type WorkItem, NOTIFICATIONS, 
 import { HomePage } from "./pages/HomePage";
 import { TrackPage } from "./pages/IterationStatusPage";
 import { TeamBoardPage } from "./pages/TeamBoardPage";
+import { TeamStatusPage } from "./pages/TeamStatusPage";
 import { BacklogPage } from "./pages/BacklogPage";
 import { IterationsPage } from "./pages/IterationsPage";
 import { QualityPage } from "./pages/QualityPage";
@@ -49,7 +50,7 @@ export default function App() {
       case "iterations": return <IterationsPage role={currentRole} />;
       case "track": return <TrackPage key="track" title="Iteration" role={currentRole} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
       case "teamBoard": return <TeamBoardPage role={currentRole} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
-      case "teamStatus": return <TrackPage key="teamStatus" title="Team status" role={currentRole} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
+      case "teamStatus": return <TeamStatusPage role={currentRole} onOpenFull={openFullDetail} />;
       case "quality": return <QualityPage role={currentRole} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
       case "portfolio": return <PortfolioPage role={currentRole} />;
       case "releases": return <ReleasesPage role={currentRole} />;

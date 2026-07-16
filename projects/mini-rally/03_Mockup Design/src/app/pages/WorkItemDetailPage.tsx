@@ -19,14 +19,16 @@ const WORK_ITEM_ITERATION_OPTIONS = Array.from(new Set([...ITERATIONS_DATA.map(i
 
 type TaskRow = (typeof TASK_ROWS)[number];
 
-const taskTotals = TASK_ROWS.reduce(
+function calculateTaskTotals(tasks: TaskRow[]) {
+  return tasks.reduce(
   (totals, task) => ({
     todo: totals.todo + task.todo,
     actuals: totals.actuals + task.actuals,
     estimate: totals.estimate + task.estimate,
   }),
   { todo: 0, actuals: 0, estimate: 0 },
-);
+  );
+}
 
 const TASK_GRID_COLUMNS = "44px 72px 110px minmax(320px,1fr) 140px 170px 160px 150px 90px 100px 100px";
 
@@ -293,15 +295,23 @@ function TaskDetailView({ task, parentItem, role, onBack }: { task: TaskRow; par
 export function WorkItemDetailPage({ item, role, project, team: initialTeam, onBack, onMinimize }: { item: WorkItem; role: Role; project: ScopeProject; team: string; onBack: () => void; onMinimize?: (item: WorkItem) => void }) {
   const [activeTab, setActiveTab] = useState<DetailTab>("details");
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
+  const [taskRows, setTaskRows] = useState<TaskRow[]>(TASK_ROWS);
   const [selectedTask, setSelectedTask] = useState<TaskRow | null>(null);
   const [selectedProjectKey, setSelectedProjectKey] = useState(item.project || project.key);
   const selectedProject = SCOPE_PROJECTS.find(candidate => candidate.key === selectedProjectKey) || project;
   const [team, setTeam] = useState(selectedProject.teams.includes(initialTeam) ? initialTeam : selectedProject.teams[0]);
+  const taskTotals = calculateTaskTotals(taskRows);
+  const taskDashboardEditable = role !== "Viewer";
 
   function changeProject(projectKey: string) {
     const nextProject = SCOPE_PROJECTS.find(candidate => candidate.key === projectKey) || project;
     setSelectedProjectKey(nextProject.key);
     setTeam(nextProject.teams[0]);
+  }
+
+  function updateTaskRow(id: string, patch: Partial<TaskRow>) {
+    setTaskRows(previous => previous.map(task => task.id === id ? { ...task, ...patch } : task));
+    setSelectedTask(previous => previous?.id === id ? { ...previous, ...patch } : previous);
   }
 
   if (selectedTask) {
@@ -376,19 +386,38 @@ export function WorkItemDetailPage({ item, role, project, team: initialTeam, onB
                     <span className="px-3 text-right font-mono">{taskTotals.estimate} Hours</span>
                   </div>
 
-                  {TASK_ROWS.map(task => (
+                  {taskRows.map(task => (
                     <div key={task.id} className="grid min-h-11 items-center text-[12px]" style={{ gridTemplateColumns: TASK_GRID_COLUMNS, borderBottom: "1px solid #edf0f4", color: "#334155" }}>
                       <div className="flex items-center justify-center"><input type="checkbox" aria-label={`Select task ${task.id}`} className="w-4 h-4 rounded" /></div>
                       <span className="px-3 font-mono text-[11px]" style={{ color: "#64748b" }}>{task.rank}</span>
                       <button onClick={() => setSelectedTask(task)} className="px-3 text-left font-mono text-[11px] underline-offset-2 hover:underline" style={{ color: "#2558a6" }}>{task.id}</button>
-                      <span className="px-3 font-medium truncate" style={{ color: "#273449" }}>{task.name}</span>
-                      <span className="px-3"><TaskStateBadge state={task.state} /></span>
-                      <span className="px-3 flex items-center gap-2 min-w-0"><Avatar owner={task.owner} size="xs" /><span className="truncate">{task.owner.name}</span></span>
+                      <span className="px-3 min-w-0">
+                        <input aria-label={`${task.id} task dashboard name`} readOnly={!taskDashboardEditable} value={task.name} onChange={event => updateTaskRow(task.id, { name: event.target.value })} className="w-full truncate rounded-sm bg-transparent px-1 py-1 font-medium focus:outline-none focus:bg-white" style={{ color: "#273449", border: taskDashboardEditable ? "1px solid transparent" : "0" }} />
+                      </span>
+                      <span className="px-3">
+                        {taskDashboardEditable ? (
+                          <select aria-label={`${task.id} task dashboard state`} value={task.state} onChange={event => updateTaskRow(task.id, { state: event.target.value as StatusType })} className="w-[120px] text-[11px] rounded-sm bg-white px-2 py-1 focus:outline-none" style={{ border: "1px solid #bdd0ef", color: "#2558a6" }}>
+                            {["Defined", "In-Progress", "Completed"].map(state => <option key={state}>{state}</option>)}
+                          </select>
+                        ) : (
+                          <TaskStateBadge state={task.state} />
+                        )}
+                      </span>
+                      <span className="px-3 flex items-center gap-2 min-w-0">
+                        <Avatar owner={task.owner} size="xs" />
+                        {taskDashboardEditable ? (
+                          <select aria-label={`${task.id} task dashboard owner`} value={task.owner.name} onChange={event => updateTaskRow(task.id, { owner: OWNERS.find(owner => owner.name === event.target.value) ?? task.owner })} className="min-w-0 flex-1 text-[11px] rounded-sm bg-white px-2 py-1 focus:outline-none" style={{ border: "1px solid #d7dde7", color: "#334155" }}>
+                            {OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}
+                          </select>
+                        ) : (
+                          <span className="truncate">{task.owner.name}</span>
+                        )}
+                      </span>
                       <span className="px-3 truncate">{task.project}</span>
                       <span className="px-3 truncate">{task.teams}</span>
-                      <span className="px-3 text-right font-mono">{task.todo}h</span>
-                      <span className="px-3 text-right font-mono">{task.actuals}h</span>
-                      <span className="px-3 text-right font-mono">{task.estimate}h</span>
+                      <span className="px-3"><input aria-label={`${task.id} task dashboard todo`} readOnly={!taskDashboardEditable} type="number" min={0} value={task.todo} onChange={event => updateTaskRow(task.id, { todo: Number(event.target.value) })} className="w-full rounded-sm bg-transparent px-1 py-1 text-right font-mono focus:outline-none focus:bg-white" style={{ border: taskDashboardEditable ? "1px solid transparent" : "0", color: "#334155" }} /></span>
+                      <span className="px-3"><input aria-label={`${task.id} task dashboard actuals`} readOnly={!taskDashboardEditable} type="number" min={0} value={task.actuals} onChange={event => updateTaskRow(task.id, { actuals: Number(event.target.value) })} className="w-full rounded-sm bg-transparent px-1 py-1 text-right font-mono focus:outline-none focus:bg-white" style={{ border: taskDashboardEditable ? "1px solid transparent" : "0", color: "#334155" }} /></span>
+                      <span className="px-3"><input aria-label={`${task.id} task dashboard estimate`} readOnly={!taskDashboardEditable} type="number" min={0} value={task.estimate} onChange={event => updateTaskRow(task.id, { estimate: Number(event.target.value) })} className="w-full rounded-sm bg-transparent px-1 py-1 text-right font-mono focus:outline-none focus:bg-white" style={{ border: taskDashboardEditable ? "1px solid transparent" : "0", color: "#334155" }} /></span>
                     </div>
                   ))}
                 </div>

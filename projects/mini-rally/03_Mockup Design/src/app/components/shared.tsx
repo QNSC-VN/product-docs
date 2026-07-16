@@ -21,11 +21,9 @@ import { type Role, type Page, type WorkItemType, type StatusType, type Priority
 
 export function releaseStatusCfg(status: ReleaseItem["status"]): { bg: string; text: string; border: string; dot: string } {
   switch (status) {
-    case "Planned": return { bg: "#eef3fb", text: "#475569", border: "#cbd5e1", dot: "#64748b" };
-    case "In Progress": return { bg: "#fef5e4", text: "#8a5808", border: "#f5d899", dot: "#e59f0c" };
-    case "Released": return { bg: "#eef6f0", text: "#1e6930", border: "#a8d5b3", dot: "#2a8c3f" };
-    case "Cancelled": return { bg: "#fef2f2", text: "#b91c1c", border: "#fcc5c0", dot: "#dc2626" };
-    case "Archived": return { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1", dot: "#94a3b8" };
+    case "Planning": return { bg: "#eef3fb", text: "#475569", border: "#cbd5e1", dot: "#64748b" };
+    case "Active": return { bg: "#fef5e4", text: "#8a5808", border: "#f5d899", dot: "#e59f0c" };
+    case "Accepted": return { bg: "#eef6f0", text: "#1e6930", border: "#a8d5b3", dot: "#2a8c3f" };
   }
 }
 
