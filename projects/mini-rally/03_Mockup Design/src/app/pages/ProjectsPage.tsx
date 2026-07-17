@@ -5,12 +5,13 @@ import {
   UserPlus, Users, X,
 } from "lucide-react";
 import { OWNERS, PROJECTS, SCOPE_PROJECTS, WORKSPACE_USERS, type Owner, type Role } from "../model";
-import { Avatar, RoleBadge } from "../components/shared";
+import { Avatar } from "../components/shared";
 
-type ManageTab = "projects" | "teams" | "users";
+type ManageTab = "projects" | "teams";
 type ProjectStatus = "Active" | "Archived";
 type TeamStatus = "Active" | "Deactive";
 type UserStatus = "Active" | "Invited" | "Deactive";
+type WorkspaceRoleCode = "workspace_admin" | "project_admin" | "project_member";
 
 type ProjectRecord = {
   id: string;
@@ -43,7 +44,7 @@ type UserRecord = {
   name: string;
   email: string;
   owner: Owner;
-  workspaceRole: Role;
+  workspaceRole: WorkspaceRoleCode;
   status: UserStatus;
   projectAccess: string[];
   teams: string[];
@@ -72,7 +73,7 @@ type TeamDraft = {
 type UserDraft = {
   name: string;
   email: string;
-  workspaceRole: Role;
+  workspaceRole: WorkspaceRoleCode;
   status: UserStatus;
   teams: string[];
 };
@@ -99,7 +100,7 @@ const EMPTY_TEAM_DRAFT: TeamDraft = {
 const EMPTY_USER_DRAFT: UserDraft = {
   name: "",
   email: "",
-  workspaceRole: "Developer",
+  workspaceRole: "project_member",
   status: "Invited",
   teams: [SCOPE_PROJECTS[0].teams[0]],
 };
@@ -151,14 +152,24 @@ const INITIAL_USERS: UserRecord[] = WORKSPACE_USERS.map((user, index) => ({
   name: user.name,
   email: user.email,
   owner: user.owner,
-  workspaceRole: user.role,
+  workspaceRole: mapRoleToProd(user.role),
   status: user.status,
   projectAccess: index < 3 ? ["NXP", "REP"] : ["NXP"],
   teams: index === 0 ? ["Core Platform", "Identity & Access"] : [INITIAL_TEAMS[index % INITIAL_TEAMS.length].name],
   lastLogin: user.lastLogin,
 }));
 
-const ROLES: Role[] = ["Workspace Admin", "Project Manager", "Product Owner", "Developer", "Tester", "Viewer"];
+const ROLES: { code: WorkspaceRoleCode; label: string }[] = [
+  { code: "workspace_admin", label: "Workspace Admin" },
+  { code: "project_admin", label: "Project Admin" },
+  { code: "project_member", label: "Project Member" },
+];
+
+function mapRoleToProd(role: Role): WorkspaceRoleCode {
+  if (role === "Workspace Admin") return "workspace_admin";
+  if (role === "Project Admin") return "project_admin";
+  return "project_member";
+}
 
 function toKey(value: string) {
   const initials = value
@@ -202,6 +213,21 @@ function StatusDot({ status }: { status: ProjectStatus | TeamStatus | UserStatus
   );
 }
 
+function WorkspaceRoleBadge({ role }: { role: WorkspaceRoleCode }) {
+  const meta = ROLES.find(item => item.code === role) ?? ROLES[2];
+  const style = role === "workspace_admin"
+    ? { bg: "#eef6f0", color: "#1e6930", border: "#c7e4ce" }
+    : role === "project_admin"
+      ? { bg: "#edf2fb", color: "#1d3f73", border: "#bdd0ea" }
+      : { bg: "#f1f5f9", color: "#475569", border: "#d9dee7" };
+  return (
+    <span className="inline-flex flex-col gap-0.5 px-2 py-1 rounded-sm text-[10px] font-semibold" style={{ backgroundColor: style.bg, color: style.color, border: `1px solid ${style.border}` }}>
+      <span>{meta.label}</span>
+      <span className="font-mono font-medium opacity-80">{role}</span>
+    </span>
+  );
+}
+
 function MetricCard({ label, value, icon: Icon }: { label: string; value: number | string; icon: typeof FolderKanban }) {
   return (
     <div className="bg-white rounded px-3 py-2.5 flex items-center gap-3" style={{ border: "1px solid #e2e6eb" }}>
@@ -218,7 +244,6 @@ function Tabs({ activeTab, onChange }: { activeTab: ManageTab; onChange: (tab: M
   const tabs: { key: ManageTab; label: string; icon: typeof FolderKanban }[] = [
     { key: "projects", label: "Projects", icon: FolderKanban },
     { key: "teams", label: "Teams", icon: Users },
-    { key: "users", label: "Users", icon: UserCheck },
   ];
   return (
     <div className="flex items-center gap-1 p-1 rounded" style={{ backgroundColor: "#edf0f4" }}>
@@ -311,7 +336,7 @@ function TeamModal({ team, projects, existingKeys, onClose, onSave }: { team: Te
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0" style={{ backgroundColor: "rgba(15,23,42,0.34)" }} onClick={onClose} />
       <form onSubmit={submit} className="relative w-full max-w-[680px] h-[600px] bg-white rounded-md shadow-2xl overflow-hidden flex flex-col" style={{ border: "1px solid #d4d8de" }}>
-        <ModalHeader title={editing ? "Edit Team" : "Create Team"} subtitle="Manage / Teams" onClose={onClose} />
+        <ModalHeader title={editing ? "Edit Team" : "Create Team"} subtitle="Manage Projects / Teams" onClose={onClose} />
         <div className="p-5 space-y-4 flex-1 overflow-y-auto">
           {error && <ErrorMessage text={error} />}
           <div className="flex items-center gap-1 p-1 rounded" style={{ backgroundColor: "#edf0f4" }}>
@@ -373,7 +398,7 @@ function UserModal({ user, teams, existingEmails, onClose, onSave }: { user: Use
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0" style={{ backgroundColor: "rgba(15,23,42,0.34)" }} onClick={onClose} />
       <form onSubmit={submit} className="relative w-full max-w-[680px] h-[600px] bg-white rounded-md shadow-2xl overflow-hidden flex flex-col" style={{ border: "1px solid #d4d8de" }}>
-        <ModalHeader title={editing ? "Edit User" : "Invite User"} subtitle="Manage / Users" onClose={onClose} />
+        <ModalHeader title={editing ? "Edit User" : "Invite User"} subtitle="Manage Projects / Users" onClose={onClose} />
         <div className="p-5 space-y-4 flex-1 overflow-y-auto">
           {error && <ErrorMessage text={error} />}
           <div className="flex items-center gap-1 p-1 rounded" style={{ backgroundColor: "#edf0f4" }}>
@@ -388,7 +413,7 @@ function UserModal({ user, teams, existingEmails, onClose, onSave }: { user: Use
                 <Field label="Email *"><input value={draft.email} disabled={editing} onChange={event => setDraft({ ...draft, email: event.target.value })} placeholder="name@company.com" className="form-input disabled:bg-[#f1f3f6]" /></Field>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <Field label="Workspace role"><select value={draft.workspaceRole} onChange={event => setDraft({ ...draft, workspaceRole: event.target.value as Role })} className="form-input bg-white">{ROLES.map(role => <option key={role}>{role}</option>)}</select></Field>
+                <Field label="Access role"><select value={draft.workspaceRole} onChange={event => setDraft({ ...draft, workspaceRole: event.target.value as WorkspaceRoleCode })} className="form-input bg-white">{ROLES.map(role => <option key={role.code} value={role.code}>{role.label} / {role.code}</option>)}</select></Field>
                 <Field label="Status"><select value={draft.status} onChange={event => setDraft({ ...draft, status: event.target.value as UserStatus })} className="form-input bg-white"><option>Active</option><option>Invited</option><option>Deactive</option></select></Field>
               </div>
             </div>
@@ -499,18 +524,19 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
   const [editingTeam, setEditingTeam] = useState<TeamRecord | null | undefined>(undefined);
   const [editingUser, setEditingUser] = useState<UserRecord | null | undefined>(undefined);
   const [archiveProjectTarget, setArchiveProjectTarget] = useState<ProjectRecord | null>(null);
+  const [restoreProjectTarget, setRestoreProjectTarget] = useState<ProjectRecord | null>(null);
   const [archiveTeamTarget, setArchiveTeamTarget] = useState<TeamRecord | null>(null);
-  const canManageProjects = role === "Workspace Admin" || role === "Project Manager";
-  const canManageUsers = role === "Workspace Admin";
+  const [restoreTeamTarget, setRestoreTeamTarget] = useState<TeamRecord | null>(null);
+  const canManageCompanyStructure = role === "Workspace Admin";
   const allTeamNames = Array.from(new Set(teams.map(team => team.name))).sort();
 
   useEffect(() => {
-    if (createRequest > 0 && canManageProjects) {
+    if (createRequest > 0 && canManageCompanyStructure) {
       setActiveTab("projects");
       setEditingProject(null);
       onCreateRequestHandled?.();
     }
-  }, [createRequest, canManageProjects, onCreateRequestHandled]);
+  }, [createRequest, canManageCompanyStructure, onCreateRequestHandled]);
 
   function saveProject(draft: ProjectDraft) {
     const owner = ownerForName(draft.ownerName);
@@ -588,6 +614,7 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
 
   function restoreProject(project: ProjectRecord) {
     setProjects(previous => previous.map(item => item.id === project.id ? { ...item, status: "Active", updatedAt: "Just now" } : item));
+    setRestoreProjectTarget(null);
   }
 
   function archiveTeam(team: TeamRecord) {
@@ -597,6 +624,7 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
 
   function restoreTeam(team: TeamRecord) {
     setTeams(previous => previous.map(item => item.id === team.id ? { ...item, status: "Active", updatedAt: "Just now" } : item));
+    setRestoreTeamTarget(null);
   }
 
   return (
@@ -604,27 +632,27 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
       <style>{`.form-input{width:100%;padding:0.5rem 0.75rem;border:1px solid #d9dee7;border-radius:4px;font-size:12px;color:#1a2234;outline:none}.form-input:focus{border-color:rgba(29,63,115,.45);box-shadow:0 0 0 2px rgba(29,63,115,.08)}`}</style>
       <div className="px-4 py-3 flex items-center gap-4 shrink-0" style={{ borderBottom: "1px solid #e2e6eb" }}>
         <div>
-          <h2 className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>Manage</h2>
-          <p className="text-[10px] mt-0.5" style={{ color: "#8c94a6" }}>Projects, teams and users for ACME Space Inc.</p>
+          <h2 className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>Manage Projects</h2>
+          <p className="text-[10px] mt-0.5" style={{ color: "#8c94a6" }}>Projects and teams under ACME Space Inc.</p>
         </div>
         <Tabs activeTab={activeTab} onChange={setActiveTab} />
         <div className="flex-1" />
-        {activeTab === "projects" && canManageProjects && <button onClick={() => setEditingProject(null)} className="primary-button"><Plus size={12} /> Create Project</button>}
-        {activeTab === "teams" && canManageProjects && <button onClick={() => setEditingTeam(null)} className="primary-button"><Plus size={12} /> Create Team</button>}
-        {activeTab === "users" && canManageUsers && <button onClick={() => setEditingUser(null)} className="primary-button"><UserPlus size={12} /> Invite User</button>}
+        {activeTab === "projects" && canManageCompanyStructure && <button onClick={() => setEditingProject(null)} className="primary-button"><Plus size={12} /> Create Project</button>}
+        {activeTab === "teams" && canManageCompanyStructure && <button onClick={() => setEditingTeam(null)} className="primary-button"><Plus size={12} /> Create Team</button>}
       </div>
 
-      {activeTab === "projects" && <ProjectsTab projects={projects} canManage={canManageProjects} onEdit={setEditingProject} onArchive={setArchiveProjectTarget} onRestore={restoreProject} />}
-      {activeTab === "teams" && <TeamsTab teams={teams} projects={projects} onEdit={setEditingTeam} />}
-      {activeTab === "users" && <UsersTab users={users} onEdit={setEditingUser} />}
+      {activeTab === "projects" && <ProjectsTab projects={projects} canManage={canManageCompanyStructure} onEdit={setEditingProject} onArchive={setArchiveProjectTarget} onRestore={setRestoreProjectTarget} />}
+      {activeTab === "teams" && <TeamsTab teams={teams} projects={projects} canManage={canManageCompanyStructure} onEdit={setEditingTeam} onArchive={setArchiveTeamTarget} onRestore={setRestoreTeamTarget} />}
 
       <style>{`.primary-button{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font-size:11px;font-weight:600;color:white;background-color:#1d3f73}`}</style>
 
       {editingProject !== undefined && <ProjectModal project={editingProject} existingKeys={projects.map(project => project.key)} allTeamNames={allTeamNames} onClose={() => setEditingProject(undefined)} onSave={saveProject} />}
       {editingTeam !== undefined && <TeamModal team={editingTeam} projects={projects} existingKeys={teams.filter(team => team.id !== editingTeam?.id).map(team => team.key)} onClose={() => setEditingTeam(undefined)} onSave={saveTeam} />}
       {editingUser !== undefined && <UserModal user={editingUser} teams={teams} existingEmails={users.filter(user => user.id !== editingUser?.id).map(user => user.email.toLowerCase())} onClose={() => setEditingUser(undefined)} onSave={saveUser} />}
-      {archiveProjectTarget && <ConfirmArchive title={`Archive ${archiveProjectTarget.name}?`} body="The project becomes read-only and is hidden from active selectors. Teams and delivery history are preserved." actionLabel="Archive Project" onCancel={() => setArchiveProjectTarget(null)} onConfirm={() => archiveProject(archiveProjectTarget)} />}
-      {archiveTeamTarget && <ConfirmArchive title={`Deactivate ${archiveTeamTarget.name}?`} body="The team becomes unavailable in new project/team selectors. Existing history is preserved." actionLabel="Deactivate Team" onCancel={() => setArchiveTeamTarget(null)} onConfirm={() => archiveTeam(archiveTeamTarget)} />}
+      {archiveProjectTarget && <ConfirmDestructive title={`Archive ${archiveProjectTarget.name}?`} body="The project becomes read-only and is hidden from active selectors. Teams and delivery history are preserved." actionLabel="Archive Project" onCancel={() => setArchiveProjectTarget(null)} onConfirm={() => archiveProject(archiveProjectTarget)} />}
+      {restoreProjectTarget && <ConfirmDestructive tone="restore" title={`Restore ${restoreProjectTarget.name}?`} body="The project returns to active selectors and can be managed again by Workspace Admin." actionLabel="Restore Project" onCancel={() => setRestoreProjectTarget(null)} onConfirm={() => restoreProject(restoreProjectTarget)} />}
+      {archiveTeamTarget && <ConfirmDestructive title={`Deactivate ${archiveTeamTarget.name}?`} body="The team becomes unavailable in new project/team selectors. Existing history is preserved." actionLabel="Deactivate Team" onCancel={() => setArchiveTeamTarget(null)} onConfirm={() => archiveTeam(archiveTeamTarget)} />}
+      {restoreTeamTarget && <ConfirmDestructive tone="restore" title={`Restore ${restoreTeamTarget.name}?`} body="The team returns to active project/team selectors and can receive resource allocations again." actionLabel="Restore Team" onCancel={() => setRestoreTeamTarget(null)} onConfirm={() => restoreTeam(restoreTeamTarget)} />}
     </div>
   );
 }
@@ -648,14 +676,14 @@ function ProjectsTab({ projects, canManage, onEdit, onArchive, onRestore }: { pr
       </Toolbar>
       <div className="flex-1 overflow-auto"><div className="min-w-[1120px]">
         <Header columns={[["w-20", "Key"], ["flex-1", "Project"], ["w-24", "Status"], ["w-36", "Owner"], ["w-44", "Teams"], ["w-20", "Members"], ["w-28", "Start Date"], ["w-24", "Updated"], ["w-20 text-right", "Actions"]]} />
-        {filtered.map(project => <div key={project.id} className="row cursor-pointer hover:bg-[#f7f8fa]" onClick={() => onEdit(project)}>
+        {filtered.map(project => <div key={project.id} className={canManage ? "row cursor-pointer hover:bg-[#f7f8fa]" : "row"} onClick={() => canManage && onEdit(project)}>
           <div className="w-20 shrink-0 font-mono text-[10px] font-semibold" style={{ color: "#2558a6" }}>{project.key}</div>
           <div className="flex-1 min-w-0"><p className="text-[11px] font-semibold truncate" style={{ color: "#1a2234" }}>{project.name}</p><p className="text-[9px] truncate mt-0.5" style={{ color: "#8c94a6" }}>{project.description || "No description"}</p></div>
           <div className="w-24 shrink-0"><StatusDot status={project.status} /></div>
           <div className="w-36 shrink-0 flex items-center gap-1.5"><Avatar owner={project.owner} size="xs" /><span className="text-[10px] truncate" style={{ color: "#5c6478" }}>{project.owner.name}</span></div>
           <div className="w-44 shrink-0 flex items-center -space-x-1">{project.teams.slice(0, 2).map(team => <span key={team} className="px-1.5 py-0.5 rounded-sm text-[9px] truncate max-w-24" style={{ color: "#475569", backgroundColor: "#f1f5f9", border: "1px solid white" }}>{team}</span>)}{project.teams.length > 2 && <span className="text-[9px] ml-1.5" style={{ color: "#8c94a6" }}>+{project.teams.length - 2}</span>}{project.teams.length === 0 && <span className="text-[9px]" style={{ color: "#b0b8c8" }}>No teams</span>}</div>
           <div className="w-20 shrink-0 text-[10px]" style={{ color: "#5c6478" }}>{project.members}</div><div className="w-28 shrink-0 text-[10px]" style={{ color: "#5c6478" }}>{project.startDate}</div><div className="w-24 shrink-0 text-[10px]" style={{ color: "#8c94a6" }}>{project.updatedAt}</div>
-          <RowActions canManage={canManage} active={project.status === "Active"} onEdit={() => onEdit(project)} onArchive={() => onArchive(project)} onRestore={() => onRestore(project)} restoreLabel="Restore" />
+          <RowActions canManage={canManage} active={project.status === "Active"} onEdit={() => onEdit(project)} onArchive={() => onArchive(project)} onRestore={() => onRestore(project)} archiveLabel="Archive" restoreLabel="Restore" />
         </div>)}
         {filtered.length === 0 && <EmptyTable icon={FolderKanban} title="No projects found" />}
       </div></div>
@@ -665,7 +693,7 @@ function ProjectsTab({ projects, canManage, onEdit, onArchive, onRestore }: { pr
   );
 }
 
-function TeamsTab({ teams, projects, onEdit }: { teams: TeamRecord[]; projects: ProjectRecord[]; onEdit: (team: TeamRecord) => void }) {
+function TeamsTab({ teams, projects, canManage, onEdit, onArchive, onRestore }: { teams: TeamRecord[]; projects: ProjectRecord[]; canManage: boolean; onEdit: (team: TeamRecord) => void; onArchive: (team: TeamRecord) => void; onRestore: (team: TeamRecord) => void }) {
   const [search, setSearch] = useState("");
   const [project, setProject] = useState("All");
   const [status, setStatus] = useState<"All" | TeamStatus>("Active");
@@ -685,14 +713,15 @@ function TeamsTab({ teams, projects, onEdit }: { teams: TeamRecord[]; projects: 
         <Segmented value={status} values={["All", "Active", "Deactive"] as const} onChange={setStatus} />
       </Toolbar>
       <div className="flex-1 overflow-auto"><div className="min-w-[1040px]">
-        <Header columns={[["w-20", "Key"], ["flex-1", "Team"], ["w-52", "Project"], ["w-24", "Status"], ["w-40", "Lead"], ["w-28", "Updated"]]} />
-        {filtered.map(team => <div key={team.id} className="row cursor-pointer hover:bg-[#f7f8fa]" onClick={() => onEdit(team)}>
+        <Header columns={[["w-20", "Key"], ["flex-1", "Team"], ["w-52", "Project"], ["w-24", "Status"], ["w-40", "Lead"], ["w-28", "Updated"], ["w-20 text-right", "Actions"]]} />
+        {filtered.map(team => <div key={team.id} className={canManage ? "row cursor-pointer hover:bg-[#f7f8fa]" : "row"} onClick={() => canManage && onEdit(team)}>
           <div className="w-20 shrink-0 font-mono text-[10px] font-semibold" style={{ color: "#2558a6" }}>{team.key}</div>
           <div className="flex-1 min-w-0"><p className="text-[11px] font-semibold truncate" style={{ color: "#1a2234" }}>{team.name}</p><p className="text-[9px] truncate mt-0.5" style={{ color: "#8c94a6" }}>{team.description}</p></div>
           <div className="w-52 shrink-0 text-[10px] truncate" style={{ color: "#5c6478" }}>{team.projectKey} / {team.projectName}</div>
           <div className="w-24 shrink-0"><StatusDot status={team.status} /></div>
           <div className="w-40 shrink-0 flex items-center gap-1.5"><Avatar owner={team.lead} size="xs" /><span className="text-[10px] truncate" style={{ color: "#5c6478" }}>{team.lead.name}</span></div>
           <div className="w-28 shrink-0 text-[10px]" style={{ color: "#8c94a6" }}>{team.updatedAt}</div>
+          <RowActions canManage={canManage} active={team.status === "Active"} onEdit={() => onEdit(team)} onArchive={() => onArchive(team)} onRestore={() => onRestore(team)} archiveLabel="Deactivate" restoreLabel="Restore" />
         </div>)}
         {filtered.length === 0 && <EmptyTable icon={Users} title="No teams found" />}
       </div></div>
@@ -702,9 +731,9 @@ function TeamsTab({ teams, projects, onEdit }: { teams: TeamRecord[]; projects: 
   );
 }
 
-function UsersTab({ users, onEdit }: { users: UserRecord[]; onEdit: (user: UserRecord) => void }) {
+function UsersTab({ users, canManage, onEdit }: { users: UserRecord[]; canManage: boolean; onEdit: (user: UserRecord) => void }) {
   const [search, setSearch] = useState("");
-  const [role, setRole] = useState<"All" | Role>("All");
+  const [role, setRole] = useState<"All" | WorkspaceRoleCode>("All");
   const [status, setStatus] = useState<"All" | UserStatus>("All");
   const filtered = useMemo(() => users.filter(user => (role === "All" || user.workspaceRole === role) && (status === "All" || user.status === status) && `${user.name} ${user.email} ${user.workspaceRole}`.toLowerCase().includes(search.toLowerCase())), [users, role, search, status]);
 
@@ -713,20 +742,20 @@ function UsersTab({ users, onEdit }: { users: UserRecord[]; onEdit: (user: UserR
       <div className="grid grid-cols-3 gap-3 px-4 py-3 shrink-0" style={{ backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
         <MetricCard label="Total Users" value={users.length} icon={Users} />
         <MetricCard label="Active" value={users.filter(user => user.status === "Active").length} icon={UserCheck} />
-        <MetricCard label="Admins" value={users.filter(user => user.workspaceRole === "Workspace Admin").length} icon={Shield} />
+        <MetricCard label="Admins" value={users.filter(user => user.workspaceRole === "workspace_admin").length} icon={Shield} />
       </div>
       <Toolbar count={`${filtered.length} users`}>
         <SearchBox value={search} onChange={setSearch} placeholder="Search users..." />
-        <select value={role} onChange={event => setRole(event.target.value as "All" | Role)} className="px-2.5 py-1.5 rounded text-[11px] bg-white" style={{ border: "1px solid #d9dee7", color: "#1a2234" }}><option value="All">All roles</option>{ROLES.map(item => <option key={item}>{item}</option>)}</select>
+        <select value={role} onChange={event => setRole(event.target.value as "All" | WorkspaceRoleCode)} className="px-2.5 py-1.5 rounded text-[11px] bg-white" style={{ border: "1px solid #d9dee7", color: "#1a2234" }}><option value="All">All roles</option>{ROLES.map(item => <option key={item.code} value={item.code}>{item.label} / {item.code}</option>)}</select>
         <Segmented value={status} values={["All", "Active", "Deactive"] as const} onChange={setStatus} />
       </Toolbar>
       <div className="flex-1 overflow-auto"><div className="min-w-[1080px]">
-        <Header columns={[["w-52", "User"], ["w-56", "Email"], ["w-36", "Workspace Role"], ["w-24", "Status"], ["flex-1", "Teams"], ["w-36", "Last Login"]]} />
+        <Header columns={[["w-52", "User"], ["w-56", "Email"], ["w-36", "Role"], ["w-24", "Status"], ["flex-1", "Teams"], ["w-36", "Last Login"]]} />
         {filtered.map(user => (
-          <div key={user.id} className="row cursor-pointer hover:bg-[#f7f8fa]" onClick={() => onEdit(user)}>
+          <div key={user.id} className={canManage ? "row cursor-pointer hover:bg-[#f7f8fa]" : "row"} onClick={() => canManage && onEdit(user)}>
             <div className="w-52 shrink-0 flex items-center gap-2 min-w-0"><Avatar owner={user.owner} size="sm" /><span className="text-[11px] font-semibold truncate" style={{ color: "#1a2234" }}>{user.name}</span></div>
             <div className="w-56 shrink-0 text-[10px] truncate" style={{ color: "#5c6478" }}>{user.email}</div>
-            <div className="w-36 shrink-0"><RoleBadge role={user.workspaceRole} /></div>
+            <div className="w-36 shrink-0"><WorkspaceRoleBadge role={user.workspaceRole} /></div>
             <div className="w-24 shrink-0"><StatusDot status={user.status} /></div>
             <div className="flex-1 min-w-0 text-[10px] truncate" style={{ color: "#5c6478" }}>{user.teams.join(", ")}</div>
             <div className="w-36 shrink-0 text-[10px]" style={{ color: "#8c94a6" }}>{user.lastLogin}</div>
@@ -752,10 +781,10 @@ function Header({ columns }: { columns: [string, string][] }) {
   );
 }
 
-function RowActions({ canManage, active, onEdit, onArchive, onRestore, restoreLabel }: { canManage: boolean; active: boolean; onEdit: () => void; onArchive: () => void; onRestore: () => void; restoreLabel: string }) {
+function RowActions({ canManage, active, onEdit, onArchive, onRestore, archiveLabel, restoreLabel }: { canManage: boolean; active: boolean; onEdit: () => void; onArchive: () => void; onRestore: () => void; archiveLabel: string; restoreLabel: string }) {
   return (
     <div className="w-20 shrink-0 flex items-center justify-end gap-1" onClick={event => event.stopPropagation()}>
-      {canManage && active && <><button aria-label="Edit" onClick={onEdit} className="icon-button"><Edit3 size={12} /></button><button aria-label="Archive" onClick={onArchive} className="icon-button" style={{ color: "#b45309" }}><Archive size={12} /></button></>}
+      {canManage && active && <><button aria-label="Edit" onClick={onEdit} className="icon-button"><Edit3 size={12} /></button><button aria-label={archiveLabel} title={archiveLabel} onClick={onArchive} className="icon-button" style={{ color: "#b45309" }}><Archive size={12} /></button></>}
       {canManage && !active && <button aria-label={restoreLabel} onClick={onRestore} className="flex items-center gap-1 px-2 py-1 rounded text-[10px]" style={{ color: "#1e6930", border: "1px solid #c7e4ce" }}><RotateCcw size={10} /> {restoreLabel}</button>}
       {!canManage && <MoreHorizontal size={13} style={{ color: "#b0b8c8" }} />}
     </div>
@@ -770,15 +799,31 @@ function EmptyTable({ icon: Icon, title }: { icon: typeof FolderKanban; title: s
   return <div className="py-16 text-center"><Icon size={28} className="mx-auto mb-2" style={{ color: "#c4cad4" }} /><p className="text-[12px] font-semibold" style={{ color: "#5c6478" }}>{title}</p><p className="text-[10px] mt-1" style={{ color: "#8c94a6" }}>Change the search or filters.</p></div>;
 }
 
-function ConfirmArchive({ title, body, actionLabel, onCancel, onConfirm }: { title: string; body: string; actionLabel: string; onCancel: () => void; onConfirm: () => void }) {
+function ConfirmDestructive({ title, body, actionLabel, requiredText, tone = "danger", onCancel, onConfirm }: { title: string; body: string; actionLabel: string; requiredText?: string; tone?: "danger" | "restore"; onCancel: () => void; onConfirm: () => void }) {
+  const [typedText, setTypedText] = useState("");
+  const requiresText = Boolean(requiredText);
+  const canConfirm = !requiresText || typedText.trim() === requiredText;
+  const Icon = tone === "restore" ? RotateCcw : Archive;
+  const accent = tone === "restore"
+    ? { text: "#1e6930", bg: "#eef6f0", button: "#1e6930" }
+    : { text: "#b45309", bg: "#fff7ed", button: "#b45309" };
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0" style={{ backgroundColor: "rgba(15,23,42,.34)" }} onClick={onCancel} />
       <div className="relative bg-white rounded-md shadow-xl w-[430px] p-5" style={{ border: "1px solid #d9dee7" }}>
-        <div className="w-9 h-9 rounded-full flex items-center justify-center mb-3" style={{ color: "#b45309", backgroundColor: "#fff7ed" }}><Archive size={17} /></div>
+        <div className="w-9 h-9 rounded-full flex items-center justify-center mb-3" style={{ color: accent.text, backgroundColor: accent.bg }}><Icon size={17} /></div>
         <h3 className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>{title}</h3>
         <p className="text-[11px] mt-2 leading-5" style={{ color: "#5c6478" }}>{body}</p>
-        <div className="flex justify-end gap-2 mt-5"><button onClick={onCancel} className="px-3 py-1.5 rounded text-[11px]" style={{ border: "1px solid #d9dee7" }}>Cancel</button><button onClick={onConfirm} className="px-3 py-1.5 rounded text-[11px] font-semibold text-white" style={{ backgroundColor: "#b45309" }}>{actionLabel}</button></div>
+        {requiresText && (
+          <label className="block mt-4">
+            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>Type {requiredText} to confirm</span>
+            <input value={typedText} onChange={event => setTypedText(event.target.value)} className="form-input mt-1" />
+          </label>
+        )}
+        <div className="flex justify-end gap-2 mt-5">
+          <button onClick={onCancel} className="px-3 py-1.5 rounded text-[11px]" style={{ border: "1px solid #d9dee7" }}>Cancel</button>
+          <button disabled={!canConfirm} onClick={onConfirm} className="px-3 py-1.5 rounded text-[11px] font-semibold text-white disabled:opacity-45" style={{ backgroundColor: accent.button }}>{actionLabel}</button>
+        </div>
       </div>
     </div>
   );

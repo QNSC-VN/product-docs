@@ -719,7 +719,7 @@ function NewTimeboxModal({ initialType, onClose, onCreateWithDetails }: { initia
   );
 }
 
-export function IterationsPage({ role }: { role: Role }) {
+export function IterationsPage({ role, readOnly = false }: { role: Role; readOnly?: boolean }) {
   const [timeboxType, setTimeboxType] = useState<TimeboxType>("Iterations");
   const [iterationItems, setIterationItems] = useState<TimeboxListItem[]>(buildIterationItems);
   const [releaseItems, setReleaseItems] = useState<TimeboxListItem[]>(buildReleaseItems);
@@ -734,7 +734,7 @@ export function IterationsPage({ role }: { role: Role }) {
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
 
-  const editable = can.manageSprints(role);
+  const editable = !readOnly && can.manageSprints(role);
   const displayColumns = useMemo(() => COLUMNS.map(column => {
     if (timeboxType === "Milestones" && column.key === "startDate") return { ...column, label: "Target Start Date" };
     if (timeboxType === "Milestones" && column.key === "endDate") return { ...column, label: "Target End Date" };

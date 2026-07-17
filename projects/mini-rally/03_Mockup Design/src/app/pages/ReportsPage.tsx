@@ -29,8 +29,8 @@ export function Widget({ title, span = 1, children }: { title: string; span?: nu
   );
 }
 
-export function ReportsPage({ role }: { role: Role }) {
-  const canExport = ["Workspace Admin", "Project Manager", "Product Owner"].includes(role);
+export function ReportsPage({ role, readOnly = false }: { role: Role; readOnly?: boolean }) {
+  const canExport = !readOnly && role !== "Project Member";
   const blockedItems = WORK_ITEMS.filter(i => i.blocked);
   const defectSummary = [
     { label: "Open", value: 3, color: "#8a5808" },

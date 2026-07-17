@@ -5,6 +5,7 @@ import { Avatar, TypeBadge } from "../components/shared";
 
 type TeamStatusPageProps = {
   role: Role;
+  readOnly?: boolean;
   onOpenFull: (item: WorkItem) => void;
 };
 
@@ -237,7 +238,7 @@ function ItemRow({ task, parent, editable, gridTemplate, onOpen, onUpdate }: { t
   );
 }
 
-export function TeamStatusPage({ role, onOpenFull }: TeamStatusPageProps) {
+export function TeamStatusPage({ role, readOnly = false, onOpenFull }: TeamStatusPageProps) {
   const [selectedIterationId, setSelectedIterationId] = useState("IT-24-3");
   const [iterationOpen, setIterationOpen] = useState(false);
   const [teamItems, setTeamItems] = useState<WorkItem[]>(WORK_ITEMS);
@@ -249,7 +250,7 @@ export function TeamStatusPage({ role, onOpenFull }: TeamStatusPageProps) {
   const iterations = ITERATIONS_DATA;
   const selectedIteration = iterations.find(iteration => iteration.id === selectedIterationId) ?? iterations[0];
   const selectedIterationIndex = iterations.findIndex(iteration => iteration.id === selectedIteration.id);
-  const editable = can.edit(role);
+  const editable = !readOnly && can.edit(role);
   const gridTemplate = buildGridTemplate(columnWidths);
   const tableWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
   const parentById = useMemo(() => new Map(teamItems.map(item => [item.id, item])), [teamItems]);

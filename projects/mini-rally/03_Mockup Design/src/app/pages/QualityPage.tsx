@@ -121,7 +121,7 @@ function ResizableDefectHeader({ column, width, sort, onSort, onResize }: { colu
   );
 }
 
-export function QualityPage({ role, activeItem, onItemClick, onOpenFull }: { role: Role; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
+export function QualityPage({ role, readOnly = false, activeItem, onItemClick, onOpenFull }: { role: Role; readOnly?: boolean; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
   const [defectItems, setDefectItems] = useState<WorkItem[]>(() => WORK_ITEMS.filter(item => item.type === "Defect"));
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -134,7 +134,7 @@ export function QualityPage({ role, activeItem, onItemClick, onOpenFull }: { rol
   const [priorityById, setPriorityById] = useState<Record<string, DefectPriority>>(() => Object.fromEntries(WORK_ITEMS.filter(item => item.type === "Defect").map(item => [item.id, DEFECT_PRIORITY_LABELS[item.priority] as DefectPriority])));
   const [stateById, setStateById] = useState<Record<string, DefectState>>(() => Object.fromEntries(WORK_ITEMS.filter(item => item.type === "Defect").map((item, index) => [item.id, DEFAULT_DEFECT_STATES[index % DEFAULT_DEFECT_STATES.length]])));
   const [flowStateById, setFlowStateById] = useState<Record<string, DefectFlowState>>(() => Object.fromEntries(WORK_ITEMS.filter(item => item.type === "Defect").map(item => [item.id, defaultFlowState(item.status)])));
-  const editable = can.createDefects(role);
+  const editable = !readOnly && can.createDefects(role);
 
   const rows = defectItems.map((item, index) => ({ item, meta: defectMeta(item, index) }));
   const filtered = rows.filter(({ item, meta }) => {

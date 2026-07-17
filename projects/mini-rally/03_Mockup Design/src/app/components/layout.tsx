@@ -17,7 +17,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
+import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "./shared";
 
 export const NAV_ITEMS: { key: Page; label: string; icon: React.ReactNode; children?: { key: Page; label: string; icon: React.ReactNode }[] }[] = [
@@ -44,7 +44,17 @@ export function TopNav({
   const [userOpen, setUserOpen] = useState(false);
   const [openNavKey, setOpenNavKey] = useState<Page | null>(null);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set(["NXP"]));
-  const roles: Role[] = ["Workspace Admin", "Project Manager", "Product Owner", "Developer", "Tester", "Viewer"];
+  const roles: Role[] = ["Workspace Admin", "Project Admin", "Project Member"];
+  const visibleProjects = currentRole === "Project Member"
+    ? SCOPE_PROJECTS
+      .filter(project => project.key === ROLE_SCOPE.projectMemberProjectKey)
+      .map(project => ({ ...project, teams: project.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number])) }))
+    : SCOPE_PROJECTS;
+  const visibleNavItems = currentRole === "Project Member"
+    ? NAV_ITEMS
+      .filter(item => ["home", "backlog", "track"].includes(item.key))
+      .map(item => item.children ? { ...item, children: item.children.filter(child => child.key === "track" || child.key === "backlog") } : item)
+    : NAV_ITEMS;
   function toggleProject(key: string) {
     setExpandedProjects(prev => {
       const next = new Set(prev);
@@ -76,14 +86,14 @@ export function TopNav({
               </div>
               <div className="px-3 pt-2 pb-1 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Projects & Teams</div>
               <div className="max-h-80 overflow-y-auto px-1.5">
-                {SCOPE_PROJECTS.map(project => {
+                {visibleProjects.map(project => {
                   const expanded = expandedProjects.has(project.key);
                   const selectedProject = currentProject.key === project.key;
                   return (
                     <div key={project.key} className="mb-0.5">
                       <div className="flex items-center rounded" style={{ backgroundColor: selectedProject ? "#edf2fb" : "transparent" }}>
                         <button aria-label={`${expanded ? "Collapse" : "Expand"} ${project.name}`} onClick={() => toggleProject(project.key)} className="p-1.5 shrink-0" style={{ color: "#8c94a6" }}>{expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}</button>
-                        <button onClick={() => { onScopeChange(project, project.teams[0]); setWsOpen(false); }} className="flex-1 flex items-center gap-2 pr-2 py-1.5 text-left min-w-0">
+                        <button onClick={() => { onScopeChange(project, currentRole === "Project Member" ? project.teams[0] : "All Teams"); setWsOpen(false); }} className="flex-1 flex items-center gap-2 pr-2 py-1.5 text-left min-w-0">
                           <Package size={12} style={{ color: selectedProject ? "#1d3f73" : "#5c6478" }} />
                           <span className="flex-1 min-w-0"><span className="block text-[11px] font-semibold truncate" style={{ color: selectedProject ? "#1d3f73" : "#1a2234" }}>{project.name}</span><span className="block text-[9px]" style={{ color: "#8c94a6" }}>{project.key} · {project.teams.length} teams</span></span>
                           {selectedProject && <Check size={11} style={{ color: "#1d3f73" }} />}
@@ -91,7 +101,7 @@ export function TopNav({
                       </div>
                       {expanded && (
                         <div className="ml-5 pl-2" style={{ borderLeft: "1px solid #d9dee7" }}>
-                          {project.teams.map(team => {
+                          {(currentRole === "Project Member" ? project.teams : ["All Teams", ...project.teams]).map(team => {
                             const selectedTeam = selectedProject && currentTeam === team;
                             return <button key={team} onClick={() => { onScopeChange(project, team); setWsOpen(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-left rounded hover:bg-[#f4f6f9]" style={{ backgroundColor: selectedTeam ? "#f0f4fb" : "transparent" }}><Users size={10} style={{ color: selectedTeam ? "#2558a6" : "#8c94a6" }} /><span className="flex-1 text-[10px] truncate" style={{ color: selectedTeam ? "#1d3f73" : "#5c6478", fontWeight: selectedTeam ? 600 : 400 }}>{team}</span>{selectedTeam && <Check size={10} style={{ color: "#2558a6" }} />}</button>;
                           })}
@@ -102,7 +112,7 @@ export function TopNav({
                 })}
               </div>
               <div className="border-t border-[#e2e6eb] mt-1 pt-1 px-1.5 flex items-center justify-end">
-                <button onClick={() => { onNavigate("projects"); setWsOpen(false); }} className="flex items-center gap-1 px-2 py-1.5 text-[10px] rounded hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><Settings size={11} /> Manage</button>
+                {currentRole !== "Project Member" && <button aria-label="Manage workspace projects and teams" title="Manage workspace projects and teams" onClick={() => { onNavigate("projects"); setWsOpen(false); }} className="flex items-center gap-1 px-2 py-1.5 text-[10px] rounded hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><Settings size={11} /> Manage Projects</button>}
               </div>
             </div>
           )}
@@ -110,7 +120,7 @@ export function TopNav({
       </div>
 
       <nav className="flex items-center gap-0.5 flex-1">
-        {NAV_ITEMS.map(({ key, label, icon, children }) => {
+        {visibleNavItems.map(({ key, label, icon, children }) => {
           const active = currentPage === key || Boolean(children?.some(child => child.key === currentPage));
           const open = openNavKey === key;
           return children ? (
@@ -142,12 +152,12 @@ export function TopNav({
           <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "rgba(255,255,255,0.4)" }} />
           <input type="text" placeholder="Search all work items..." className="pl-7 pr-3 py-1 text-[11px] rounded" style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)", color: "#fff", width: 190 }} onFocus={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.16)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }} onBlur={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"; }} />
         </div>
-        <button onClick={() => onNavigate("notifications")} className="relative p-1.5 rounded" style={{ color: "rgba(255,255,255,0.65)" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}>
+        <button aria-label="Notifications" title="Notifications" onClick={() => onNavigate("notifications")} className="relative p-1.5 rounded" style={{ color: "rgba(255,255,255,0.65)" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}>
           <Bell size={14} />{unreadCount > 0 && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#f97316" }} />}
         </button>
-        <button className="p-1.5 rounded" style={{ color: "rgba(255,255,255,0.65)" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}><HelpCircle size={14} /></button>
-        {can.manageSettings(currentRole) && (
-          <button onClick={() => onNavigate("settings")} className="p-1.5 rounded" style={{ color: currentPage === "settings" ? "#fff" : "rgba(255,255,255,0.65)", backgroundColor: currentPage === "settings" ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { if (currentPage !== "settings") { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
+        <button aria-label="Help" title="Help" className="p-1.5 rounded" style={{ color: "rgba(255,255,255,0.65)" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}><HelpCircle size={14} /></button>
+        {can.viewAdmin(currentRole) && (
+          <button aria-label="Workspace Settings" title="Workspace Settings" onClick={() => onNavigate("settings")} className="p-1.5 rounded" style={{ color: currentPage === "settings" ? "#fff" : "rgba(255,255,255,0.65)", backgroundColor: currentPage === "settings" ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { if (currentPage !== "settings") { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
             <Settings size={14} />
           </button>
         )}
@@ -157,7 +167,7 @@ export function TopNav({
             <Avatar owner={OWNERS[0]} size="sm" />
             <div className="text-left hidden sm:block">
               <div className="text-[11px] font-medium text-white leading-none">Marcus Webb</div>
-              <div className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>{currentRole === "Workspace Admin" ? "Admin" : currentRole}</div>
+              <div className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>{currentRole}</div>
             </div>
             <ChevronDown size={10} style={{ color: "rgba(255,255,255,0.5)" }} />
           </button>
@@ -175,6 +185,7 @@ export function TopNav({
                 </button>
               ))}
               <div className="border-t border-[#edf0f4] mt-1 pt-1">
+                <button onClick={() => { onNavigate("settings"); setUserOpen(false); }} className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><UserCheck size={11} /> Profile & Account</button>
                 <button onClick={onSignOut} className="w-full flex items-center gap-2 px-3 py-1.5 text-[12px] hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><LogOut size={11} /> Sign out</button>
               </div>
             </div>
@@ -233,7 +244,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam }: { curre
   if (currentPage === "settings" || currentPage === "notifications") return null;
   const crumbs: Record<Page, string[]> = {
     home: ["ACME Space Inc.", "Home"],
-    projects: ["ACME Space Inc.", "Manage"],
+    projects: ["ACME Space Inc.", "Manage Projects"],
     backlog: [currentProject.name, "Plan", "Backlog"],
     iterations: [currentProject.name, "Plan", "Timeboxes"],
     track: [currentProject.name, "Track", "Iteration Status"],

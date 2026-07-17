@@ -222,7 +222,7 @@ function AddTaskModal({ defaultOwner, onClose }: { defaultOwner: string; onClose
   );
 }
 
-function TaskDetailView({ task, parentItem, role, onBack }: { task: TaskRow; parentItem: WorkItem; role: Role; onBack: () => void }) {
+function TaskDetailView({ task, parentItem, readOnly, onBack }: { task: TaskRow; parentItem: WorkItem; readOnly: boolean; onBack: () => void }) {
   const [activeTaskTab, setActiveTaskTab] = useState<TaskDetailTab>("details");
   const [taskProject, setTaskProject] = useState(task.project);
   const selectedTaskProject = SCOPE_PROJECTS.find(candidate => candidate.key === taskProject) || SCOPE_PROJECTS[0];
@@ -264,27 +264,27 @@ function TaskDetailView({ task, parentItem, role, onBack }: { task: TaskRow; par
             <h2 className="text-[20px] font-semibold truncate" style={{ color: "#273449" }}>{task.name}</h2>
           </div>
 
-          <RichTextEditor title="Description" initialValue={task.description} minHeight={250} readOnly={role === "Viewer"} />
-          <RichTextEditor title="Notes" initialValue={task.notes} minHeight={220} readOnly={role === "Viewer"} />
+          <RichTextEditor title="Description" initialValue={task.description} minHeight={250} readOnly={readOnly} />
+          <RichTextEditor title="Notes" initialValue={task.notes} minHeight={220} readOnly={readOnly} />
           <section className="bg-white rounded overflow-hidden" style={{ border: "1px solid #dde2ea" }}>
             <div className="px-4 py-2 text-[11px] font-semibold" style={{ color: "#475569", backgroundColor: "#f8fafc", borderBottom: "1px solid #dde2ea" }}>Attachments</div>
             <div className="p-3 space-y-2">
               {task.attachments.length > 0 ? task.attachments.map(fileName => <div key={fileName} className="flex items-center justify-between px-3 py-2 rounded text-[12px]" style={{ border: "1px solid #e2e8f0", color: "#334155", backgroundColor: "#fbfdff" }}><span>{fileName}</span><span className="text-[10px]" style={{ color: "#64748b" }}>Attached to task</span></div>) : <p className="text-[12px]" style={{ color: "#64748b" }}>No attachments yet.</p>}
-              <button className="flex items-center gap-1.5 px-3 py-2 text-[12px] rounded text-left" style={{ width: "100%", color: "#2563c5", border: "1px solid #b9c9df", backgroundColor: "#fbfdff" }}><Plus size={15} />Drag or click to add attachments</button>
+              {!readOnly && <button className="flex items-center gap-1.5 px-3 py-2 text-[12px] rounded text-left" style={{ width: "100%", color: "#2563c5", border: "1px solid #b9c9df", backgroundColor: "#fbfdff" }}><Plus size={15} />Drag or click to add attachments</button>}
             </div>
           </section>
         </div>
       </main>
 
       <aside className="w-[340px] shrink-0 overflow-y-scroll p-5 space-y-4 bg-white" style={{ borderLeft: "1px solid #d7dde7", scrollbarGutter: "stable" }}>
-        <Field label="State"><select className={fieldClass} style={fieldStyle} defaultValue={task.state}>{["Defined", "In-Progress", "Completed"].map(state => <option key={state}>{state}</option>)}</select></Field>
-        <Field label="Owner"><select className={fieldClass} style={fieldStyle} defaultValue={task.owner.name}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select></Field>
-        <Field label="Project"><select aria-label="Task project" value={taskProject} onChange={event => changeTaskProject(event.target.value)} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.map(scopeProject => <option key={scopeProject.key} value={scopeProject.key}>{scopeProject.key} · {scopeProject.name}</option>)}</select></Field>
-        <Field label="Team"><select aria-label="Task team" value={taskTeam} onChange={event => setTaskTeam(event.target.value)} className={fieldClass} style={fieldStyle}>{selectedTaskProject.teams.map(scopeTeam => <option key={scopeTeam}>{scopeTeam}</option>)}</select></Field>
-        <Field label="Work Product"><select className={fieldClass} style={fieldStyle} defaultValue={parentItem.id}><option value={parentItem.id}>{parentItem.id} · {parentItem.title}</option><option value="unscheduled">Unassigned</option></select></Field>
-        <Field label="Estimate"><input className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={task.estimate} /></Field>
-        <Field label="To Do"><input className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={task.todo} /></Field>
-        <Field label="Actual"><input className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={task.actuals} /></Field>
+        <Field label="State"><select disabled={readOnly} className={fieldClass} style={fieldStyle} defaultValue={task.state}>{["Defined", "In-Progress", "Completed"].map(state => <option key={state}>{state}</option>)}</select></Field>
+        <Field label="Owner"><select disabled={readOnly} className={fieldClass} style={fieldStyle} defaultValue={task.owner.name}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select></Field>
+        <Field label="Project"><select disabled={readOnly} aria-label="Task project" value={taskProject} onChange={event => changeTaskProject(event.target.value)} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.map(scopeProject => <option key={scopeProject.key} value={scopeProject.key}>{scopeProject.key} · {scopeProject.name}</option>)}</select></Field>
+        <Field label="Team"><select disabled={readOnly} aria-label="Task team" value={taskTeam} onChange={event => setTaskTeam(event.target.value)} className={fieldClass} style={fieldStyle}>{selectedTaskProject.teams.map(scopeTeam => <option key={scopeTeam}>{scopeTeam}</option>)}</select></Field>
+        <Field label="Work Product"><select disabled={readOnly} className={fieldClass} style={fieldStyle} defaultValue={parentItem.id}><option value={parentItem.id}>{parentItem.id} · {parentItem.title}</option><option value="unscheduled">Unassigned</option></select></Field>
+        <Field label="Estimate"><input disabled={readOnly} className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={task.estimate} /></Field>
+        <Field label="To Do"><input disabled={readOnly} className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={task.todo} /></Field>
+        <Field label="Actual"><input disabled={readOnly} className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={task.actuals} /></Field>
       </aside>
     </div>
       )}
@@ -292,7 +292,7 @@ function TaskDetailView({ task, parentItem, role, onBack }: { task: TaskRow; par
   );
 }
 
-export function WorkItemDetailPage({ item, role, project, team: initialTeam, onBack, onMinimize }: { item: WorkItem; role: Role; project: ScopeProject; team: string; onBack: () => void; onMinimize?: (item: WorkItem) => void }) {
+export function WorkItemDetailPage({ item, role, readOnly = false, project, team: initialTeam, onBack, onMinimize }: { item: WorkItem; role: Role; readOnly?: boolean; project: ScopeProject; team: string; onBack: () => void; onMinimize?: (item: WorkItem) => void }) {
   const [activeTab, setActiveTab] = useState<DetailTab>("details");
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [taskRows, setTaskRows] = useState<TaskRow[]>(TASK_ROWS);
@@ -301,7 +301,7 @@ export function WorkItemDetailPage({ item, role, project, team: initialTeam, onB
   const selectedProject = SCOPE_PROJECTS.find(candidate => candidate.key === selectedProjectKey) || project;
   const [team, setTeam] = useState(selectedProject.teams.includes(initialTeam) ? initialTeam : selectedProject.teams[0]);
   const taskTotals = calculateTaskTotals(taskRows);
-  const taskDashboardEditable = role !== "Viewer";
+  const taskDashboardEditable = !readOnly;
 
   function changeProject(projectKey: string) {
     const nextProject = SCOPE_PROJECTS.find(candidate => candidate.key === projectKey) || project;
@@ -315,7 +315,7 @@ export function WorkItemDetailPage({ item, role, project, team: initialTeam, onB
   }
 
   if (selectedTask) {
-    return <TaskDetailView task={selectedTask} parentItem={item} role={role} onBack={() => setSelectedTask(null)} />;
+    return <TaskDetailView task={selectedTask} parentItem={item} readOnly={readOnly} onBack={() => setSelectedTask(null)} />;
   }
 
   return (
@@ -343,19 +343,19 @@ export function WorkItemDetailPage({ item, role, project, team: initialTeam, onB
           {activeTab === "details" ? (
             <div className="w-full space-y-5">
               <h2 className="text-[20px] font-semibold" style={{ color: "#273449" }}>Details</h2>
-              <RichTextEditor title="Description" initialValue={item.description} minHeight={250} readOnly={role === "Viewer"} />
+              <RichTextEditor title="Description" initialValue={item.description} minHeight={250} readOnly={readOnly} />
               <section className="bg-white rounded overflow-hidden" style={{ border: "1px solid #dde2ea" }}>
                 <div className="px-4 py-2 text-[11px] font-semibold" style={{ color: "#475569", backgroundColor: "#f8fafc", borderBottom: "1px solid #dde2ea" }}>Attachments</div>
-                <button className="m-3 flex items-center gap-1.5 px-3 py-2 text-[12px] rounded text-left" style={{ width: "calc(100% - 24px)", color: "#2563c5", border: "1px solid #b9c9df", backgroundColor: "#fbfdff" }}><Plus size={15} />Drag or click to add attachments</button>
+                {!readOnly && <button className="m-3 flex items-center gap-1.5 px-3 py-2 text-[12px] rounded text-left" style={{ width: "calc(100% - 24px)", color: "#2563c5", border: "1px solid #b9c9df", backgroundColor: "#fbfdff" }}><Plus size={15} />Drag or click to add attachments</button>}
               </section>
-              <RichTextEditor title="Notes" minHeight={220} readOnly={role === "Viewer"} />
-              <RichTextEditor title="Release Notes (Technical Writer Content)" minHeight={160} readOnly={role === "Viewer"} />
+              <RichTextEditor title="Notes" minHeight={220} readOnly={readOnly} />
+              <RichTextEditor title="Release Notes (Technical Writer Content)" minHeight={160} readOnly={readOnly || role === "Project Member"} />
             </div>
           ) : activeTab === "history" ? (
             <ActivityLogView />
           ) : (
             <div className="w-full">
-              <div className="flex items-center justify-between mb-4"><div><h2 className="text-[20px] font-semibold" style={{ color: "#273449" }}>Tasks</h2><p className="text-[11px] mt-1" style={{ color: "#64748b" }}>Break this work item into trackable delivery tasks.</p></div><button onClick={() => setIsAddTaskOpen(true)} disabled={role === "Viewer"} className="flex items-center gap-1.5 px-3 py-2 rounded text-[11px] font-semibold text-white disabled:opacity-45" style={{ backgroundColor: "#1d3f73" }}><Plus size={13} />Add Task</button></div>
+              <div className="flex items-center justify-between mb-4"><div><h2 className="text-[20px] font-semibold" style={{ color: "#273449" }}>Tasks</h2><p className="text-[11px] mt-1" style={{ color: "#64748b" }}>Break this work item into trackable delivery tasks.</p></div>{!readOnly && <button onClick={() => setIsAddTaskOpen(true)} className="flex items-center gap-1.5 px-3 py-2 rounded text-[11px] font-semibold text-white" style={{ backgroundColor: "#1d3f73" }}><Plus size={13} />Add Task</button>}</div>
               <div className="bg-white rounded overflow-x-auto" style={{ border: "1px solid #dde2ea" }}>
                 <div className="min-w-[1450px]">
                   <div className="grid h-10 items-center" style={{ gridTemplateColumns: TASK_GRID_COLUMNS, backgroundColor: "white", borderBottom: "2px solid #9fb4d1" }}>
@@ -428,19 +428,19 @@ export function WorkItemDetailPage({ item, role, project, team: initialTeam, onB
 
         {activeTab === "details" && (
         <aside className="w-[340px] shrink-0 overflow-y-scroll p-5 space-y-4 bg-white" style={{ borderLeft: "1px solid #d7dde7", scrollbarGutter: "stable" }}>
-          <Field label="Owner"><select className={fieldClass} style={fieldStyle} defaultValue={item.owner.name}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select></Field>
-          <Field label="Project"><select aria-label="Detail project" value={selectedProjectKey} onChange={event => changeProject(event.target.value)} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.map(scopeProject => <option key={scopeProject.key} value={scopeProject.key}>{scopeProject.key} · {scopeProject.name}</option>)}</select></Field>
-          <Field label="Team"><select aria-label="Detail team" value={team} onChange={event => setTeam(event.target.value)} className={fieldClass} style={fieldStyle}>{selectedProject.teams.map(scopeTeam => <option key={scopeTeam}>{scopeTeam}</option>)}</select></Field>
-          <Field label="Schedule State"><select className={fieldClass} style={fieldStyle} defaultValue={WORK_ITEM_STATE_OPTIONS.includes(item.status) ? item.status : "Defined"}>{WORK_ITEM_STATE_OPTIONS.map(status => <option key={status}>{status}</option>)}</select></Field>
-          <Field label="Flow State"><select className={fieldClass} style={fieldStyle} defaultValue={WORK_ITEM_STATE_OPTIONS.includes(item.status) ? item.status : "In-Progress"}>{WORK_ITEM_STATE_OPTIONS.map(status => <option key={status}>{status}</option>)}</select></Field>
-          {item.type === "Defect" && <Field label="Priority"><select className={fieldClass} style={fieldStyle} defaultValue={DEFECT_PRIORITY_DEFAULTS[item.priority] ?? "None"}>{DEFECT_PRIORITY_OPTIONS.map(priority => <option key={priority}>{priority}</option>)}</select></Field>}
-          <Field label="Plan Estimate"><input className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={item.planEstimate} /></Field>
-          <Field label="Release"><select className={fieldClass} style={fieldStyle} defaultValue={item.release}>{[item.release, "Q1 2025", "Q2 2025", "Unscheduled"].filter((value, index, values) => values.indexOf(value) === index).map(release => <option key={release}>{release}</option>)}</select></Field>
-          <Field label="Iteration"><select className={fieldClass} style={fieldStyle} defaultValue={item.iteration}>{[item.iteration, ...WORK_ITEM_ITERATION_OPTIONS].filter((value, index, values) => values.indexOf(value) === index).map(iteration => <option key={iteration}>{iteration}</option>)}</select></Field>
+          <Field label="Owner"><select disabled={readOnly} className={fieldClass} style={fieldStyle} defaultValue={item.owner.name}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select></Field>
+          <Field label="Project"><select disabled={readOnly} aria-label="Detail project" value={selectedProjectKey} onChange={event => changeProject(event.target.value)} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.map(scopeProject => <option key={scopeProject.key} value={scopeProject.key}>{scopeProject.key} · {scopeProject.name}</option>)}</select></Field>
+          <Field label="Team"><select disabled={readOnly} aria-label="Detail team" value={team} onChange={event => setTeam(event.target.value)} className={fieldClass} style={fieldStyle}>{selectedProject.teams.map(scopeTeam => <option key={scopeTeam}>{scopeTeam}</option>)}</select></Field>
+          <Field label="Schedule State"><select disabled={readOnly} className={fieldClass} style={fieldStyle} defaultValue={WORK_ITEM_STATE_OPTIONS.includes(item.status) ? item.status : "Defined"}>{WORK_ITEM_STATE_OPTIONS.map(status => <option key={status}>{status}</option>)}</select></Field>
+          <Field label="Flow State"><select disabled={readOnly} className={fieldClass} style={fieldStyle} defaultValue={WORK_ITEM_STATE_OPTIONS.includes(item.status) ? item.status : "In-Progress"}>{WORK_ITEM_STATE_OPTIONS.map(status => <option key={status}>{status}</option>)}</select></Field>
+          {item.type === "Defect" && <Field label="Priority"><select disabled={readOnly} className={fieldClass} style={fieldStyle} defaultValue={DEFECT_PRIORITY_DEFAULTS[item.priority] ?? "None"}>{DEFECT_PRIORITY_OPTIONS.map(priority => <option key={priority}>{priority}</option>)}</select></Field>}
+          <Field label="Plan Estimate"><input disabled={readOnly} className={fieldClass} style={fieldStyle} type="number" min={0} defaultValue={item.planEstimate} /></Field>
+          <Field label="Release"><select disabled={readOnly || role === "Project Member"} className={fieldClass} style={fieldStyle} defaultValue={item.release}>{[item.release, "Q1 2025", "Q2 2025", "Unscheduled"].filter((value, index, values) => values.indexOf(value) === index).map(release => <option key={release}>{release}</option>)}</select></Field>
+          <Field label="Iteration"><select disabled={readOnly} className={fieldClass} style={fieldStyle} defaultValue={item.iteration}>{[item.iteration, ...WORK_ITEM_ITERATION_OPTIONS].filter((value, index, values) => values.indexOf(value) === index).map(iteration => <option key={iteration}>{iteration}</option>)}</select></Field>
         </aside>
         )}
       </div>
-      {isAddTaskOpen && <AddTaskModal defaultOwner={item.owner.name} onClose={() => setIsAddTaskOpen(false)} />}
+      {!readOnly && isAddTaskOpen && <AddTaskModal defaultOwner={item.owner.name} onClose={() => setIsAddTaskOpen(false)} />}
     </div>
   );
 }

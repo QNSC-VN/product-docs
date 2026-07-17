@@ -18,7 +18,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES, ITERATIONS_DATA } from "../model";
+import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES, ITERATIONS_DATA } from "../model";
 import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
 
 export type BacklogColumnKey = "rank" | "type" | "id" | "name" | "priority" | "estimate" | "owner" | "status" | "iteration" | "release";
@@ -101,7 +101,7 @@ export function ResizableBacklogHeader({ label, width, column, onResize, sort, o
   );
 }
 
-export function BacklogPage({ role, activeItem, onItemClick, onOpenFull }: { role: Role; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
+export function BacklogPage({ role, project, team, activeItem, onItemClick, onOpenFull }: { role: Role; project: ScopeProject; team: string; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
   const [backlogItems, setBacklogItems] = useState<WorkItem[]>(() =>
     WORK_ITEMS.filter(item => item.id.startsWith("US") || item.id.startsWith("DE"))
   );
@@ -120,7 +120,8 @@ export function BacklogPage({ role, activeItem, onItemClick, onOpenFull }: { rol
 
   const releaseOptions = Array.from(new Set(backlogItems.map(item => item.release))).sort();
   const iterationOptions = Array.from(new Set([...ITERATIONS_DATA.map(iteration => iteration.name), "Unscheduled", ...backlogItems.map(item => item.iteration)])).sort();
-  const editable = can.manageBacklog(role);
+  const editable = can.manageBacklog(role) && !(role === "Project Admin" && !ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
+  const canEditRelease = editable && role !== "Project Member";
   const activeFilterColumns = BACKLOG_FILTER_COLUMNS.filter(column => filters[column.key] !== undefined);
   const activeFilterCount = activeFilterColumns.length;
   const availableFilterColumns = BACKLOG_FILTER_COLUMNS.filter(column => column.label.toLowerCase().includes(filterColumnSearch.toLowerCase()));
@@ -270,9 +271,9 @@ export function BacklogPage({ role, activeItem, onItemClick, onOpenFull }: { rol
         <div className="flex flex-col items-start gap-1.5 mr-2 min-w-[150px]">
           <div>
             <h2 className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>Backlog</h2>
-            <p className="text-[10px]" style={{ color: "#8c94a6" }}>Nexus Platform 2025 · All Teams</p>
+            <p className="text-[10px]" style={{ color: "#8c94a6" }}>{project.name} · {team}</p>
           </div>
-          {can.create(role) && (
+          {editable && (
             <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#1d3f73")}>
               <Plus size={12} /> Create Work Item
             </button>
@@ -435,7 +436,7 @@ export function BacklogPage({ role, activeItem, onItemClick, onOpenFull }: { rol
                     {editable ? <select aria-label={`${item.id} iteration`} value={item.iteration} onChange={event => updateItem(item.id, { iteration: event.target.value })} className="w-[122px] text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{iterationOptions.map(iteration => <option key={iteration}>{iteration}</option>)}</select> : item.iteration}
                   </div>
                   <div className="shrink-0 overflow-hidden text-[11px]" style={{ width: columnWidths.release, color: "#5c6478" }} onClick={event => event.stopPropagation()}>
-                    {editable ? <select aria-label={`${item.id} release`} value={item.release} onChange={event => updateItem(item.id, { release: event.target.value })} className="w-[82px] text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{releaseOptions.map(release => <option key={release}>{release}</option>)}</select> : item.release}
+                    {canEditRelease ? <select aria-label={`${item.id} release`} value={item.release} onChange={event => updateItem(item.id, { release: event.target.value })} className="w-[82px] text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{releaseOptions.map(release => <option key={release}>{release}</option>)}</select> : item.release}
                   </div>
                 </div>
               );

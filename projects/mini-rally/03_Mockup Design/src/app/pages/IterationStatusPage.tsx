@@ -223,7 +223,7 @@ function IterationAddItemModal({ iteration, onClose, onCreateWithDetails }: { it
   );
 }
 
-export function TrackPage({ title = "Iteration Status", initialView = "list", role, activeItem, onItemClick, onOpenFull }: { title?: string; initialView?: "list" | "board"; role: Role; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
+export function TrackPage({ title = "Iteration Status", initialView = "list", role, readOnly = false, activeItem, onItemClick, onOpenFull }: { title?: string; initialView?: "list" | "board"; role: Role; readOnly?: boolean; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
   const [iterationItems, setIterationItems] = useState<WorkItem[]>(WORK_ITEMS);
   const [view, setView] = useState<"list" | "board">(initialView);
   const [search, setSearch] = useState("");
@@ -253,7 +253,8 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
     setSelectedIds(new Set());
   }
 
-  const editable = can.manageBacklog(role);
+  const editable = !readOnly && can.manageBacklog(role);
+  const boardEditable = editable && can.dragBoard(role);
   const activeFilterColumns = ITERATION_FILTER_COLUMNS.filter(column => filters[column.key] !== undefined);
   const activeFilterCount = activeFilterColumns.length;
   const availableFilterColumns = ITERATION_FILTER_COLUMNS.filter(column => column.label.toLowerCase().includes(filterColumnSearch.toLowerCase()));
@@ -498,7 +499,7 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
               <input type="text" placeholder="Filter items..." value={search} onChange={e => { setSearch(e.target.value); setCurrentPage(1); }} className="pl-7 pr-3 py-1 text-[12px] rounded focus:outline-none" style={{ backgroundColor: "#f4f6f9", border: "1px solid #dde2ea", color: "#1a2234", width: 160 }} />
             </div>
             <button onClick={() => setShowFilters(previous => !previous)} className="flex items-center gap-1.5 px-2 py-1 text-[11px] rounded" style={{ border: "1px solid #bdd0ef", color: "#2558a6", backgroundColor: showFilters ? "#edf2fb" : "#fff" }}><Filter size={11} /> {showFilters ? "Hide filter" : "Show filter"}{activeFilterCount > 0 ? ` (${activeFilterCount})` : ""}</button>
-            {can.create(role) && <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#1d3f73")}><Plus size={12} /> Add Item</button>}
+            {editable && <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#1d3f73")}><Plus size={12} /> Add Item</button>}
             <div className="flex-1" />
           </div>
 
@@ -684,7 +685,7 @@ export function TrackBoardView({ items, role, activeItem, onItemClick, onOpenFul
           </button>
         ))}
         <div className="flex-1" />
-        {!can.dragBoard(role) && <span className="text-[10px] px-2 py-0.5 rounded-sm" style={{ backgroundColor: "#f1f5f9", color: "#8c94a6" }}>View only — Viewer role cannot drag cards</span>}
+        {!boardEditable && <span className="text-[10px] px-2 py-0.5 rounded-sm" style={{ backgroundColor: "#f1f5f9", color: "#8c94a6" }}>Board editing is unavailable for this context</span>}
       </div>
 
       <div className="flex flex-1 overflow-x-auto p-4" style={{ backgroundColor: "#f0f2f5" }}>
@@ -702,13 +703,13 @@ export function TrackBoardView({ items, role, activeItem, onItemClick, onOpenFul
                       {colItems.length}{wip !== undefined && `/${wip}`}
                     </span>
                   </div>
-                  {can.create(role) && <Plus size={13} style={{ color: "#8c94a6" }} className="cursor-pointer" />}
+                  {boardEditable && <Plus size={13} style={{ color: "#8c94a6" }} className="cursor-pointer" />}
                 </div>
                 <div className="flex-1 overflow-y-auto rounded p-2" style={{ backgroundColor: "#e8eaed", minHeight: 80 }}>
                   {colItems.map(item => (
                     <div key={item.id} className="bg-white rounded p-2.5 mb-2 cursor-pointer transition-shadow hover:shadow-sm" style={{ border: "1px solid #e2e6eb", outline: activeItem?.id === item.id ? "2px solid #2558a6" : undefined }}
                       onClick={() => onItemClick(item)}
-                      draggable={can.dragBoard(role)}
+                      draggable={boardEditable}
                     >
                       <div className="flex items-start justify-between gap-1.5 mb-1.5">
                         <TypeBadge type={item.type} />
@@ -733,7 +734,7 @@ export function TrackBoardView({ items, role, activeItem, onItemClick, onOpenFul
                   ))}
                   {colItems.length === 0 && (
                     <div className="flex items-center justify-center py-6 text-[10px] rounded" style={{ color: "#8c94a6", border: "1.5px dashed #d4d8de", backgroundColor: "rgba(255,255,255,0.5)" }}>
-                      {can.dragBoard(role) ? "Drop items here" : "No items"}
+                      {boardEditable ? "Drop items here" : "No items"}
                     </div>
                   )}
                 </div>
