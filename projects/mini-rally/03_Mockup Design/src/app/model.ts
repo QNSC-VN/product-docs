@@ -1,8 +1,10 @@
 ﻿export type Role = "Workspace Admin" | "Project Admin" | "Project Member";
-export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "releases" | "reports" | "notifications" | "settings";
+export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "releasePlanning" | "releases" | "reports" | "notifications" | "settings";
 export type WorkItemType = "Story" | "Defect" | "Task" | "Feature";
-export type StatusType = "Idea" | "Defined" | "In-Progress" | "Code Review" | "Testing" | "Completed" | "Accepted" | "Release";
+export type StatusType = "Idea" | "Defined" | "In-Progress" | "Completed" | "Accepted" | "Release";
+export type TaskState = "Defined" | "In-Progress" | "Completed";
 export type PriorityType = "Critical" | "High" | "Medium" | "Low";
+export type MilestoneState = "Planned" | "At Risk" | "Met" | "Missed" | "Cancelled" | "Completed";
 
 export interface Owner { name: string; initials: string; color: string; }
 export interface WorkItem {
@@ -10,14 +12,53 @@ export interface WorkItem {
   status: StatusType; priority: PriorityType; owner: Owner;
   planEstimate: number; taskCount: number; completedTasks: number;
   taskEstimate?: number; todoEstimate?: number;
-  iteration: string; release: string; tags: string[];
+  iteration: string; release: string; releaseId?: string; milestoneIds?: string[]; tags: string[];
   description: string; lastUpdated: string; dueDate?: string;
   blocked?: boolean; defectCount?: number; commentCount?: number;
-  attachmentCount?: number; project?: string; rank?: number;
+  attachmentCount?: number; project?: string; team?: string; rank?: number;
 }
 export interface Notification {
   id: number; type: "assigned" | "mention";
   title: string; body: string; time: string; read: boolean; user: Owner; project?: string; workItemId: string;
+}
+export interface TaskItem {
+  id: string; parentWorkItemId: string; rank: number; name: string;
+  state: TaskState; owner: Owner; project: string; team: string;
+  estimate: number; todo: number; actuals: number;
+  description: string; notes: string; attachments: string[];
+}
+export interface NewWorkItemInput {
+  type: "Story" | "Defect";
+  title: string;
+  project: string;
+  team: string;
+  owner: Owner;
+  planEstimate: number;
+  iteration?: string;
+  release?: string;
+  releaseId?: string;
+}
+export interface NewTaskInput {
+  name: string;
+  owner: Owner;
+  estimate: number;
+}
+export interface NewIterationInput {
+  name: string;
+  theme: string;
+  projectKey: string;
+  team: string;
+  startDate: string;
+  endDate: string;
+  state: IterationItem["state"];
+}
+export interface NewReleaseInput {
+  name: string; description: string; projectKey: string; team: string;
+  startDate: string; releaseDate: string; status: ReleaseItem["status"];
+}
+export interface NewMilestoneInput {
+  name: string; description: string; projectKeys: string[]; teams: string[];
+  releaseIds: string[]; startDate: string; endDate: string; state: MilestoneState; owner: Owner;
 }
 export interface Feature {
   id: string; title: string; status: StatusType; priority: PriorityType;
@@ -41,6 +82,13 @@ export interface ReleaseItem {
   startDate: string; releaseDate: string; progress: number;
   totalItems: number; completedItems: number; openDefects: number; blockedItems: number;
   owner: Owner; description: string;
+  projectKey: string; team: string;
+}
+export interface MilestoneItem {
+  id: string; name: string; description: string; state: MilestoneState;
+  releaseIds: string[]; projectKeys: string[]; teams: string[];
+  manualStartDate: string; manualEndDate: string;
+  owner: Owner;
 }
 export interface IterationItem {
   id: string; name: string; theme: string; state: "Planning" | "Committed" | "Accepted";
@@ -248,7 +296,7 @@ export const WORK_ITEMS: WorkItem[] = [
   {
     id: "US16", type: "Story", rank: 2,
     title: "Delete Item — allow users to permanently remove products from catalog",
-    status: "Code Review", priority: "High", owner: OWNERS[0], project: "ECO",
+    status: "Completed", priority: "High", owner: OWNERS[0], project: "ECO",
     planEstimate: 3, taskCount: 3, completedTasks: 3, taskEstimate: 6, todoEstimate: 0,
     iteration: "Sprint 24.3", release: "Q4 2024", tags: ["catalog"],
     commentCount: 1, defectCount: 0,
@@ -258,7 +306,7 @@ export const WORK_ITEMS: WorkItem[] = [
   {
     id: "US554", type: "Story", rank: 3,
     title: "Online Payment — integrate Stripe payment gateway with 3DS authentication",
-    status: "Testing", priority: "Critical", owner: OWNERS[3], project: "ECO",
+    status: "In-Progress", priority: "Critical", owner: OWNERS[3], project: "ECO",
     planEstimate: 8, taskCount: 6, completedTasks: 5, taskEstimate: 14, todoEstimate: 2,
     iteration: "Sprint 24.3", release: "Q4 2024", tags: ["payments", "security"],
     commentCount: 7, attachmentCount: 3, defectCount: 1, blocked: false,
@@ -320,6 +368,25 @@ export const NOTIFICATIONS: Notification[] = [
   { id: 3, type: "assigned", title: "DE assigned to you", body: "DE-1142 · Dashboard widget refresh loop causes memory leak in Firefox 118+", time: "Yesterday", read: true, user: OWNERS[1], workItemId: "DE-1142" },
 ];
 
+export const TASKS_DATA: TaskItem[] = [
+  { id: "TA-482101", parentWorkItemId: "US-4821", rank: 1, name: "Prepare implementation approach", state: "Completed", owner: OWNERS[0], project: "NXP", team: "Core Platform", estimate: 3, todo: 0, actuals: 3, description: "Define the SSO implementation approach and validation checkpoints.", notes: "Reviewed with platform lead.", attachments: ["implementation-outline.md"] },
+  { id: "TA-482102", parentWorkItemId: "US-4821", rank: 2, name: "Configure SAML metadata upload", state: "Completed", owner: OWNERS[0], project: "NXP", team: "Core Platform", estimate: 3, todo: 0, actuals: 3, description: "Configure metadata upload and validation.", notes: "Metadata validation complete.", attachments: [] },
+  { id: "TA-482103", parentWorkItemId: "US-4821", rank: 3, name: "Map IdP attributes", state: "Completed", owner: OWNERS[1], project: "NXP", team: "Core Platform", estimate: 2, todo: 0, actuals: 2, description: "Map IdP attributes to tenant profile fields.", notes: "Required attributes mapped.", attachments: [] },
+  { id: "TA-482104", parentWorkItemId: "US-4821", rank: 4, name: "Validate session lifecycle", state: "Completed", owner: OWNERS[1], project: "NXP", team: "Core Platform", estimate: 2, todo: 0, actuals: 2, description: "Validate login, renewal and logout behavior.", notes: "Core session cases pass.", attachments: [] },
+  { id: "TA-482105", parentWorkItemId: "US-4821", rank: 5, name: "Complete security review", state: "In-Progress", owner: OWNERS[1], project: "NXP", team: "Core Platform", estimate: 4, todo: 2, actuals: 2, description: "Review SAML security controls and tenant isolation.", notes: "Awaiting final security sign-off.", attachments: [] },
+  { id: "TA-482106", parentWorkItemId: "US-4821", rank: 6, name: "Add automated verification", state: "Defined", owner: OWNERS[3], project: "NXP", team: "Core Platform", estimate: 2, todo: 2, actuals: 0, description: "Add automated coverage for SAML provisioning and errors.", notes: "Start after security review.", attachments: [] },
+  { id: "TA-114201", parentWorkItemId: "DE-1142", rank: 1, name: "Reproduce Firefox refresh loop", state: "Defined", owner: OWNERS[1], project: "NXP", team: "Core Platform", estimate: 3, todo: 3, actuals: 0, description: "Reproduce the widget refresh loop in supported Firefox versions.", notes: "Use the production dashboard fixture.", attachments: [] },
+  { id: "TA-114202", parentWorkItemId: "DE-1142", rank: 2, name: "Release detached chart observers", state: "Defined", owner: OWNERS[1], project: "NXP", team: "Core Platform", estimate: 3, todo: 3, actuals: 0, description: "Dispose detached chart observers and verify memory recovery.", notes: "Implement after reproduction is stable.", attachments: [] },
+  { id: "TA-113801", parentWorkItemId: "DE-1138", rank: 1, name: "Normalize velocity timezone input", state: "In-Progress", owner: OWNERS[1], project: "NXP", team: "Core Platform", estimate: 4, todo: 2, actuals: 2, description: "Normalize reporting input to the workspace timezone.", notes: "Validate daylight-saving boundaries.", attachments: [] },
+  { id: "TA-113802", parentWorkItemId: "DE-1138", rank: 2, name: "Add timezone regression cases", state: "In-Progress", owner: OWNERS[3], project: "NXP", team: "Core Platform", estimate: 4, todo: 2, actuals: 2, description: "Add regression cases for client and server timezone differences.", notes: "Cover UTC and Asia/Saigon.", attachments: [] },
+  { id: "TA-481501", parentWorkItemId: "US-4815", rank: 1, name: "Define cursor event contract", state: "Defined", owner: OWNERS[4], project: "NXP", team: "Core Platform", estimate: 0, todo: 0, actuals: 0, description: "Define the collaboration cursor event contract.", notes: "Planning placeholder.", attachments: [] },
+  { id: "TA-481502", parentWorkItemId: "US-4815", rank: 2, name: "Prototype cursor transport", state: "Defined", owner: OWNERS[4], project: "NXP", team: "Core Platform", estimate: 0, todo: 0, actuals: 0, description: "Prototype realtime cursor transport.", notes: "Planning placeholder.", attachments: [] },
+  { id: "TA-481503", parentWorkItemId: "US-4815", rank: 3, name: "Render remote cursors", state: "Defined", owner: OWNERS[4], project: "NXP", team: "Core Platform", estimate: 0, todo: 0, actuals: 0, description: "Render remote cursor positions.", notes: "Planning placeholder.", attachments: [] },
+  { id: "TA-481504", parentWorkItemId: "US-4815", rank: 4, name: "Validate simultaneous editing", state: "Defined", owner: OWNERS[4], project: "NXP", team: "Core Platform", estimate: 0, todo: 0, actuals: 0, description: "Validate simultaneous board editing behavior.", notes: "Planning placeholder.", attachments: [] },
+  { id: "TA-481901", parentWorkItemId: "US-4819", rank: 1, name: "Implement shortcut registry", state: "Completed", owner: OWNERS[2], project: "NXP", team: "Core Platform", estimate: 2, todo: 0, actuals: 2, description: "Implement the global shortcut registry.", notes: "Complete.", attachments: [] },
+  { id: "TA-481902", parentWorkItemId: "US-4819", rank: 2, name: "Add shortcut help panel", state: "Completed", owner: OWNERS[2], project: "NXP", team: "Core Platform", estimate: 2, todo: 0, actuals: 2, description: "Add and validate the shortcut help panel.", notes: "Complete.", attachments: [] },
+];
+
 export const VELOCITY_DATA = [
   { sprint: "23.4", planned: 44, accepted: 40 },
   { sprint: "23.5", planned: 38, accepted: 32 },
@@ -357,10 +424,16 @@ export const INITIATIVES: Initiative[] = [
 ];
 
 export const RELEASES_DATA: ReleaseItem[] = [
-  { id: "REL-001", name: "Nexus Platform Q4 2024", version: "v3.4.0", status: "Active", startDate: "Oct 1, 2024", releaseDate: "Nov 1, 2024", progress: 58, totalItems: 24, completedItems: 14, openDefects: 3, blockedItems: 1, owner: OWNERS[0], description: "Q4 2024 release covering enterprise auth, CSV export, and critical defect fixes." },
-  { id: "REL-002", name: "Nexus Platform Q1 2025", version: "v3.5.0", status: "Planning", startDate: "Nov 1, 2024", releaseDate: "Feb 1, 2025", progress: 12, totalItems: 38, completedItems: 5, openDefects: 2, blockedItems: 0, owner: OWNERS[0], description: "Q1 2025 release including advanced reporting module, notification center, and markdown support." },
-  { id: "REL-003", name: "Nexus Platform Q2 2025", version: "v4.0.0", status: "Planning", startDate: "Feb 1, 2025", releaseDate: "May 1, 2025", progress: 0, totalItems: 52, completedItems: 0, openDefects: 0, blockedItems: 0, owner: OWNERS[3], description: "Major v4.0 with mobile app, portfolio hierarchy, and redesigned reporting dashboards." },
-  { id: "REL-004", name: "Nexus Platform v3.3", version: "v3.3.0", status: "Accepted", startDate: "Jul 1, 2024", releaseDate: "Sep 30, 2024", progress: 100, totalItems: 18, completedItems: 18, openDefects: 0, blockedItems: 0, owner: OWNERS[0], description: "Accepted on schedule. Included board view, CSV import, and SSO foundation." },
+  { id: "REL-001", name: "Nexus Platform Q4 2024", version: "v3.4.0", status: "Active", startDate: "Oct 1, 2024", releaseDate: "Nov 1, 2024", progress: 58, totalItems: 24, completedItems: 14, openDefects: 3, blockedItems: 1, owner: OWNERS[0], description: "Q4 2024 release covering enterprise auth, CSV export, and critical defect fixes.", projectKey: "NXP", team: "Core Platform" },
+  { id: "REL-002", name: "Nexus Platform Q1 2025", version: "v3.5.0", status: "Planning", startDate: "Nov 1, 2024", releaseDate: "Feb 1, 2025", progress: 12, totalItems: 38, completedItems: 5, openDefects: 2, blockedItems: 0, owner: OWNERS[0], description: "Q1 2025 release including advanced reporting module, notification center, and markdown support.", projectKey: "NXP", team: "Core Platform" },
+  { id: "REL-003", name: "Nexus Platform Q2 2025", version: "v4.0.0", status: "Planning", startDate: "Feb 1, 2025", releaseDate: "May 1, 2025", progress: 0, totalItems: 52, completedItems: 0, openDefects: 0, blockedItems: 0, owner: OWNERS[3], description: "Major v4.0 with mobile app, portfolio hierarchy, and redesigned reporting dashboards.", projectKey: "NXP", team: "Core Platform" },
+  { id: "REL-004", name: "Nexus Platform v3.3", version: "v3.3.0", status: "Accepted", startDate: "Jul 1, 2024", releaseDate: "Sep 30, 2024", progress: 100, totalItems: 18, completedItems: 18, openDefects: 0, blockedItems: 0, owner: OWNERS[0], description: "Accepted on schedule. Included board view, CSV import, and SSO foundation.", projectKey: "NXP", team: "Core Platform" },
+];
+
+export const MILESTONES_DATA: MilestoneItem[] = [
+  { id: "MS-Q4-RC", name: "Q4 Release Candidate", description: "Release candidate coordination across platform scope.", state: "Planned", releaseIds: ["REL-004", "REL-001"], projectKeys: ["NXP"], teams: ["Core Platform"], manualStartDate: "2024-09-15", manualEndDate: "2024-11-15", owner: OWNERS[0] },
+  { id: "MS-SEC", name: "Security Review Complete", description: "Authentication security checkpoint.", state: "At Risk", releaseIds: ["REL-001"], projectKeys: ["NXP"], teams: ["Identity & Access"], manualStartDate: "2024-10-01", manualEndDate: "2024-11-10", owner: OWNERS[2] },
+  { id: "MS-Q4-GA", name: "Q4 General Availability", description: "Production launch milestone for Q4 and Q1 carry-forward scope.", state: "Completed", releaseIds: ["REL-001", "REL-002"], projectKeys: ["NXP"], teams: ["Core Platform", "Data & Reporting"], manualStartDate: "2024-10-01", manualEndDate: "2025-02-15", owner: OWNERS[0] },
 ];
 
 export const ITERATIONS_DATA: IterationItem[] = [
@@ -373,12 +446,12 @@ export const ITERATIONS_DATA: IterationItem[] = [
     history: ["Started Sep 30 by Tom Brennan", "Closed Oct 11 with 49 accepted points", "3 unfinished points moved to Sprint 24.3"],
   },
   {
-    id: "IT-24-3", name: "Sprint 24.3", theme: "Authentication stability", state: "Committed", projectKey: "NXP", team: "Core Platform",
+    id: "IT-24-3", name: "Sprint 24.3", theme: "Authentication stability", state: "Planning", projectKey: "NXP", team: "Core Platform",
     startDate: "2024-10-14 12:00 AM EST", endDate: "2024-10-28 11:59 PM EST", project: "Nexus Platform 2025",
     plannedVelocity: 47, taskEstimate: 106, capacity: 54, plannedPoints: 47, acceptedPoints: 16,
     itemCount: 9, defectCount: 2, blockedCount: 1, owner: OWNERS[0],
     goal: "Stabilize authentication, resolve high priority defects, and keep reporting work visible for Q4 readiness.",
-    history: ["Created Oct 10 by Marcus Webb", "Started Oct 14 with 9 committed items", "Scope adjusted Oct 21 after timezone defect triage"],
+    history: ["Created Oct 10 by Marcus Webb", "Sprint scope agreed Oct 14 with 9 items", "Scope adjusted Oct 21 after timezone defect triage"],
   },
   {
     id: "IT-24-4", name: "Sprint 24.4", theme: "Q1 platform prep", state: "Planning", projectKey: "NXP", team: "Core Platform",
@@ -416,12 +489,12 @@ export const WORKSPACE_USERS: WorkspaceUser[] = [
 ];
 
 export const WORKFLOW_STATUSES: WorkflowStatusItem[] = [
-  { id: "ws1", name: "Defined", category: "To Do", order: 1, isFinal: false },
-  { id: "ws2", name: "In-Progress", category: "In Progress", order: 2, isFinal: false },
-  { id: "ws3", name: "Code Review", category: "In Progress", order: 3, isFinal: false },
-  { id: "ws4", name: "Testing", category: "In Progress", order: 4, isFinal: false },
-  { id: "ws5", name: "Completed", category: "Done", order: 5, isFinal: true },
-  { id: "ws6", name: "Accepted", category: "Done", order: 6, isFinal: true },
+  { id: "ws1", name: "Idea", category: "To Do", order: 1, isFinal: false },
+  { id: "ws2", name: "Defined", category: "To Do", order: 2, isFinal: false },
+  { id: "ws3", name: "In-Progress", category: "In Progress", order: 3, isFinal: false },
+  { id: "ws4", name: "Completed", category: "Done", order: 4, isFinal: true },
+  { id: "ws5", name: "Accepted", category: "Done", order: 5, isFinal: true },
+  { id: "ws6", name: "Release", category: "Done", order: 6, isFinal: true },
 ];
 
 export const LABELS_DATA: LabelItem[] = [

@@ -1,4 +1,4 @@
-# SRS - Phase 1.8 Manage Projects, Teams and Users
+# SRS - Phase 1.8 Manage Projects and Workspace Teams/Users
 
 ## 0. Document Control
 
@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P1-MANAGE-ORG` |
 | Status | Draft for Development |
-| Scope | Manage entry point for Projects, Teams and Users |
+| Scope | Manage Projects entry point; Settings gear owns Teams and User Management |
 | Priority | P1 - required |
 | Depends on | Phase 0 App Shell, Auth/Role, Project/Team/User DB |
 | Mockup source | `03_Mockup Design/src/app/pages/ProjectsPage.tsx` |
@@ -16,21 +16,15 @@
 
 Phase 1 needs a clean Manage area so Workspace Admin can maintain the organization structure used by Backlog, Work Item Create, Work Item Detail, and later Iteration flows.
 
-The Manage area is reached from the workspace menu and contains three tabs:
-
-1. `Projects`
-2. `Teams`
-3. `Users`
-
-Project management already exists in the mockup. This SRS adds the Phase 1 requirements for creating and maintaining Teams and Users, while preserving Projects as the first Manage tab.
+`Workspace menu > Manage Projects` contains the `Projects` list only. `Settings gear` owns `Teams` and `User Management`. The three surfaces together maintain the organization structure used by work management.
 
 ## 2. Actors
 
 | Actor | Access |
 |---|---|
-| Workspace Admin | Full manage access for Projects, Teams and Users |
-| Project Manager | Can manage Projects and Teams if granted by backend permission |
-| Product Owner / Developer / Tester / Viewer | Read-only or no access, depending on permission |
+| Workspace Admin | Full access to Manage Projects and Settings Teams/User Management |
+| Project Admin | Project-scoped access only when granted by permission |
+| Project Member | No organization administration access |
 
 Backend permission must be enforced even if the FE hides buttons.
 
@@ -42,10 +36,9 @@ Business flow:
 
 ```text
 Workspace Admin opens Workspace menu
--> Opens Manage
--> Creates or maintains Projects
--> Creates Teams and links them to Projects
--> Invites/maintains Users
+-> Opens Manage Projects and creates or maintains Projects
+-> Opens Settings gear > Teams and creates Teams/links them to Projects
+-> Opens Settings gear > User Management and invites/maintains Users
 -> Grants Users workspace role and team membership
 -> Backlog/Create/Detail/Iteration screens use only valid Project-Team-User relationships
 ```
@@ -69,11 +62,11 @@ Business rules:
 
 | UI area | Requirement |
 |---|---|
-| Workspace menu | `Manage` opens the Manage page |
-| Breadcrumb | Shows `ACME Space Inc. > Manage` |
-| Page title | `Manage` |
-| Tabs | `Projects`, `Teams`, `Users` |
-| Primary action | Changes by active tab: `Create Project`, `Create Team`, `Invite User` |
+| Workspace menu | `Manage Projects` opens the Projects page |
+| Breadcrumb | Shows `ACME Space Inc. > Manage Projects` |
+| Page title | `Manage Projects` |
+| Tabs | Projects only |
+| Primary action | `Create Project`; Team/User actions live under Settings gear |
 | Style | Same dense list design language as Backlog and Timeboxes; no marketing/hero layout |
 
 ## 4. Projects Tab
@@ -105,7 +98,7 @@ Projects tab keeps the existing Phase 1 mockup behavior.
 | Start date | No | Date |
 | Teams | No | Multi-select existing teams |
 
-## 5. Teams Tab
+## 5. Settings > Teams
 
 Teams represent delivery teams under a project. Teams are used by Backlog, Work Item Create, Work Item Detail, and later Timebox/Iteration flows.
 
@@ -117,7 +110,7 @@ Teams represent delivery teams under a project. Teams are used by Backlog, Work 
 | Active | Count teams with status `Active` |
 | Deactive | Count teams with status `Deactive` |
 
-Do not show `Projects Covered`, team member count, capacity, or velocity metrics in Phase 1 Teams tab.
+Do not show `Projects Covered`, team member count, capacity, or velocity metrics in the Phase 1 `Settings > Teams` screen.
 
 ### 5.2 Team List Columns
 
@@ -411,9 +404,9 @@ Workspace Admin has all permissions in current mockup. More granular permission 
 
 ## 10. Acceptance Criteria
 
-1. Workspace menu `Manage` opens a page with tabs `Projects`, `Teams`, `Users`.
-2. Teams tab shows only columns: Key, Team, Project, Status, Lead, Updated.
-3. Teams tab does not show Members, Capacity, Velocity, or Actions columns.
+1. Workspace menu `Manage Projects` opens Project management with the `Projects` view only; the top-right Settings gear contains `Teams` and `User Management` as workspace administration sections.
+2. `Settings > Teams` shows only columns: Key, Team, Project, Status, Lead, Updated.
+3. `Settings > Teams` does not show Members, Capacity or Velocity columns; its Actions area is limited to permitted administration actions.
 4. `Create Team` modal includes Team Info and Members tabs.
 5. `Team Info` tab includes Project, Team lead, Team name, Team key, Description, Status.
 6. `Members` tab includes searchable user list for selecting team members.

@@ -17,7 +17,7 @@ BA decisions:
 
 - P3.1 Team Status is approved as a dense dashboard/table grouped by member.
 - Team Board moves to Backlog for the future.
-- Team Board menu can remain visible in the mockup for now, but it is not part of P3.1.
+- Team Board is absent from active navigation and retained only in Future Backlog; it is not part of P3.1.
 - P3.2 Release Management Timeboxes dashboard behavior is documented: inline edit, resizable columns and locked create modal type.
 - P3.2 Release readiness is user-managed from linked US/DE release notes; no system readiness calculation is required in P3.2.
 - P3.3 Milestones can span multiple projects, multiple teams and multiple releases; readiness checklist is not required.
@@ -26,7 +26,7 @@ BA decisions:
 - P3.3 Milestone Artifacts are assigned US/DE Story/Defect work items and are shown with the Backlog dashboard presentation.
 - P3.4 Quality/Defect has a dedicated `Quality > Defect` dashboard. Dashboard columns, field option sets, create/edit behavior and core state transitions are confirmed.
 - P3.4 Fixed In Build is an optional manual text field for the build/version/release label where the defect fix is expected or delivered.
-- Documentation closure on 2026-07-12 tightened the Team Status parent roll-up rule: one completed Task must not auto-complete its parent Story/Defect while other child Tasks are still not Completed; when all child Tasks under that parent are Completed, the parent Story/Defect auto-completes. Authorized users can still manually change parent Story/Defect status from existing Work Item edit surfaces.
+- Team Status parent roll-up rule, revised by BA on 2026-07-19: one completed Task must not auto-complete its parent while other child Tasks are still not Completed; all child Tasks Completed auto-completes the parent; reopening a Task from that state recalculates metrics and auto-moves the parent to In-Progress. Authorized users can still manually change parent status afterward.
 - Work Item Detail `Tasks` tab is the Task Dashboard for a parent Story/Defect and must support inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
 - Timeline file is updated for Phase 3 documentation closure and Future Backlog scope alignment.
 
@@ -62,7 +62,7 @@ BA decisions:
 | P3-TS-02 | Backend | Implement Team Status query | Groups by owner/member for selected Project/Team/Iteration | P3-TS-01 | 2.0h | 0h | `NOT STARTED` |
 | P3-TS-03 | Backend | Implement member capacity persistence | Upsert capacity by Project/Team/Iteration/User | P3-TS-01 | 1.5h | 0h | `NOT STARTED` |
 | P3-TS-04 | Backend | Implement task inline patch | Patch task title/state from Team Status | P3-TS-01 | 1.5h | 0h | `NOT STARTED` |
-| P3-TS-05 | Backend | Refresh parent Work Product roll-up and auto-completion | Task Completed recalculates parent progress; parent US/DE auto-completes when all child tasks are Completed | P3-TS-04 | 1.0h | 0h | `NOT STARTED` |
+| P3-TS-05 | Backend | Refresh parent Work Product roll-up and status automation | Task state change recalculates progress; all Tasks Completed -> parent Completed; reopen -> parent In-Progress | P3-TS-04 | 1.0h | 0h | `NOT STARTED` |
 | P3-TS-06 | Backend | Permission guards | Viewer read-only and edit permission enforcement | P3-TS-01 | 1.0h | 0h | `NOT STARTED` |
 | P3-TS-07 | Frontend | Team Status route/page | `Track > Team Status` page shell | P3-TS-01 | 1.0h | 0h | `NOT STARTED` |
 | P3-TS-08 | Frontend | Iteration selector reuse | Same picker behavior as Iteration Status | P3-TS-07 | 0.75h | 0h | `NOT STARTED` |
@@ -95,6 +95,7 @@ BA decisions:
 - [ ] Task PATCH accepts only Defined/In-Progress/Completed.
 - [ ] Task Completed refreshes parent US/DE roll-up; parent stays unchanged if any child task is still not Completed.
 - [ ] Completing the final open child Task auto-completes the parent US/DE.
+- [ ] Reopening a Task from the all-completed state recalculates metrics and auto-moves parent US/DE to `In-Progress`.
 - [ ] Parent US/DE status remains manually editable from existing Work Item edit surfaces after auto-completion.
 - [ ] Viewer direct PATCH returns 403.
 - [ ] Frontend page opens from Track menu.
@@ -145,8 +146,8 @@ P3.3 core scope is ready for handoff. Current confirmed direction:
 - Milestones live as a type beside Iterations/Releases/Milestones under Timeboxes.
 - Milestones can span multiple Projects and multiple Teams.
 - Milestones can link multiple Releases.
-- Target Start Date is derived from the earliest linked Release start date.
-- Target End Date is derived from the latest linked Release end/release date.
+- With no linked Release, user manually sets Target Start/End Date.
+- With one or more linked Releases, Target Start Date is derived from the earliest linked Release start date and Target End Date from the latest linked Release end/release date.
 - Milestone Artifacts are assigned US/DE Story/Defect work items.
 - Milestones do not include a readiness checklist.
 - Milestone dashboard shows only Name, Target Start Date, Target End Date and Status.
@@ -158,7 +159,7 @@ P3.3 core scope is ready for handoff. Current confirmed direction:
 | P3-MS-01 | Contract | Define Milestone DTO/OpenAPI | List/create/detail/update contracts with project/team/release relations | P2 Timeboxes, P3.2 Releases | TBD | 0h | `READY` |
 | P3-MS-02 | Backend | Implement Milestone model | Multi-project, multi-team, multi-release fields | P3-MS-01 | TBD | 0h | `READY` |
 | P3-MS-03 | Backend | Milestone list query | Timeboxes Milestone dashboard with Name/Target dates/Status | P3-MS-02 | TBD | 0h | `READY` |
-| P3-MS-04 | Backend | Derived target dates | Earliest linked Release start and latest linked Release end | P3-MS-02 | TBD | 0h | `READY` |
+| P3-MS-04 | Backend | Target date behavior | Manual dates without Release; earliest linked Release start and latest linked Release end when linked | P3-MS-02 | TBD | 0h | `READY` |
 | P3-MS-05 | Backend | Milestone update API | Name, status, project/team/release relations and derived date recalculation | P3-MS-02 | TBD | 0h | `READY` |
 | P3-MS-06 | Frontend | Milestone dashboard | Four-column Timeboxes table with resize support | P3-MS-03 | TBD | 0h | `READY` |
 | P3-MS-07 | Frontend | Milestone detail | Details tab plus right metadata panel | P3-MS-05 | TBD | 0h | `READY` |
@@ -176,7 +177,7 @@ Confirmed defect option sets:
 - Severity: None, Critical, Major Problem, Minor Problem, Trivial.
 - Priority: None, Urgent, High, Normal, Low.
 - State: Submitted, Open, Fixed, Closed, Closed Declined.
-- Flow State: Idea, Defined, In-Progress, Completed, Accepted, Released.
+- Flow State: Idea, Defined, In-Progress, Completed, Accepted, Release; it mirrors Schedule State two-way in MVP and defaults to Idea.
 
 Create/edit behavior, core state transitions and Fixed In Build input behavior are confirmed.
 

@@ -98,7 +98,7 @@ This avoids having two Project Settings locations in the mockup.
 Phase 1 owns the Project management baseline:
 
 - Phase 1 originally defined Manage page with `Projects`, `Teams` and `Users` tabs.
-- Phase 4 keeps Project/Team management under `Manage Projects` and moves User Management to top-right Settings.
+- The reconciled navigation keeps only Project management under `Manage Projects`; Team and User administration live under the top-right Settings gear.
 - Projects tab keeps list/create/edit/archive/restore project behavior.
 - Create/Edit Project fields are Project name, Project key, Description, Project owner, Start date and Teams.
 - Project key is required and immutable after create.
@@ -162,7 +162,7 @@ Rejected entry point:
 
 Rules:
 
-- `Manage Projects` keeps only `Projects` and `Teams`.
+- `Manage Projects` keeps only `Projects`; `Teams` is a workspace administration section under the top-right Settings gear.
 - User invite, role assignment, status changes, team allocation and company access removal are under Settings > User Management.
 - User Management list does not show inline row action buttons such as `Change Role` or `Remove`.
 - User Management list columns are Name, Email, Phone number, Role, Status and Last Login.
@@ -225,7 +225,7 @@ Included event scope:
 - User team/resource allocation update.
 - User company access removal/deactivation.
 - Role permission matrix save.
-- Project/team administrative changes handled from `Manage Projects`.
+- Project administrative changes handled from `Manage Projects`; team administrative changes handled from `Settings > Teams`.
 
 Excluded event scope:
 
@@ -282,7 +282,7 @@ Audit rule:
 Current mockup coverage:
 
 - `Manage Projects > Projects` uses confirmation modals for Archive Project and Restore Project.
-- `Manage Projects > Teams` uses confirmation modals for Deactivate Team and Restore Team.
+- `Settings > Teams` uses confirmation modals for Deactivate Team and Restore Team.
 - `Settings > User Management > User Details` uses a typed confirmation modal for Remove User Access.
 - The reusable modal pattern supports typed confirmation for the high-risk actions when those actions are surfaced.
 

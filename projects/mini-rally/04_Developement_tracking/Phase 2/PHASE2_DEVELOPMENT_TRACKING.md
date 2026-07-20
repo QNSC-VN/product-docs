@@ -235,6 +235,8 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 - [ ] Changing Iteration refreshes metrics and list.
 - [ ] Metric strip shows Planned Velocity, Iteration End, Accepted, Defects and Tasks.
 - [ ] Defects metric counts work items of type Defect in selected Iteration.
+- [ ] Tasks metric counts non-Completed child Tasks of selected Iteration US/DE; Task is not an independent Iteration row.
+- [ ] Totals row below header shows Plan Est, Task Est and To Do from the same scoped US/DE/task dataset.
 - [ ] Work item list shows selected Iteration items only.
 - [ ] Work item list is sourced from Backlog/work_items assignment, not a separate store.
 - [ ] Per-row Defects column is not displayed.
@@ -242,6 +244,7 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 - [ ] Quick search and Manage Filters behave like Backlog Enhancement.
 - [ ] Sort, resize, pagination and inline edit behave like Backlog Enhancement, including Iteration field.
 - [ ] Schedule State values are Idea, Defined, In-Progress, Completed, Accepted, Release.
+- [ ] List is the only active Phase 0-4 view; Board view/toggle remains Future Backlog.
 - [ ] Row click opens full Work Item Detail.
 - [ ] Work Item Detail right panel shows Iteration field.
 - [ ] Add Item button is beside filter controls.
@@ -258,11 +261,11 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 |---|---|---|---|---|---|
 | P2-IT-R01 | DB currently calls entity `sprints`, UI calls it `Iterations` | Medium | Use `planning.sprints` backend table with `Iteration` UI/API naming or document alias clearly | BA/Tech | Open |
 | P2-IT-R02 | Theme, Notes, Planned Velocity may need DB extension | High | Decide migration before FE integration | Tech Lead | Open |
-| P2-IT-R03 | Iteration state labels differ from DB states | Medium | Map Planning/Committed/Accepted to future/active/closed or store UI enum | Dev | Open |
+| P2-IT-R03 | Iteration state labels differ from DB states | Medium | Preserve BA enum Planning/Committed/Accepted; map storage only if needed without changing UI business behavior | Dev | Open |
 | P2-IT-R04 | Releases/Milestones visible as type options may confuse scope | Low | Hide Release/Milestone type options in Phase 2; restore them in Phase 3 | BA | Decided |
 | P2-IT-R05 | Date overlap policy not fully decided | Medium | Default warn-only unless same-team overlap must be blocked later | BA/PO | Open |
 | P2-IT-R06 | Existing backlog assignment is required for Iteration Status to link with Backlog | High | Keep assignment as Work Item `iterationId` field in Backlog/Detail and test before P2.3 | BA/Dev | Decided |
-| P2-IS-R01 | Iteration Status Schedule State differs from Backlog sample statuses | Medium | Use P2.3 enum Idea/Defined/In-Progress/Completed/Accepted/Release and map legacy values explicitly | BA/Dev | Decided |
+| P2-IS-R01 | Iteration Status Schedule State differs from Backlog sample statuses | High | Use one shared enum Idea/Defined/In-Progress/Completed/Accepted/Release; reconcile legacy values before render and remove screen-local normalization | BA/Dev | Decided |
 | P2-IS-R02 | Defects metric can be misread as child defect count | Medium | SRS defines Defects as count of work items where type = Defect in selected Iteration | BA | Decided |
 | P2-IS-R03 | Permission matrix is not finalized | Medium | Mock assumes admin; backend must still enforce baseline project/work item permissions | BA/Tech | Open |
 | P2-PHASE-R01 | Dev agent may still pick up old Team Board mockup | High | Move Team Status docs to Phase 3, Team Board docs to Future Backlog, and remove Phase 2 execution tasks | BA | Decided |
@@ -297,6 +300,6 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 - [`PHASE2_MOCKUP_CHECKLIST.md`](PHASE2_MOCKUP_CHECKLIST.md)
 - [`../Phase 3/01_Team_Status/SRS.md`](../Phase%203/01_Team_Status/SRS.md)
 - [`../Future_Backlog/01_Team_Board.md`](../Future_Backlog/01_Team_Board.md)
-- [`../Project_developement_plan.md`](../Project_developement_plan.md)
+- [`../Mini_Rally_Product_Plan.xlsx`](../Mini_Rally_Product_Plan.xlsx)
 - [`../../01_DB design/mini_rally_database_design.md`](../../01_DB%20design/mini_rally_database_design.md)
 - [`../../05_Architecture/DATABASE_SCHEMA.md`](../../05_Architecture/DATABASE_SCHEMA.md)

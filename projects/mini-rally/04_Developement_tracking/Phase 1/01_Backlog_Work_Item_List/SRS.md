@@ -22,7 +22,7 @@ Phase 1 Backlog không dùng để gán sprint hay theo dõi sprint. Sprint/Iter
 | Tài liệu | Phần tham chiếu | Mục đích |
 |---|---|---|
 | [`PHASE1_MOCKUP_CHECKLIST.md`](../PHASE1_MOCKUP_CHECKLIST.md) | Backlog coverage | Đối chiếu mockup |
-| [`Project_developement_plan.md`](../../Project_developement_plan.md) | Phase 1 scope | Phạm vi delivery |
+| [`Mini_Rally_Product_Plan.xlsx`](../../Mini_Rally_Product_Plan.xlsx) | Phase 1 scope | Phạm vi delivery |
 | [`mini_rally_database_design.md`](../../../01_DB%20design/mini_rally_database_design.md) | §8 Work Item Management, §9 Sprint, §10 Release | Schema nguồn |
 | [`mini_rally_erd.md`](../../../00_Documents/mini_rally_erd.md) | Work item relationships | Quan hệ DB |
 | [`BacklogPage.tsx`](../../../03_Mockup%20Design/src/app/pages/BacklogPage.tsx) | Toàn file | Mockup màn hình |
@@ -52,6 +52,8 @@ Phase 1 Backlog không dùng để gán sprint hay theo dõi sprint. Sprint/Iter
 | BL-FR-010 | Empty state rõ ràng khi không có item. |
 | BL-FR-011 | Loading/error/retry state không làm mất App Shell. |
 | BL-FR-012 | Soft-deleted item không hiển thị. |
+| BL-FR-013 | Schedule State của Story/Defect dùng đúng `Idea/Defined/In-Progress/Completed/Accepted/Release`; không hiển thị legacy `Code Review/Testing`. |
+| BL-FR-014 | Trong MVP, đổi Schedule State phải đồng thời cập nhật Flow State về cùng giá trị. |
 
 ## 5. Screen Mapping với Mockup
 
@@ -78,7 +80,7 @@ Phase 1 Backlog không dùng để gán sprint hay theo dõi sprint. Sprint/Iter
 | Priority | `priority` | `work_items.priority` | Ưu tiên Defect | Chỉ hiển thị/áp dụng cho Defect; Story hiển thị `—` |
 | Estimate | `planEstimate` | `work_items.story_point` | Estimate cấp Story/Defect bằng point | Nullable → hiển thị `—` hoặc 0 theo rule |
 | Owner avatar | `owner` | `work_items.assignee_id → users` | Người phụ trách | Nullable → Unassigned |
-| Schedule State | `scheduleState` | `work_items.schedule_state` | Trạng thái lập lịch/độ chín nghiệp vụ | Required default `Defined`; enum Idea/Defined/In-Progress/Completed/Accepted/Release |
+| Schedule State | `scheduleState` | `work_items.schedule_state` | Trạng thái lập lịch/độ chín nghiệp vụ | Required default `Idea`; enum Idea/Defined/In-Progress/Completed/Accepted/Release; mirror Flow State trong MVP |
 | Release | `release` | `work_items.release_id → releases` | Release target nếu giữ cột | Nullable → `Unscheduled` |
 | Project | `project` | `work_items.project_id → projects` | Context/filter/security | Không cần hiển thị nếu đang ở project |
 | Team | `team` | `work_items.team_id → teams` | Team chịu trách nhiệm | Nullable nếu All Teams |

@@ -24,7 +24,7 @@ P2.1 không biến Backlog thành Sprint Planning. Iteration assignment trong Ba
 |---|---|---|
 | [`PHASE2_MOCKUP_CHECKLIST.md`](../PHASE2_MOCKUP_CHECKLIST.md) | P2.1 Backlog Enhancement | Đối chiếu mockup |
 | [`PHASE2_DEVELOPMENT_TRACKING.md`](../PHASE2_DEVELOPMENT_TRACKING.md) | Development task plan | Theo dõi dev |
-| [`Project_developement_plan.md`](../../Project_developement_plan.md) | Phase 2 / Backlog | Phạm vi delivery |
+| [`Mini_Rally_Product_Plan.xlsx`](../../Mini_Rally_Product_Plan.xlsx) | Phase 2 / Backlog | Phạm vi delivery |
 | [`Phase 1/01_Backlog_Work_Item_List/SRS.md`](../../Phase%201/01_Backlog_Work_Item_List/SRS.md) | Base Backlog contract | Kế thừa Phase 1 |
 | [`mini_rally_database_design.md`](../../../01_DB%20design/mini_rally_database_design.md) | Work items, sprints, releases, rank | Schema nguồn |
 | [`DATABASE_SCHEMA.md`](../../../05_Architecture/DATABASE_SCHEMA.md) | `work_items.rank`, `iteration_id`, `release_id` | Physical design |
@@ -86,13 +86,13 @@ Nghiệp vụ chính:
 | P2-BL-FR-010 | User có quyền edit có thể inline edit Defect Priority; Story không có priority editable trong Backlog. |
 | P2-BL-FR-011 | User có quyền edit có thể inline edit Plan Estimate. |
 | P2-BL-FR-012 | User có quyền edit có thể inline edit Owner. |
-| P2-BL-FR-013 | User có quyền edit có thể inline edit Schedule State. |
+| P2-BL-FR-013 | User có quyền edit có thể inline edit Schedule State; Schedule State và Flow State cùng dùng catalog `Idea/Defined/In-Progress/Completed/Accepted/Release` và mirror hai chiều. |
 | P2-BL-FR-014 | User có quyền edit có thể inline edit Release. |
 | P2-BL-FR-014A | User có quyền edit có thể inline edit Iteration. |
 | P2-BL-FR-015 | User có quyền edit có thể bulk assign Release cho selected items. |
 | P2-BL-FR-015A | User có quyền edit có thể bulk assign Iteration cho selected items. |
 | P2-BL-FR-016 | User có quyền manage backlog có thể reorder backlog; production cập nhật `rank`. |
-| P2-BL-FR-017 | Viewer được xem, search/filter/pagination/open detail nhưng không được inline edit, bulk assign hoặc reorder. |
+| P2-BL-FR-017 | Project Admin ngoài managed Project chỉ được xem/search/filter/pagination/open detail; không được inline edit, bulk assign hoặc reorder. |
 | P2-BL-FR-018 | Sprint summary và Sprint planning không xuất hiện trong Backlog P2.1; Iteration assignment chỉ là field của Work Item. |
 | P2-BL-FR-019 | KPI/metric summary strip không hiển thị trong Backlog; pattern này giữ lại cho Iteration Status, Dashboard hoặc Reports. |
 | P2-BL-FR-020 | Manage Filters nằm bên trái trong filter banner; user chọn nhiều column bằng checkbox và Apply để combine filter. |
@@ -113,7 +113,7 @@ Nghiệp vụ chính:
 | Inline priority | Select trong Priority column | PATCH priority cho Defect |
 | Inline estimate | Number input trong Est column | PATCH story points/plan estimate |
 | Inline owner | Owner select | PATCH assignee |
-| Inline status | Schedule State select | PATCH schedule state/status field |
+| Inline status | Schedule State select | PATCH Schedule/Flow atomically; không nhận Code Review, Testing hoặc Released |
 | Inline release | Release select | PATCH release |
 | Inline iteration | Iteration select | PATCH iteration assignment |
 | Bulk release | Selected bar release select | Bulk mutation |
@@ -130,7 +130,8 @@ Nghiệp vụ chính:
 | Defect Priority | `priority` | `work_items.priority` | Chỉ Defect; Story hiển thị `-` |
 | Plan Estimate | `planEstimate` | `work_items.story_points` | Numeric >= 0; nullable theo DB nhưng UI nên default empty/0 |
 | Owner | `owner` | `work_items.assignee_id -> users` | Nullable -> Unassigned |
-| Schedule State | `scheduleState` | `work_items.schedule_state` hoặc `status_id` tùy implementation hiện tại | Required default |
+| Schedule State | `scheduleState` | `work_items.schedule_state` hoặc `status_id` tùy implementation hiện tại | Required; default Idea; mirrors Flow State |
+| Flow State | `flowState` | `work_items.flow_state` | Required; default Idea; mirrors Schedule State; Defect State remains independent |
 | Release | `release` | `work_items.release_id -> releases` | Nullable -> Unscheduled |
 | Iteration | `iteration` | `work_items.iteration_id -> planning.sprints` hoặc equivalent Iteration table | Nullable -> Unscheduled |
 | Blocked | `isBlocked` | `work_items.is_blocked` | Read-only trong P2.1 list |

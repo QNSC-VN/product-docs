@@ -17,11 +17,12 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
+import { type NewWorkItemInput, type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 
 export function releaseStatusCfg(status: ReleaseItem["status"]): { bg: string; text: string; border: string; dot: string } {
   switch (status) {
     case "Planning": return { bg: "#eef3fb", text: "#475569", border: "#cbd5e1", dot: "#64748b" };
+    case "Committed": return { bg: "#fef5e4", text: "#8a5808", border: "#f4d28d", dot: "#c58512" };
     case "Active": return { bg: "#fef5e4", text: "#8a5808", border: "#f5d899", dot: "#e59f0c" };
     case "Accepted": return { bg: "#eef6f0", text: "#1e6930", border: "#a8d5b3", dot: "#2a8c3f" };
   }
@@ -60,8 +61,6 @@ export const STATUS_CFG: Record<StatusType, { bg: string; text: string; border: 
   Idea: { bg: "#f1f5f9", text: "#475569", border: "#cbd5e1", dot: "#94a3b8" },
   Defined: { bg: "#eef3fb", text: "#2558a6", border: "#bdd0ef", dot: "#2558a6" },
   "In-Progress": { bg: "#fef5e4", text: "#8a5808", border: "#f5d899", dot: "#e59f0c" },
-  "Code Review": { bg: "#f0f7ff", text: "#0369a1", border: "#bae6fd", dot: "#0ea5e9" },
-  Testing: { bg: "#faf5ff", text: "#7e22ce", border: "#e9d5ff", dot: "#a855f7" },
   Completed: { bg: "#eef6f0", text: "#1e6930", border: "#a8d5b3", dot: "#2a8c3f" },
   Accepted: { bg: "#eaf0fb", text: "#1d3f73", border: "#99b8e0", dot: "#1d3f73" },
   Release: { bg: "#f5f3ff", text: "#6d28d9", border: "#d0c6f5", dot: "#7c3aed" },
@@ -164,16 +163,26 @@ export function DetailPanel({ item, onClose, role, onOpenFull }: { item: WorkIte
 
 // ─── New Item Modal ───────────────────────────────────────────────────────────
 
-export function NewItemModal({ onClose, defaultType, allowedTypes = ["Feature", "Story", "Defect", "Task"] }: { onClose: () => void; defaultType?: WorkItemType; allowedTypes?: WorkItemType[] }) {
+export function NewItemModal({ onClose, onCreate, defaultProjectKey, defaultTeam, defaultType, allowedTypes = ["Feature", "Story", "Defect", "Task"] }: { onClose: () => void; onCreate: (input: NewWorkItemInput, openDetails: boolean) => void; defaultProjectKey?: string; defaultTeam?: string; defaultType?: WorkItemType; allowedTypes?: WorkItemType[] }) {
   const [type, setType] = useState<WorkItemType>(defaultType && allowedTypes.includes(defaultType) ? defaultType : allowedTypes[0]);
   const [title, setTitle] = useState("");
-  const [projectKey, setProjectKey] = useState(SCOPE_PROJECTS[0].key);
-  const [team, setTeam] = useState(SCOPE_PROJECTS[0].teams[0]);
+  const initialProject = SCOPE_PROJECTS.find(project => project.key === defaultProjectKey) || SCOPE_PROJECTS[0];
+  const [projectKey, setProjectKey] = useState(initialProject.key);
+  const [team, setTeam] = useState(defaultTeam && initialProject.teams.includes(defaultTeam) ? defaultTeam : initialProject.teams[0]);
+  const [ownerName, setOwnerName] = useState(OWNERS[0].name);
+  const [planEstimate, setPlanEstimate] = useState(0);
   const selectedProject = SCOPE_PROJECTS.find(project => project.key === projectKey) || SCOPE_PROJECTS[0];
+  const canCreate = title.trim().length > 0 && (type === "Story" || type === "Defect");
   function selectProject(nextProjectKey: string) {
     const nextProject = SCOPE_PROJECTS.find(project => project.key === nextProjectKey) || SCOPE_PROJECTS[0];
     setProjectKey(nextProject.key);
     setTeam(nextProject.teams[0]);
+  }
+  function submit(openDetails: boolean) {
+    if (!canCreate || (type !== "Story" && type !== "Defect")) return;
+    const owner = OWNERS.find(candidate => candidate.name === ownerName) || OWNERS[0];
+    onCreate({ type, title: title.trim(), project: projectKey, team, owner, planEstimate }, openDetails);
+    onClose();
   }
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
@@ -195,16 +204,16 @@ export function NewItemModal({ onClose, defaultType, allowedTypes = ["Feature", 
             <input autoFocus type="text" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter a concise, descriptive title..." className="w-full text-[13px] px-3 py-2 rounded focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} onFocus={e => (e.currentTarget.style.borderColor = "rgba(29,63,115,0.4)")} onBlur={e => (e.currentTarget.style.borderColor = "#dde2ea")} />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Owner</label><select className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{OWNERS.map(o => <option key={o.name}>{o.name}</option>)}</select></div>
-            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Plan Estimate (pts)</label><input type="number" min={0} placeholder="0" className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} /></div>
+            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Owner</label><select aria-label="New item owner" value={ownerName} onChange={event => setOwnerName(event.target.value)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{OWNERS.map(o => <option key={o.name}>{o.name}</option>)}</select></div>
+            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Plan Estimate (pts)</label><input aria-label="New item plan estimate" type="number" min={0} value={planEstimate} onChange={event => setPlanEstimate(Math.max(0, Number(event.target.value)))} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} /></div>
           </div>
         </div>
         <div className="flex items-center justify-between px-5 py-3 shrink-0" style={{ borderTop: "1px solid #e2e6eb", backgroundColor: "#f7f8fa" }}>
           <span className="text-[10px]" style={{ color: "#8c94a6" }}>Ctrl+Enter to save</span>
           <div className="flex gap-2">
             <button onClick={onClose} className="px-3.5 py-1.5 text-[12px] font-medium rounded" style={{ border: "1px solid #dde2ea", color: "#5c6478" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#edf0f4")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "transparent")}>Cancel</button>
-            <button onClick={onClose} className="px-4 py-1.5 text-[12px] font-semibold rounded" style={{ border: "1px solid #9fb5d5", color: "#1d3f73", backgroundColor: "#f5f8fc" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#e8eff8")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#f5f8fc")}>Create with details</button>
-            <button onClick={onClose} className="px-4 py-1.5 text-[12px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#1d3f73")}>Create Item</button>
+            <button disabled={!canCreate} onClick={() => submit(true)} className="px-4 py-1.5 text-[12px] font-semibold rounded disabled:opacity-45" style={{ border: "1px solid #9fb5d5", color: "#1d3f73", backgroundColor: "#f5f8fc" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#e8eff8")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#f5f8fc")}>Create with details</button>
+            <button disabled={!canCreate} onClick={() => submit(false)} className="px-4 py-1.5 text-[12px] font-semibold text-white rounded disabled:opacity-45" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#1d3f73")}>Create Item</button>
           </div>
         </div>
       </div>

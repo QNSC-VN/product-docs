@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
+import { TeamsSettingsPanel } from "./ProjectsPage";
 
 export function Toggle({ on = true, disabled = false }: { on?: boolean; disabled?: boolean }) {
   const [v, setV] = useState(on);
@@ -82,14 +83,14 @@ const PROD_ROLE_ACTION_MATRIX: RoleActionRow[] = [
   { screen: "Manage Projects > Projects", action: "Edit project status to archived", permission: "projects:archive", states: roleStates("E", "H", "H") },
   { screen: "Manage Projects > Projects", action: "Edit project status to active", permission: "projects:restore", states: roleStates("E", "H", "H") },
   { screen: "Manage Projects > Projects", action: "Delete project", permission: "projects:delete", states: roleStates("E", "H", "H") },
-  { screen: "Manage Projects > Teams", action: "View team list, search and filters", permission: "teams:view_list", states: roleStates("E", "R", "H") },
-  { screen: "Manage Projects > Teams", action: "Create team", permission: "teams:create", states: roleStates("E", "H", "H") },
-  { screen: "Manage Projects > Teams", action: "Edit team information", permission: "teams:edit_info", states: roleStates("E", "H", "H") },
-  { screen: "Manage Projects > Teams", action: "Edit team status", permission: "teams:edit_status", states: roleStates("E", "H", "H") },
-  { screen: "Manage Projects > Teams", action: "Edit team lead", permission: "teams:edit_lead", states: roleStates("E", "H", "H") },
-  { screen: "Manage Projects > Teams", action: "Edit team members", permission: "teams:edit_members", states: roleStates("E", "H", "H") },
-  { screen: "Manage Projects > Teams", action: "Delete team access (deactivate)", permission: "teams:deactivate", states: roleStates("E", "H", "H") },
-  { screen: "Manage Projects > Teams", action: "Edit team status to active", permission: "teams:restore", states: roleStates("E", "H", "H") },
+  { screen: "Settings > Teams", action: "View team list, search and filters", permission: "teams:view_list", states: roleStates("E", "R", "H") },
+  { screen: "Settings > Teams", action: "Create team", permission: "teams:create", states: roleStates("E", "H", "H") },
+  { screen: "Settings > Teams", action: "Edit team information", permission: "teams:edit_info", states: roleStates("E", "H", "H") },
+  { screen: "Settings > Teams", action: "Edit team status", permission: "teams:edit_status", states: roleStates("E", "H", "H") },
+  { screen: "Settings > Teams", action: "Edit team lead", permission: "teams:edit_lead", states: roleStates("E", "H", "H") },
+  { screen: "Settings > Teams", action: "Edit team members", permission: "teams:edit_members", states: roleStates("E", "H", "H") },
+  { screen: "Settings > Teams", action: "Delete team access (deactivate)", permission: "teams:deactivate", states: roleStates("E", "H", "H") },
+  { screen: "Settings > Teams", action: "Edit team status to active", permission: "teams:restore", states: roleStates("E", "H", "H") },
   { screen: "Settings > User Management", action: "View workspace users", permission: "users:view_list", states: roleStates("E", "H", "H") },
   { screen: "Settings > User Management", action: "Create user invitation", permission: "users:invite", states: roleStates("E", "H", "H") },
   { screen: "Settings > User Management", action: "Edit user role", permission: "users:edit_role", states: roleStates("E", "H", "H") },
@@ -277,7 +278,7 @@ export function SettingsPage({ role, projectReadOnly = false }: { role: Role; pr
   const canManageWorkspaceSettings = role === "Workspace Admin";
   const sections = [
     { group: "Personal", items: [{ key: "profile", label: "Profile & Account", icon: <UserCheck size={13} /> }] },
-    { group: "Workspace", items: [{ key: "workspace", label: "Workspace Settings", icon: <Globe size={13} />, gate: can.viewAdmin(role) }, { key: "members", label: "User Management", icon: <Users size={13} />, gate: can.manageUsers(role) }, { key: "roles", label: "Roles & Permissions", icon: <Shield size={13} />, gate: can.manageRoles(role) }, { key: "audit", label: "Audit Log", icon: <FileText size={13} />, gate: can.viewAdmin(role) }] },
+    { group: "Workspace", items: [{ key: "workspace", label: "Workspace Settings", icon: <Globe size={13} />, gate: can.viewAdmin(role) }, { key: "teams", label: "Teams", icon: <Users size={13} />, gate: role !== "Project Member" }, { key: "members", label: "User Management", icon: <Users size={13} />, gate: can.manageUsers(role) }, { key: "roles", label: "Roles & Permissions", icon: <Shield size={13} />, gate: can.manageRoles(role) }, { key: "audit", label: "Audit Log", icon: <FileText size={13} />, gate: can.viewAdmin(role) }] },
   ];
 
   const fieldRow = (label: string, value: string, w = "w-36", disabled = false) => (
@@ -326,6 +327,7 @@ export function SettingsPage({ role, projectReadOnly = false }: { role: Role; pr
   }
 
   const content: Record<string, React.ReactNode> = {
+    teams: <TeamsSettingsPanel role={role} />,
     profile: (
       <div className="space-y-5">
         <div className="flex items-center gap-4 pb-4" style={{ borderBottom: "1px solid #e2e6eb" }}>

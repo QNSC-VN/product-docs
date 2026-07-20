@@ -63,9 +63,10 @@
 | P3-QA-FR-010 | User cannot delete a Defect in Phase 3.4. |
 | P3-QA-FR-011 | Closed or Closed Declined must be used instead of delete. |
 | P3-QA-FR-012 | Defect State options are exactly `Submitted`, `Open`, `Fixed`, `Closed`, `Closed Declined`. |
-| P3-QA-FR-013 | Defect Flow State options are exactly `Idea`, `Defined`, `In-Progress`, `Completed`, `Accepted`, `Released`. |
+| P3-QA-FR-013 | Defect Flow State options are exactly `Idea`, `Defined`, `In-Progress`, `Completed`, `Accepted`, `Release`. |
 | P3-QA-FR-014 | Defect Flow State can be updated independently from Defect State. |
 | P3-QA-FR-015 | Fixed In Build is an optional manual text field that captures the build/version/release label where the defect fix is expected or delivered. |
+| P3-QA-FR-016 | Defect Schedule State and Flow State use the same six values, default to `Idea` and mirror two-way in MVP; Defect State remains independent. |
 | P3-QA-FR-016 | Bulk actions must not execute in Phase 3.4 until BA confirms available actions and permissions. |
 | P3-QA-FR-017 | Reopen from Closed/Closed Declined is deferred and must not be required for Phase 3.4 acceptance. |
 
@@ -90,7 +91,7 @@
 | Severity | None, Critical, Major Problem, Minor Problem, Trivial |
 | Priority | None, Urgent, High, Normal, Low |
 | State | Submitted, Open, Fixed, Closed, Closed Declined |
-| Flow State | Idea, Defined, In-Progress, Completed, Accepted, Released |
+| Flow State | Idea, Defined, In-Progress, Completed, Accepted, Release |
 
 ## 6. Defect State Transition Rules
 
@@ -107,6 +108,9 @@
 Notes:
 
 - Flow State is a separate planning/workflow field and can be updated independently from State.
+- Flow State mirrors Work Item Schedule State in MVP; changing either one sets the other to the same value.
+- New Defect Schedule State and Flow State both default to `Idea`.
+- Defect State remains a separate lifecycle and is not overwritten by Schedule/Flow changes.
 - Fixed In Build should be available on the dashboard and detail page.
 - Fixed In Build is optional and manually entered by the user.
 
@@ -162,6 +166,7 @@ Rules:
 - `fixedInBuild` is optional manual text.
 - Defect delete endpoint is not part of Phase 3.4.
 - Invalid State, Flow State, Severity and Priority values must be rejected.
+- Legacy Flow State `Code Review`, `Testing` and spelling `Released` are not valid after reconciliation.
 - Reopen from `Closed` or `Closed Declined` should be rejected or hidden in Phase 3.4 unless BA later confirms permission and audit behavior.
 - Bulk action endpoints are out of scope for Phase 3.4.
 

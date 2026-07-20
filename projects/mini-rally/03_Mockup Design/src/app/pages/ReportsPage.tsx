@@ -35,7 +35,7 @@ export function ReportsPage({ role, readOnly = false }: { role: Role; readOnly?:
   const defectSummary = [
     { label: "Open", value: 3, color: "#8a5808" },
     { label: "Critical", value: 1, color: "#b91c1c" },
-    { label: "In Testing", value: 1, color: "#7e22ce" },
+    { label: "In Progress", value: 1, color: "#7e22ce" },
     { label: "Resolved", value: 2, color: "#1e6930" },
   ];
   return (

@@ -28,7 +28,7 @@ App Shell
 
 | Tài liệu | Phần tham chiếu | Mục đích |
 |---|---|---|
-| [`Project_developement_plan.md`](../../Project_developement_plan.md) | Phase 0 / App Shell | Phạm vi delivery |
+| [`Mini_Rally_Product_Plan.xlsx`](../../Mini_Rally_Product_Plan.xlsx) | Phase 0 / App Shell | Phạm vi delivery |
 | [`mini_rally_project_overview.md`](../../../00_Documents/mini_rally_project_overview.md) | §4 Application Structure, §11 Key Pages | Cấu trúc ứng dụng và route mong muốn |
 | [`mini_rally_usecase_role_mapping.md`](../../../00_Documents/mini_rally_usecase_role_mapping.md) | §13–15 | Nguyên tắc role/permission |
 | [`Prompt1.md`](../../../02_Prompt%20UI/Prompt1.md) | Toàn tài liệu | Design system và component vocabulary |
@@ -39,7 +39,7 @@ App Shell
 | [`layout.tsx`](../../../03_Mockup%20Design/src/app/components/layout.tsx) | `TopNav`, `ContextBar`, hierarchy selector | App Shell components |
 | [`LoginPage.tsx`](../../../03_Mockup%20Design/src/app/pages/LoginPage.tsx) | Public Login layout | Authenticated shell boundary |
 
-Nếu SRS này mâu thuẫn với prompt cũ, dùng quyết định mới: **có menu Plan; Backlog là item con/màn mặc định của Plan; Track được đổi tên thành Iteration Status**.
+Nếu SRS này mâu thuẫn với prompt cũ, dùng quyết định reconciliation: **Plan chứa Backlog và Timeboxes; Track chứa Iteration Status (List-only); không có top-level Releases hoặc Team Board; Portfolio là menu có `Release Planning` thuộc Future Backlog Phase 5**.
 
 ## 3. Actor
 
@@ -81,11 +81,11 @@ Reports
 ```text
 /projects
 /p/:projectKey/home
-/p/:projectKey/iterations
+/p/:projectKey/timeboxes
 /p/:projectKey/backlog
+/p/:projectKey/iteration-status
 /p/:projectKey/quality
 /p/:projectKey/portfolio
-/p/:projectKey/releases
 /p/:projectKey/reports
 /p/:projectKey/settings
 /settings/company
@@ -150,7 +150,7 @@ Nguồn sự thật:
 |---|---|---|
 | Top navigation | `TopNav` | Chuyển từ `currentPage` state sang URL router |
 | Company hierarchy dropdown | `TopNav` trong `components/layout.tsx` | Company cố định → accessible Projects → Teams |
-| Main menu | `NAV_ITEMS` trong `components/layout.tsx` | Thứ tự Home → Plan → Iteration Status → …; Backlog nằm trong Plan |
+| Main menu | `NAV_ITEMS` trong `components/layout.tsx` | Home → Plan (Backlog, Timeboxes) → Track (Iteration Status List-only) → Quality → Portfolio (Release Planning Future Backlog) → Reports; không có top-level Releases/Team Board |
 | Context bar | `ContextBar`, `CtxSelect` | Selector thật; sync URL/query |
 | User menu | `TopNav` user dropdown | Bỏ demo role switch trong production |
 | Settings icon | `TopNav` | Gate bằng permission |

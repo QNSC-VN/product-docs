@@ -34,11 +34,15 @@ Work Item Detail là nơi user xem/sửa dữ liệu nghiệp vụ của Story/D
 | WID-FR-004 | Tab Details hiển thị Description, Attachments, Notes, Release Notes. |
 | WID-FR-005 | Tab Tasks hiển thị task list full width. |
 | WID-FR-006 | Tab Revision History hiển thị basic activity log. |
-| WID-FR-007 | Sidebar hiển thị Owner, Project, Team, Schedule State, Flow State, Plan Estimate, Release, Iteration. Nếu Work Item là Defect thì hiển thị thêm Priority. |
+| WID-FR-007 | Sidebar hiển thị Owner, Project, Team, Schedule State, Flow State, Plan Estimate, Release, Milestones, Iteration. Nếu Work Item là Defect thì hiển thị thêm Priority. |
 | WID-FR-008 | Field update phải persist DB và ghi activity log. |
 | WID-FR-009 | Project/team/status/release/iteration dropdown chỉ hiển thị option hợp lệ. |
-| WID-FR-010 | Viewer/read-only role không sửa được field. |
+| WID-FR-010 | Project Admin outside managed Project chỉ có read-only access và không sửa được field. |
 | WID-FR-011 | Refresh/direct URL detail phải load đúng item. |
+| WID-FR-012 | Schedule State và Flow State dùng cùng catalog `Idea/Defined/In-Progress/Completed/Accepted/Release`; đổi một field phải phản ánh field còn lại trong MVP. |
+| WID-FR-013 | Rule Schedule/Flow áp dụng cho Story/Defect; child Task tiếp tục chỉ dùng `Defined/In-Progress/Completed`. |
+| WID-FR-014 | Work Item có zero/one Release và zero/many Milestones. Milestone selector luôn giữ visible các giá trị đã chọn; đổi Release không tự thêm/xóa Milestone. Nếu đã có Release, chỉ option thêm mới bị lọc theo Milestone liên kết Release đó. |
+| WID-FR-015 | Gán Work Item vào Iteration chỉ thay đổi membership; không tự chuyển Iteration sang Committed và không khóa scope. Lifecycle Iteration tham chiếu Phase 2. |
 
 ## 4. Screen Mapping với Mockup
 
@@ -65,11 +69,12 @@ Work Item Detail là nơi user xem/sửa dữ liệu nghiệp vụ của Story/D
 | Owner | `assignee` | `work_items.assignee_id → users` | Responsible person | Nullable → Unassigned |
 | Project | `project` | `work_items.project_id → projects` | Scope | Required; changing project is advanced, may be disabled |
 | Team | `team` | `work_items.team_id → teams` | Team scope | Nullable; validate `project_teams` |
-| Schedule State | `scheduleState` | `work_items.schedule_state` | Trạng thái lập lịch/độ chín nghiệp vụ | Required; enum `Idea/Defined/In-Progress/Completed/Accepted/Release` |
-| Flow State | `flowState` | `work_items.flow_state` | Trạng thái luồng thực thi | Required; enum `Idea/Defined/In-Progress/Completed/Accepted/Release`; thay cho label `Status` trong sidebar |
+| Schedule State | `scheduleState` | `work_items.schedule_state` | Trạng thái lập lịch/độ chín nghiệp vụ | Required; enum `Idea/Defined/In-Progress/Completed/Accepted/Release`; default Idea; mirror Flow State trong MVP |
+| Flow State | `flowState` | `work_items.flow_state` | Trạng thái luồng thực thi | Required; cùng enum/default với Schedule State; mirror Schedule State trong MVP |
 | Priority | `priority` | `work_items.priority` | Mức ưu tiên Defect | Chỉ show/edit khi `type='defect'`; enum `Low/Normal/High/Urgent/None` |
 | Plan Estimate | `planEstimate` | `work_items.story_point` | Story point estimate | Nullable/decimal >=0 |
 | Release | `release` | `work_items.release_id → releases` | Release target | Nullable → Unscheduled |
+| Milestones | `milestoneIds[]` | Work Item–Milestone relation | Zero/many Milestone targets | Selected values persist; add-new options filter by current Release relation |
 | Iteration | `iteration` | `work_items.sprint_id → sprints` | Sprint/iteration assignment | Nullable → Unscheduled |
 | Created/Updated | `audit` | `created_at`, `updated_at`, `created_by`, `updated_by` | Audit/debug | Not necessarily visible in Phase 1 |
 
@@ -95,6 +100,7 @@ Patch request supports partial update:
   "priority": "Urgent",
   "storyPoint": 8,
   "releaseId": "uuid",
+  "milestoneIds": ["uuid"],
   "sprintId": "uuid"
 }
 ```
@@ -105,8 +111,11 @@ Patch request supports partial update:
 - `storyPoint >= 0`.
 - `teamId` must be active team linked to project.
 - `scheduleState` and `flowState` must be one of `Idea`, `Defined`, `In-Progress`, `Completed`, `Accepted`, `Release`.
+- Story/Defect update của một trong hai field phải lưu cùng giá trị cho field còn lại trong MVP; không dùng legacy `Code Review`, `Testing` hoặc spelling `Released`.
 - `priority` is accepted only for Defect and must be one of `Low`, `Normal`, `High`, `Urgent`, `None`.
 - `releaseId` and `sprintId` must belong to same project.
+- `milestoneIds[]` accepts zero or more valid Milestones. Changing `releaseId` never removes existing values; it limits only the option set for adding another Milestone.
+- Assigning `sprintId` does not auto-commit the Iteration or lock scope.
 - Rich text must be sanitized.
 - Cannot patch soft-deleted item.
 

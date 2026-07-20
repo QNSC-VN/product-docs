@@ -86,8 +86,8 @@ Current observed/planned behavior:
 - Legend states: `E` Enabled, `R` Read-only, `D` Disabled, `H` Hidden/Denied.
 - PM/BA/Developer/Tester/Viewer persona roles are removed; the mockup uses only Workspace Admin, Project Admin and Project Member.
 - Top-right gear is labeled as Workspace Settings for workspace-wide configuration.
-- Workspace dropdown action is labeled Manage Projects for project/team management under the workspace.
-- User Management is moved to the top-right Settings gear.
+- Workspace dropdown action is labeled Manage Projects for project management under the workspace.
+- Team Management and User Management are moved to the top-right Settings gear.
 - Workspace Admin can click `Edit` to unlock permission states for other production roles, then click `Save` to lock the matrix again.
 - Workspace Admin role column is locked as the system-owner baseline.
 - Project Member is limited to the assigned project's Backlog, Work Item/Task detail and Iteration Status workflows.
@@ -121,7 +121,8 @@ Current observed/planned behavior:
 | Action states | Show enable/read-only/disabled/hidden decision | Done | `SettingsPage.tsx` | E/R/D/H legend visible |
 | Role selection | Select a role and visually inspect its column | Done | `SettingsPage.tsx` | Selected column is highlighted |
 | Phase 5 exclusion | Exclude Portfolio, top-level Release Tracking and Reports from Phase 4 core | Done | `02_Roles_Permissions/SRS.md` | RBAC returns after Phase 5 scope; no UI banner in matrix |
-| Shell entry points | Distinguish Workspace Settings from Manage Projects | Done | `layout.tsx`, `ProjectsPage.tsx` | Top-right gear opens workspace/user/role/audit settings; workspace dropdown opens project/team management |
+| Shell entry points | Distinguish Workspace Settings from Manage Projects | Done | `layout.tsx`, `ProjectsPage.tsx`, `SettingsPage.tsx` | Top-right gear opens workspace/team/user/role/audit settings; workspace dropdown opens project management |
+| Team Management entry | Move team administration to top-right Settings gear | Done | `SettingsPage.tsx`, `ProjectsPage.tsx` | Manage Projects no longer shows Teams tab |
 | User Management entry | Move user administration to top-right Settings gear | Done | `SettingsPage.tsx`, `ProjectsPage.tsx` | Manage Projects no longer shows Users tab |
 | User Management list | Show user identity and contact fields without inline row action buttons | Done | `SettingsPage.tsx` | Columns: Name, Email, Phone number, Role, Status, Last Login |
 | Workspace Admin account | Keep Workspace Admin in list but make detail read-only | Done | `SettingsPage.tsx` | Internal setup account cannot be edited and has no Save action |
@@ -143,7 +144,7 @@ Current observed/planned behavior:
 - [x] Documentation records the draft matrix.
 - [x] Matrix excludes Phase 5 Portfolio, Release Tracking and Reports.
 - [x] Top-right gear is workspace-wide settings.
-- [x] Workspace dropdown Manage Projects opens project/team management under the workspace.
+- [x] Workspace dropdown Manage Projects opens project management under the workspace.
 - [x] User Management is under top-right Settings gear.
 - [x] Workspace Admin can click `Edit` to unlock E/R/D/H cells for non-WA roles.
 - [x] Workspace Admin can click `Save` to lock the matrix after changes.
@@ -214,7 +215,7 @@ Current observed/planned behavior:
 | Audit log shape | Audit rows use Time, Actor and Detail only | Done | `SettingsPage.tsx` | Time includes weekday/date/month/year/hour/minute/second; Action and Entity columns removed |
 | Audit filtering | Search audit rows by actor name and time text | Done | `SettingsPage.tsx` | Filters are mockup-local |
 | Audit event scope | Record administrative/settings actions only | Done | `SettingsPage.tsx`, `03_Settings_Audit/SRS.md` | Work item and execution changes are excluded |
-| Destructive confirmation modal | Require confirm modal before destructive or high-impact actions | Done | `ProjectsPage.tsx`, `03_Settings_Audit/SRS.md` | Archive/restore project and deactivate/restore team use modal confirmation |
+| Destructive confirmation modal | Require confirm modal before destructive or high-impact actions | Done | `SettingsPage.tsx`, `ProjectsPage.tsx`, `03_Settings_Audit/SRS.md` | Archive/restore project and deactivate/restore team use modal confirmation |
 | High-risk typed confirmation | Require typed target name for Delete Project and Remove User Access | Done | `SettingsPage.tsx`, `03_Settings_Audit/SRS.md` | Remove User Access requires typing the user name before the confirm button is enabled |
 
 ### P4.3 Acceptance Checklist
@@ -230,6 +231,7 @@ Current observed/planned behavior:
 - [x] Top-right gear Settings does not duplicate Project Settings.
 - [x] Project Settings entry point is `Manage Projects > Projects`.
 - [x] Project Settings reuses Phase 1 Manage > Projects create/edit/archive baseline.
+- [x] Team Management moved out of Manage Projects and into top-right Settings gear.
 - [x] Workflow Status configuration deferred to Future Backlog.
 - [x] Labels management deferred to Future Backlog.
 - [x] User Management moved out of Manage Projects and into top-right Settings gear.

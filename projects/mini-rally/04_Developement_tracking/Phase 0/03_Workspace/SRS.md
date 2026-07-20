@@ -28,7 +28,7 @@ Các yêu cầu Workspace CRUD/multi-workspace trong tài liệu hoặc prompt c
 
 | Tài liệu | Phần |
 |---|---|
-| [`Project_developement_plan.md`](../../Project_developement_plan.md) | Phase 0 / Workspace |
+| [`Mini_Rally_Product_Plan.xlsx`](../../Mini_Rally_Product_Plan.xlsx) | Phase 0 / Workspace |
 | [`mini_rally_project_overview.md`](../../../00_Documents/mini_rally_project_overview.md) | Core Hierarchy và Workspace Management |
 | [`mini_rally_database_design.md`](../../../01_DB%20design/mini_rally_database_design.md) | `workspaces`, `workspace_members`, roles/permissions |
 | [`layout.tsx`](../../../03_Mockup%20Design/src/app/components/layout.tsx) | Fixed company hierarchy dropdown |

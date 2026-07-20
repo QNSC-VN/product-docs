@@ -38,7 +38,7 @@ BA update 2026-06-28:
 |---|---|---|
 | [`PHASE2_MOCKUP_CHECKLIST.md`](../PHASE2_MOCKUP_CHECKLIST.md) | P2.2 Iteration Management | Mockup coverage |
 | [`PHASE2_DEVELOPMENT_TRACKING.md`](../PHASE2_DEVELOPMENT_TRACKING.md) | P2.2 task plan | Delivery tracking |
-| [`Project_developement_plan.md`](../../Project_developement_plan.md) | Phase 2 / Sprint Management | Phase scope |
+| [`Mini_Rally_Product_Plan.xlsx`](../../Mini_Rally_Product_Plan.xlsx) | Phase 2 / Sprint Management | Phase scope |
 | [`Phase 2/01_Backlog_Enhancement/SRS.md`](../01_Backlog_Enhancement/SRS.md) | Backlog rules | Dependency and out-of-scope boundary |
 | [`DATABASE_SCHEMA.md`](../../../05_Architecture/DATABASE_SCHEMA.md) | `planning.sprints`, `work_items.iteration_id` | Physical schema |
 | [`mini_rally_database_design.md`](../../../01_DB%20design/mini_rally_database_design.md) | Sprints/iterations | Logical schema |
@@ -122,7 +122,7 @@ Nghiệp vụ chính:
 | P2-IT-FR-020 | Detail required fields: Start Date, End Date, State. |
 | P2-IT-FR-021 | Project and Team context is shown in the detail right panel, not duplicated in the page subtitle or context bar while in Timeboxes. |
 | P2-IT-FR-022 | Start Date must be before or equal to End Date. |
-| P2-IT-FR-023 | State values are Planning, Committed, Accepted. |
+| P2-IT-FR-023 | State values are Planning, Committed and Accepted. New Iteration defaults to Planning; authorized user manually changes it to Committed when scope is committed. |
 | P2-IT-FR-024 | Viewer can view list/detail but cannot create, update or delete iterations. |
 | P2-IT-FR-025 | Release and Milestone detail/create behavior is not implemented in P2.2. |
 | P2-IT-FR-026 | Iterations created in Timeboxes are available as assignment targets in Backlog list and Work Item Detail. |
@@ -176,11 +176,10 @@ Current DB schema has `planning.sprints.state` values `future`, `active`, `close
 
 | UI State | DB State Option | Meaning |
 |---|---|---|
-| Planning | `future` | Iteration is planned but not committed/started |
-| Committed | `active` | Team has committed to the iteration |
+| Planning | `future` or `active` according to date/execution context | Iteration is planned or running; agreeing sprint scope is business context, not a status value |
 | Accepted | `closed` | Iteration is completed/accepted |
 
-If backend chooses to store UI labels directly, allowed values must still be exactly: `planning`, `committed`, `accepted`.
+If backend chooses to store UI labels directly, allowed values must still be exactly: `planning`, `accepted`.
 
 ## 8. API Contracts
 
@@ -216,7 +215,7 @@ Response:
       "team": { "id": "uuid", "name": "Core Platform" },
       "startDate": "2024-10-14",
       "endDate": "2024-10-28",
-      "state": "committed",
+      "state": "planning",
       "plannedVelocity": 47,
       "taskEstimate": 106
     }
@@ -278,7 +277,7 @@ Returns the list DTO plus editable detail fields:
   "team": { "id": "uuid", "name": "Core Platform" },
   "startDate": "2024-10-14",
   "endDate": "2024-10-28",
-  "state": "committed",
+  "state": "planning",
   "plannedVelocity": 47,
   "taskEstimate": 106,
   "version": 3
@@ -394,7 +393,7 @@ Role guidance:
 - End Date is required.
 - End Date must be greater than or equal to Start Date.
 - State is required.
-- State must be one of Planning, Committed, Accepted.
+- State must be one of Planning, Committed or Accepted.
 - Planned Velocity must be numeric and >= 0 if supplied.
 - Project must be active.
 - Team must belong to selected Project.
@@ -409,20 +408,21 @@ Role guidance:
 
 Phase 2.2 supports the Iteration record, assignment and status values needed by Backlog and Iteration Status. It does not implement Team Board execution. The rules below are the BA-confirmed baseline for later Team Board / Iteration Execution and must be reused there instead of creating a separate board-only lifecycle.
 
-Confirmed lifecycle states:
+Confirmed Iteration status values:
 
 | State | Meaning | How it changes |
 |---|---|---|
 | `Planning` | New/default planning state. | Default when user creates an Iteration. |
-| `Committed` | Sprint/Iteration is running and scope has been committed by the user. | User manually changes state to `Committed` when ready. |
+| `Committed` | Scope has been committed and the Iteration is running. | Authorized user manually changes the state when the team commits scope. |
 | `Accepted` | Iteration is accepted/closed from a planning perspective. | System may auto-set to `Accepted` when all assigned Story/Defect items are `Accepted`; user can still change manually if permitted. |
 
 Lifecycle control rules:
 
 - Iteration state remains user-editable according to permission.
-- Assigning Story/Defect items does not automatically commit the Iteration.
+- Assigning Story/Defect items does not automatically change the Iteration status.
+- Scope commitment is a manual transition to `Committed`; it is never triggered merely by assignment.
 - No Iteration state locks scope by itself.
-- `Committed` means active/running sprint, but user can still add, remove, or move Story/Defect items.
+- `Committed` does not lock scope: user can still add, remove or move Story/Defect items while the sprint is running.
 - When all assigned Story/Defect items in the Iteration are `Accepted`, system auto-sets the Iteration to `Accepted`.
 - Auto-setting Iteration to `Accepted` is a convenience behavior; it does not remove manual status editing.
 - Auto-accept requires at least one assigned Story/Defect item; an empty Iteration must not auto-accept.
@@ -446,7 +446,7 @@ Assignment and board rules:
 | Detail loading | Header may show selected id/name; body shows loading |
 | Detail save pending | Disable changed field or show saving indicator |
 | Detail save error | Keep user value, show field/toast error, allow retry |
-| Viewer/read-only | Hide create button; render fields as read-only or disabled |
+| Project Admin outside managed Project | Hide create button; render fields as read-only or disabled |
 
 ## 12. Acceptance Criteria
 

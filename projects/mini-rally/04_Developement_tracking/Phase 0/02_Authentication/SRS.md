@@ -18,7 +18,7 @@ Auth trả lời “người dùng là ai?” và tạo session an toàn. Author
 
 | Tài liệu | Phần |
 |---|---|
-| [`Project_developement_plan.md`](../../Project_developement_plan.md) | Phase 0 / Authentication |
+| [`Mini_Rally_Product_Plan.xlsx`](../../Mini_Rally_Product_Plan.xlsx) | Phase 0 / Authentication |
 | [`mini_rally_project_overview.md`](../../../00_Documents/mini_rally_project_overview.md) | §6.1 Authentication & Account, §11.1 Auth Pages |
 | [`mini_rally_usecase_role_mapping.md`](../../../00_Documents/mini_rally_usecase_role_mapping.md) | §3 Account & Workspace |
 | [`mini_rally_database_design.md`](../../../01_DB%20design/mini_rally_database_design.md) | §4.1–4.3 `users`, `auth_sessions`, `password_reset_tokens` |

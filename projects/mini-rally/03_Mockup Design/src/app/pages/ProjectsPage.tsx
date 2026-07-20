@@ -243,7 +243,6 @@ function MetricCard({ label, value, icon: Icon }: { label: string; value: number
 function Tabs({ activeTab, onChange }: { activeTab: ManageTab; onChange: (tab: ManageTab) => void }) {
   const tabs: { key: ManageTab; label: string; icon: typeof FolderKanban }[] = [
     { key: "projects", label: "Projects", icon: FolderKanban },
-    { key: "teams", label: "Teams", icon: Users },
   ];
   return (
     <div className="flex items-center gap-1 p-1 rounded" style={{ backgroundColor: "#edf0f4" }}>
@@ -336,7 +335,7 @@ function TeamModal({ team, projects, existingKeys, onClose, onSave }: { team: Te
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0" style={{ backgroundColor: "rgba(15,23,42,0.34)" }} onClick={onClose} />
       <form onSubmit={submit} className="relative w-full max-w-[680px] h-[600px] bg-white rounded-md shadow-2xl overflow-hidden flex flex-col" style={{ border: "1px solid #d4d8de" }}>
-        <ModalHeader title={editing ? "Edit Team" : "Create Team"} subtitle="Manage Projects / Teams" onClose={onClose} />
+        <ModalHeader title={editing ? "Edit Team" : "Create Team"} subtitle="Settings / Teams" onClose={onClose} />
         <div className="p-5 space-y-4 flex-1 overflow-y-auto">
           {error && <ErrorMessage text={error} />}
           <div className="flex items-center gap-1 p-1 rounded" style={{ backgroundColor: "#edf0f4" }}>
@@ -633,7 +632,7 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
       <div className="px-4 py-3 flex items-center gap-4 shrink-0" style={{ borderBottom: "1px solid #e2e6eb" }}>
         <div>
           <h2 className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>Manage Projects</h2>
-          <p className="text-[10px] mt-0.5" style={{ color: "#8c94a6" }}>Projects and teams under ACME Space Inc.</p>
+          <p className="text-[10px] mt-0.5" style={{ color: "#8c94a6" }}>Projects under ACME Space Inc.</p>
         </div>
         <Tabs activeTab={activeTab} onChange={setActiveTab} />
         <div className="flex-1" />
@@ -728,6 +727,61 @@ function TeamsTab({ teams, projects, canManage, onEdit, onArchive, onRestore }: 
       <Footer count={filtered.length} />
       <TableStyles />
     </>
+  );
+}
+
+export function TeamsSettingsPanel({ role }: { role: Role }) {
+  const [teams, setTeams] = useState<TeamRecord[]>(INITIAL_TEAMS);
+  const [editingTeam, setEditingTeam] = useState<TeamRecord | null | undefined>(undefined);
+  const [archiveTeamTarget, setArchiveTeamTarget] = useState<TeamRecord | null>(null);
+  const [restoreTeamTarget, setRestoreTeamTarget] = useState<TeamRecord | null>(null);
+  const canManage = role === "Workspace Admin";
+
+  function saveTeam(draft: TeamDraft) {
+    const project = projectForKey(draft.projectKey);
+    const lead = ownerForName(draft.leadName);
+    if (editingTeam) {
+      setTeams(previous => previous.map(team => team.id === editingTeam.id ? { ...team, ...draft, projectName: project.name, lead, updatedAt: "Just now" } : team));
+    } else {
+      setTeams(previous => [{
+        id: `team-${draft.projectKey.toLowerCase()}-${draft.key.toLowerCase()}`,
+        key: draft.key,
+        name: draft.name,
+        description: draft.description,
+        projectKey: draft.projectKey,
+        projectName: project.name,
+        lead,
+        status: draft.status,
+        members: draft.members,
+        updatedAt: "Just now",
+      }, ...previous]);
+    }
+    setEditingTeam(undefined);
+  }
+
+  function archiveTeam(team: TeamRecord) {
+    setTeams(previous => previous.map(item => item.id === team.id ? { ...item, status: "Deactive", updatedAt: "Just now" } : item));
+    setArchiveTeamTarget(null);
+  }
+
+  function restoreTeam(team: TeamRecord) {
+    setTeams(previous => previous.map(item => item.id === team.id ? { ...item, status: "Active", updatedAt: "Just now" } : item));
+    setRestoreTeamTarget(null);
+  }
+
+  return (
+    <div className="flex flex-col min-h-[620px] -mx-6 -mb-6">
+      <style>{`.form-input{width:100%;padding:0.5rem 0.75rem;border:1px solid #d9dee7;border-radius:4px;font-size:12px;color:#1a2234;outline:none}.form-input:focus{border-color:rgba(29,63,115,.45);box-shadow:0 0 0 2px rgba(29,63,115,.08)}.primary-button{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font-size:11px;font-weight:600;color:white;background-color:#1d3f73}`}</style>
+      <div className="px-4 pb-4 flex items-center gap-3 shrink-0">
+        <p className="text-[11px]" style={{ color: "#5c6478" }}>Manage workspace teams and their project membership.</p>
+        <div className="flex-1" />
+        {canManage && <button onClick={() => setEditingTeam(null)} className="primary-button"><Plus size={12} /> Create Team</button>}
+      </div>
+      <TeamsTab teams={teams} projects={INITIAL_PROJECTS} canManage={canManage} onEdit={setEditingTeam} onArchive={setArchiveTeamTarget} onRestore={setRestoreTeamTarget} />
+      {editingTeam !== undefined && <TeamModal team={editingTeam} projects={INITIAL_PROJECTS} existingKeys={teams.filter(team => team.id !== editingTeam?.id).map(team => team.key)} onClose={() => setEditingTeam(undefined)} onSave={saveTeam} />}
+      {archiveTeamTarget && <ConfirmDestructive title={`Deactivate ${archiveTeamTarget.name}?`} body="The team becomes unavailable in new project/team selectors. Existing history is preserved." actionLabel="Deactivate Team" onCancel={() => setArchiveTeamTarget(null)} onConfirm={() => archiveTeam(archiveTeamTarget)} />}
+      {restoreTeamTarget && <ConfirmDestructive tone="restore" title={`Restore ${restoreTeamTarget.name}?`} body="The team returns to active project/team selectors and can receive resource allocations again." actionLabel="Restore Team" onCancel={() => setRestoreTeamTarget(null)} onConfirm={() => restoreTeam(restoreTeamTarget)} />}
+    </div>
   );
 }
 

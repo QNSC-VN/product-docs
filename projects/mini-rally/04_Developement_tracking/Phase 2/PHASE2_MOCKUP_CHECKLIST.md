@@ -110,7 +110,7 @@ Not included:
 | Type dropdown | Hidden in Phase 2 | Done | `IterationsPage.tsx` | Iterations is P2.2 scope; Releases/Milestones return in Phase 3 |
 | Iterations list | Name, Theme, Start Date, End Date, Project, Planned Velocity, Task Estimate, State | Done | `IterationsPage.tsx` | Rally-like list style |
 | Search | Search iterations | Done | `IterationsPage.tsx` | Searches name/theme/project/state |
-| Filter | State filter | Done | `IterationsPage.tsx` | All/Planning/Committed/Accepted |
+| Filter | State filter | Done | `IterationsPage.tsx` | All/Planning/Committed/Accepted; assigning scope does not auto-commit |
 | Sort | Header sort icons | Done | `IterationsPage.tsx` | Text/date/number/state sorting |
 | Quick create | New Iteration modal | Done | `IterationsPage.tsx` | Project, Team, Name, Start Date, End Date, State |
 | Context default | Project/Team auto-fill from workspace selector | Business rule | `layout.tsx`, `IterationsPage.tsx` | Admin can override with valid Project/Team pair |
@@ -173,15 +173,17 @@ Included:
 | Saved Views | Remove Saved Views | Done | `IterationStatusPage.tsx` | Deferred |
 | Iteration selector | Combined name/date dropdown + prev/next | Done | `IterationStatusPage.tsx` | Reads `ITERATIONS_DATA` from Timeboxes mock data |
 | Context filter | Iteration selector filtered by Project/Team context | Business rule | `layout.tsx`, `IterationStatusPage.tsx` | Only Iterations for selected Project/Team |
-| Metrics | Planned Velocity, Iteration End, Accepted, Defects, Tasks | Done | `IterationStatusPage.tsx` | Defects is count of Defect work item type |
-| List scope | Show current Iteration work items | Done | `IterationStatusPage.tsx` | Production source is Backlog/work_items assigned to selected Iteration |
+| Metrics | Planned Velocity, Iteration End, Accepted, Defects, Tasks | Done | `IterationStatusPage.tsx` | Tasks counts non-Completed child Tasks from the scoped US/DE aggregate; NXP Sprint 24.3 smoke result = 10 active |
+| List scope | Show current Iteration Story/Defect work items only | Done | `IterationStatusPage.tsx`, `App.tsx` | Filters selected Iteration and current Project; child Tasks contribute only through parent aggregates and are not rows |
 | List columns | Selection, Rank, ID, Type, Name, Schedule State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner | Done | `IterationStatusPage.tsx` | Per-row Defects column removed |
+| Totals row | Plan Est, Task Est, To Do totals below column header | Done | `IterationStatusPage.tsx` | NXP Sprint 24.3 smoke result = 21 / 34 / 14 |
+| View mode | List only in Phase 0-4 | Done | `IterationStatusPage.tsx` | Active Board toggle removed; Board implementation retained only as Future Backlog |
 | Search/filter | Quick search plus Manage Filters | Done | `IterationStatusPage.tsx` | Inherits Backlog Enhancement |
 | Filter behavior | ID/Name/Plan Est/Task Est/To Do as input; Type/State/Iteration/Blocked/Owner as dropdown | Done | `IterationStatusPage.tsx` | Multi-column combined filters |
 | Sort/resize | Sort icons and resizable columns | Done | `IterationStatusPage.tsx` | Inherits Backlog list pattern |
 | Inline edit | Name, Schedule State, Iteration, Plan Est, Owner | Done | `IterationStatusPage.tsx` | Mock local state |
 | Detail panel | Iteration field | Done | `WorkItemDetailPage.tsx` | Right panel shows assignment field |
-| Schedule State | Idea, Defined, In-Progress, Completed, Accepted, Release | Done | `IterationStatusPage.tsx` | Code Review/Testing are not valid for this screen |
+| Schedule State | Idea, Defined, In-Progress, Completed, Accepted, Release | Done | `IterationStatusPage.tsx`, `model.ts` | Shared mock catalog contains no Code Review/Testing/Released and this screen no longer normalizes legacy values locally |
 | Row click | Opens full Work Item Detail | Done | `IterationStatusPage.tsx` | Reuses Backlog detail flow |
 | Add Item placement | Beside filter controls | Done | `IterationStatusPage.tsx` | Quick Create removed |
 | Add Item modal | Create new Story/Defect into selected Iteration | Done | `IterationStatusPage.tsx` | Existing backlog assignment is handled by Work Item Iteration field |
@@ -193,7 +195,7 @@ Follow-up notes to avoid scope loss:
 - Define permissions for PO/PM/Developer/Tester/Viewer.
 - Move existing backlog items into an Iteration by updating the Work Item Iteration field from Backlog list or Work Item Detail.
 - Keep Team Board and Team Status out of Phase 2.
-- Keep Board drag/drop out of Phase 2; dedicated Start/Close and carry-over workflow is not required by the confirmed baseline.
+- Keep Iteration Status Board view/toggle and Board drag/drop in Future Backlog; Phase 0-4 uses List only. Dedicated Start/Close and carry-over workflow is not required by the confirmed baseline.
 - Keep Release and Milestone management in Phase 3.
 
 ## 6C. Moved To Later Phases
@@ -227,6 +229,9 @@ Team Status is preserved under Phase 3 documentation. Team Board is preserved un
 | P2-IS-DC-005 | Work item Schedule State options in Iteration Status are Idea, Defined, In-Progress, Completed, Accepted, Release | Decided |
 | P2-IS-DC-006 | Defects metric counts Defect work item type in the selected Iteration; no per-row Defects column | Decided |
 | P2-IS-DC-007 | Quick Create and bottom Add work item row are removed from Iteration Status | Decided |
+| P2-IS-DC-008 | Tasks card keeps `N active` and counts non-Completed child Tasks of scoped US/DE | Decided |
+| P2-IS-DC-009 | Totals row under column header sums Plan Est, child Task Est and child To Do | Decided |
+| P2-IS-DC-010 | Iteration Status Board view/toggle moves to Future Backlog; List only in Phase 0-4 | Decided |
 | P2-CONTEXT-DC-001 | Workspace selector Project/Team is the global data context for Phase 2 Backlog, Timeboxes/Iterations and Iteration Status | Decided |
 | P2-CONTEXT-DC-002 | Create Work Item and Create Iteration auto-fill Project/Team from workspace selector context | Decided |
 | P2-CONTEXT-DC-003 | Workspace Admin may override Project/Team in enabled forms, but Team must belong to Project and Iteration assignment must match Project/Team | Decided |

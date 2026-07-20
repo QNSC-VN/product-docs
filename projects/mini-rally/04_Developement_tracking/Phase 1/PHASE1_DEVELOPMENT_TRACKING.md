@@ -8,7 +8,7 @@
 | Timebox | **2 working days = 16 hours** |
 | Quy ước ngày công | 1 day = 8 hours |
 | Company scope | Single-company: `ACME Space Inc.` |
-| Modules | Manage Projects/Teams/Users, Backlog, Work Item Create, Work Item Detail, Task Management, Time Tracking, Content/Attachments, Activity Log |
+| Modules | Manage Projects, Settings Teams/User Management, Backlog, Work Item Create, Work Item Detail, Task Management, Time Tracking, Content/Attachments, Activity Log |
 | Trạng thái tổng thể | `READY FOR DEVELOPMENT PLANNING` |
 | Mockup | Phase 1 mockup đã có đủ màn hình chính |
 | SRS/DB mapping | Hoàn thành initial draft |
@@ -57,7 +57,7 @@
 |---|---|---|---|---|---:|---:|---|
 | P1-01 | DB & Contracts | Verify/add Phase 1 DB migration | `work_items` fields for notes/release_notes/time fields, indexes, FK validation | Phase 0 DB | 2.0h | 2.0h | `DONE` |
 | P1-02 | DB & Contracts | Work Item API DTO/contracts | List/detail/create/update DTO, validation, permission rules | P1-01 | 2.0h | 2.0h | `DONE` |
-| P1-03 | DB & Contracts | Seed workflow status + sample project/team users | Defined/In-Progress/Completed, Story/Defect defaults | P1-01 | 1.0h | 1.0h | `DONE` |
+| P1-03 | Contracts/mock defaults | Align status catalog and defaults | US/DE: Idea/Defined/In-Progress/Completed/Accepted/Release, default Idea and Schedule/Flow mirror; Task: Defined/In-Progress/Completed | P1-01 | 1.0h | 1.0h | `M1/M3/M5.1 CONFIRMED — SESSION-LEVEL SHARED MOCK STATE` |
 | P1-04 | Backlog | Backlog List API + FE integration | Server pagination/filter/sort/resize persistence optional | P1-02 | 2.0h | 2.0h | `DONE` |
 | P1-05 | Backlog | Backlog columns finalization | Priority kept for Defect only; Status column renamed Schedule State | BA decided | 0.5h | 0.5h | `DECIDED` |
 | P1-06 | Create | Quick Create Story/Defect | Modal create, required validation, key generation | P1-02 | 1.5h | 1.5h | `DONE` |
@@ -134,10 +134,10 @@ P1-01 DB migration
 - [ ] Create sinh `item_key` atomically theo project.
 - [ ] Create with details mở detail của item vừa tạo.
 
-### Manage Projects / Teams / Users
+### Manage Projects / Settings Teams / User Management
 
-- [ ] Workspace dropdown `Manage` mở Manage page.
-- [ ] Manage page có tabs `Projects`, `Teams`, `Users`.
+- [ ] Workspace dropdown `Manage Projects` mở Project management với `Projects` view.
+- [ ] Top-right Settings gear có mục `Teams` và `User Management`; không lặp lại Teams/Users trong Manage Projects.
 - [ ] Teams list chỉ có Key, Team, Project, Status, Lead, Updated.
 - [ ] Teams list không có Members, Capacity, Velocity, Actions columns.
 - [ ] Create/Edit Team modal có tabs `Team Info` và `Members`.
@@ -211,5 +211,5 @@ P1-01 DB migration
 - [`07_Activity_Log/SRS.md`](07_Activity_Log/SRS.md)
 - [`08_Manage_Projects_Teams_Users/SRS.md`](08_Manage_Projects_Teams_Users/SRS.md)
 - [`PHASE1_MOCKUP_CHECKLIST.md`](PHASE1_MOCKUP_CHECKLIST.md)
-- [`../Project_developement_plan.md`](../Project_developement_plan.md)
+- [`../Mini_Rally_Product_Plan.xlsx`](../Mini_Rally_Product_Plan.xlsx)
 - [`../../01_DB design/mini_rally_database_design.md`](../../01_DB%20design/mini_rally_database_design.md)

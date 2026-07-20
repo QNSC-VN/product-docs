@@ -206,5 +206,5 @@ Nguồn bàn giao: Codex thread `Repo test`; kết quả kỹ thuật local khô
 - [`03_Workspace/SRS.md`](03_Workspace/SRS.md)
 - [`04_Project/SRS.md`](04_Project/SRS.md)
 - [`PHASE0_MOCKUP_CHECKLIST.md`](PHASE0_MOCKUP_CHECKLIST.md)
-- [`../../Project_developement_plan.md`](../Project_developement_plan.md)
+- [`../../Mini_Rally_Product_Plan.xlsx`](../Mini_Rally_Product_Plan.xlsx)
 - [`../../01_DB design/mini_rally_database_design.md`](../../01_DB%20design/mini_rally_database_design.md)

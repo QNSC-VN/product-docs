@@ -39,6 +39,10 @@ Task là đơn vị chia nhỏ công việc của Story/Defect. Trong DB, Task v
 | TASK-FR-010 | Task Detail left: Description, Notes, Attachments. |
 | TASK-FR-011 | Task Detail right: State, Owner, Project, Team, Work Product, Estimate, To Do, Actual. |
 | TASK-FR-012 | Work Product có thể chỉnh nhưng phải validate cùng project/team scope. |
+| TASK-FR-013 | Task Dashboard trong Work Item Detail hỗ trợ inline edit Name, State, Owner, To Do, Actuals và Estimate; click Task ID vẫn mở Task Detail. |
+| TASK-FR-014 | Task Dashboard và Team Status đọc/ghi cùng một Task identity trong session mockup; không có page-local Task copy. |
+| TASK-FR-015 | Task kế thừa Iteration từ parent Story/Defect; Task không có assignment Iteration độc lập. |
+| TASK-FR-016 | Khi tất cả child Task của một parent Completed, system tự đổi Schedule State và Flow State của parent sang Completed. Khi bất kỳ Task được reopen, system tự đổi parent sang In-Progress. User vẫn có thể đổi parent status thủ công. |
 
 ## 4. DB ↔ UI Mapping — Task List
 
@@ -105,6 +109,8 @@ Implementation note: endpoints may internally use `work_items`; separate task ro
 - State only Defined/In-Progress/Completed unless workflow config expands later.
 - Time fields cannot be negative.
 - Changing Work Product moves `parent_id` and must log activity.
+- Task inherits the parent Iteration for Team Status and Iteration metrics; it must not expose an independent Iteration selector.
+- All child Tasks Completed triggers the parent US/DE roll-up to `Completed`; reopening any child Task triggers the parent to `In-Progress`. The automatic rule does not remove authorized manual parent status editing.
 
 ## 9. Permission Rules
 
@@ -126,6 +132,9 @@ Implementation note: endpoints may internally use `work_items`; separate task ro
 6. Task Detail has no Tasks tab.
 7. Update State/Owner/Estimate/To Do/Actual persists and logs activity.
 8. Totals row equals sum of visible tasks.
+9. Completing the final child Task automatically changes the parent Story/Defect Schedule State and Flow State to `Completed`.
+10. Reopening a child Task after all child Tasks were completed automatically changes the parent to `In-Progress` and recalculates task metrics.
+11. Inline edits in Task Dashboard are reflected for the same Task ID in Team Status; no independent Task Iteration assignment is available.
 
 ## 11. Implementation Breakdown
 

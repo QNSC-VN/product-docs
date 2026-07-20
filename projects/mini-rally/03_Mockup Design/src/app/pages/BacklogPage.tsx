@@ -18,7 +18,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES, ITERATIONS_DATA } from "../model";
+import { type IterationItem, type NewWorkItemInput, type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
 
 export type BacklogColumnKey = "rank" | "type" | "id" | "name" | "priority" | "estimate" | "owner" | "status" | "iteration" | "release";
@@ -27,10 +27,10 @@ type BacklogFilters = Partial<Record<BacklogFilterColumn, string>>;
 type BacklogSort = { column: BacklogColumnKey; direction: "asc" | "desc" };
 const DEFECT_PRIORITY_LABELS: Record<string, string> = { Critical: "Urgent", High: "High", Medium: "Normal", Low: "Low" };
 const DEFECT_PRIORITY_TO_LEGACY: Record<string, string> = { Urgent: "Critical", High: "High", Normal: "Medium", Low: "Low", None: "None" };
-const BACKLOG_STATUS_OPTIONS: StatusType[] = ["Defined", "In-Progress", "Code Review", "Testing", "Completed", "Accepted"];
+const BACKLOG_STATUS_OPTIONS: StatusType[] = ["Idea", "Defined", "In-Progress", "Completed", "Accepted", "Release"];
 const BACKLOG_PRIORITY_OPTIONS = ["Low", "Normal", "High", "Urgent", "None"];
 const BACKLOG_PRIORITY_ORDER: Record<string, number> = { Critical: 4, High: 3, Medium: 2, Low: 1 };
-const BACKLOG_STATUS_ORDER: Record<StatusType, number> = { Defined: 1, "In-Progress": 2, "Code Review": 3, Testing: 4, Completed: 5, Accepted: 6 };
+const BACKLOG_STATUS_ORDER: Record<StatusType, number> = { Idea: 1, Defined: 2, "In-Progress": 3, Completed: 4, Accepted: 5, Release: 6 };
 const BACKLOG_FILTER_COLUMNS: Array<{ key: BacklogFilterColumn; label: string; mode: "search" | "select" }> = [
   { key: "id", label: "ID", mode: "search" },
   { key: "name", label: "Name", mode: "search" },
@@ -101,10 +101,8 @@ export function ResizableBacklogHeader({ label, width, column, onResize, sort, o
   );
 }
 
-export function BacklogPage({ role, project, team, activeItem, onItemClick, onOpenFull }: { role: Role; project: ScopeProject; team: string; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
-  const [backlogItems, setBacklogItems] = useState<WorkItem[]>(() =>
-    WORK_ITEMS.filter(item => item.id.startsWith("US") || item.id.startsWith("DE"))
-  );
+export function BacklogPage({ role, project, team, iterations, releases, items, onCreateItem, onUpdateItem, activeItem, onItemClick, onOpenFull }: { role: Role; project: ScopeProject; team: string; iterations: IterationItem[]; releases: ReleaseItem[]; items: WorkItem[]; onCreateItem: (input: NewWorkItemInput, openDetails: boolean) => void; onUpdateItem: (id: string, patch: Partial<WorkItem>) => void; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
+  const backlogItems = items.filter(item => item.type === "Story" || item.type === "Defect");
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<BacklogFilters>({});
@@ -118,14 +116,15 @@ export function BacklogPage({ role, project, team, activeItem, onItemClick, onOp
   const [columnWidths, setColumnWidths] = useState<Record<BacklogColumnKey, number>>({ rank: 56, type: 72, id: 82, name: 520, priority: 96, estimate: 56, owner: 124, status: 128, iteration: 128, release: 88 });
   const [sort, setSort] = useState<BacklogSort | null>(null);
 
-  const releaseOptions = Array.from(new Set(backlogItems.map(item => item.release))).sort();
-  const iterationOptions = Array.from(new Set([...ITERATIONS_DATA.map(iteration => iteration.name), "Unscheduled", ...backlogItems.map(item => item.iteration)])).sort();
+  const releaseOptions = Array.from(new Set(["Unscheduled", ...releases.map(release => release.name), ...backlogItems.map(item => item.release)])).sort();
+  const iterationOptions = Array.from(new Set([...iterations.map(iteration => iteration.name), "Unscheduled", ...backlogItems.map(item => item.iteration)])).sort();
   const editable = can.manageBacklog(role) && !(role === "Project Admin" && !ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
   const canEditRelease = editable && role !== "Project Member";
   const activeFilterColumns = BACKLOG_FILTER_COLUMNS.filter(column => filters[column.key] !== undefined);
   const activeFilterCount = activeFilterColumns.length;
   const availableFilterColumns = BACKLOG_FILTER_COLUMNS.filter(column => column.label.toLowerCase().includes(filterColumnSearch.toLowerCase()));
   const filtered = backlogItems.filter(item =>
+    item.project === project.key &&
     (item.title.toLowerCase().includes(search.toLowerCase()) || item.id.toLowerCase().includes(search.toLowerCase())) &&
     activeFilterColumns.every(filter => {
       const value = (filters[filter.key] || "").trim();
@@ -162,7 +161,7 @@ export function BacklogPage({ role, project, team, activeItem, onItemClick, onOp
     });
   }
   function updateItem(id: string, patch: Partial<WorkItem>) {
-    setBacklogItems(previous => previous.map(item => item.id === id ? { ...item, ...patch } : item));
+    onUpdateItem(id, patch);
   }
   function updateItemOwner(id: string, ownerName: string) {
     const owner = OWNERS.find(candidate => candidate.name === ownerName);
@@ -173,10 +172,11 @@ export function BacklogPage({ role, project, team, activeItem, onItemClick, onOp
     if (priority !== "None") updateItem(id, { priority });
   }
   function assignSelectedRelease(release: string) {
-    setBacklogItems(previous => previous.map(item => selectedIds.has(item.id) ? { ...item, release } : item));
+    const releaseId = releases.find(candidate => candidate.name === release)?.id;
+    selectedIds.forEach(id => onUpdateItem(id, { release, releaseId }));
   }
   function assignSelectedIteration(iteration: string) {
-    setBacklogItems(previous => previous.map(item => selectedIds.has(item.id) ? { ...item, iteration } : item));
+    selectedIds.forEach(id => onUpdateItem(id, { iteration }));
   }
   function openManageFilters() {
     setShowFilters(true);
@@ -239,7 +239,7 @@ export function BacklogPage({ role, project, team, activeItem, onItemClick, onOp
     if (index < 0 || targetIndex < 0 || targetIndex >= ordered.length) return;
     [ordered[index], ordered[targetIndex]] = [ordered[targetIndex], ordered[index]];
     const nextRank = new Map(ordered.map((item, idx) => [item.id, idx + 1]));
-    setBacklogItems(previous => previous.map(item => ({ ...item, rank: nextRank.get(item.id) ?? item.rank })));
+    nextRank.forEach((rank, itemId) => onUpdateItem(itemId, { rank }));
   }
   function startColumnResize(column: BacklogColumnKey, event: React.MouseEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -436,7 +436,7 @@ export function BacklogPage({ role, project, team, activeItem, onItemClick, onOp
                     {editable ? <select aria-label={`${item.id} iteration`} value={item.iteration} onChange={event => updateItem(item.id, { iteration: event.target.value })} className="w-[122px] text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{iterationOptions.map(iteration => <option key={iteration}>{iteration}</option>)}</select> : item.iteration}
                   </div>
                   <div className="shrink-0 overflow-hidden text-[11px]" style={{ width: columnWidths.release, color: "#5c6478" }} onClick={event => event.stopPropagation()}>
-                    {canEditRelease ? <select aria-label={`${item.id} release`} value={item.release} onChange={event => updateItem(item.id, { release: event.target.value })} className="w-[82px] text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{releaseOptions.map(release => <option key={release}>{release}</option>)}</select> : item.release}
+                    {canEditRelease ? <select aria-label={`${item.id} release`} value={item.release} onChange={event => updateItem(item.id, { release: event.target.value, releaseId: releases.find(release => release.name === event.target.value)?.id })} className="w-[82px] text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{releaseOptions.map(release => <option key={release}>{release}</option>)}</select> : item.release}
                   </div>
                 </div>
               );
@@ -460,7 +460,7 @@ export function BacklogPage({ role, project, team, activeItem, onItemClick, onOp
         </div>
         {activeItem && <DetailPanel item={activeItem} onClose={() => onItemClick(activeItem)} role={role} onOpenFull={onOpenFull} />}
       </div>
-      {showModal && <NewItemModal onClose={() => setShowModal(false)} defaultType="Story" allowedTypes={["Story", "Defect"]} />}
+      {showModal && <NewItemModal onClose={() => setShowModal(false)} onCreate={onCreateItem} defaultProjectKey={project.key} defaultTeam={team} defaultType="Story" allowedTypes={["Story", "Defect"]} />}
     </div>
   );
 }

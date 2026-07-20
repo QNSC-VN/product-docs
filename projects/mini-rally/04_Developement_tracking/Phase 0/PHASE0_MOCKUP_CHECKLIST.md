@@ -7,8 +7,8 @@ Ngày đồng bộ: 2026-06-20
 - Workspace đại diện cho Công ty/Organization.
 - App context: `Company/Workspace → Project → Team`.
 - Team thuộc Workspace và có thể liên kết với nhiều Project qua `project_teams`.
-- Main navigation: `Home → Plan → Iteration Status → Quality → Portfolio → Releases → Reports`.
-- Backlog là child/default screen của Plan.
+- Main navigation: `Home → Plan → Track → Quality → Portfolio → Reports`.
+- `Plan` chứa Backlog và Timeboxes; `Track` chứa Iteration Status List-only. Không có top-level `Releases` hoặc Team Board trong active navigation. `Portfolio > Release Planning` là Future Backlog Phase 5.
 - Backlog chỉ tập trung US/DE; không chứa Sprint planning.
 
 ## Coverage

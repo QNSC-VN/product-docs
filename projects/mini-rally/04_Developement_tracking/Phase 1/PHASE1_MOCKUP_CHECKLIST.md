@@ -13,7 +13,7 @@ Phase 1 tập trung vào Core Work Item Management:
 5. Estimate / To Do / Actual Time Tracking.
 6. Description / Notes / Attachments / Release Notes.
 7. Basic Activity Log / Revision History.
-8. Manage Projects / Teams / Users, bao gồm Create Team.
+8. Manage Projects và workspace administration trong Settings (`Teams`, `User Management`), bao gồm Create Team.
 
 Không nằm trong Phase 1:
 
@@ -37,7 +37,7 @@ Không nằm trong Phase 1:
 | Backlog | Project dropdown trên title | ✅ | `BacklogPage.tsx` | Có selector project/team trong create/context |
 | Backlog | Team dropdown kế project | ✅ | `BacklogPage.tsx` | Theo mockup hiện tại |
 | Backlog | Bỏ Feature và Task khỏi create/filter | ✅ | `BacklogPage.tsx` | Chỉ Story/Defect |
-| Backlog | Cột Priority/Schedule State/Release | ✅ | `BacklogPage.tsx` | Priority chỉ áp dụng cho Defect; Story hiển thị `—` |
+| Backlog | Cột Priority/Schedule State/Release | ✅ | `BacklogPage.tsx` | Schedule State dùng Idea/Defined/In-Progress/Completed/Accepted/Release; legacy values đã loại khỏi mock data |
 | Create Work Item | Quick create modal | ✅ | `BacklogPage.tsx` | Type, Project, Team, Title, Owner, Plan Estimate |
 | Create Work Item | Buttons Cancel/Create/Create with details | ✅ | `BacklogPage.tsx` | Create with details đang là mock action |
 | Create Work Item | Full create-with-details flow | 🟡 | `BacklogPage.tsx`, `WorkItemDetailPage.tsx` | Chưa có screen create-detail riêng; production có thể create rồi redirect detail |
@@ -61,9 +61,9 @@ Không nằm trong Phase 1:
 | Activity Log | Task Revision History | ✅ | `WorkItemDetailPage.tsx` | Basic activity log theo task |
 | Manage | Workspace menu mở Manage page | ✅ | `ProjectsPage.tsx`, `layout.tsx` | Breadcrumb hiển thị `ACME Space Inc. > Manage` |
 | Manage Projects | Projects tab giữ list/create/edit/archive project | ✅ | `ProjectsPage.tsx` | Đã có từ trước, đưa vào Manage tab |
-| Manage Teams | Teams tab list/filter/create/edit/deactive team | ✅ | `ProjectsPage.tsx` | List không có Members/Capacity/Velocity/Actions columns |
-| Manage Teams | Create/Edit Team modal | ✅ | `ProjectsPage.tsx` | Tabs `Team Info` và `Members`; Members có search/filter |
-| Manage Users | Users tab list/filter/invite/edit/deactivate user | ✅ | `ProjectsPage.tsx` | Invite User có role và team membership; không assign project trực tiếp |
+| Settings Teams | Settings gear > Teams list/filter/create/edit/deactive team | ✅ | `SettingsPage.tsx`, `ProjectsPage.tsx` | Manage Projects không còn Teams tab; list không có Members/Capacity/Velocity columns |
+| Settings Teams | Create/Edit Team modal | ✅ | `SettingsPage.tsx`, `ProjectsPage.tsx` | Tabs `Team Info` và `Members`; Members có search/filter |
+| User Management | Settings gear > User Management list/filter/invite/edit/deactivate user | ✅ | `SettingsPage.tsx` | Invite User có role và team membership; không assign project trực tiếp |
 
 ## 3. DB coverage / gaps cần dev xử lý
 
@@ -75,7 +75,7 @@ Không nằm trong Phase 1:
 | Manage Project | `projects`, project membership/link tables | ✅ | Phase 1 có Manage > Projects |
 | Manage Team | `teams`, `project_teams`, `team_members` | ✅ | Create Team từ Manage; list không show capacity/velocity |
 | Manage User | `users`, workspace/team membership tables | ✅ | Invite/edit user, role, team membership; project access derive từ team |
-| Schedule State / Flow State | `work_items.schedule_state`, `work_items.flow_state` | ✅ | Work Item Detail dùng 2 state riêng theo quyết định mới |
+| Schedule State / Flow State | `work_items.schedule_state`, `work_items.flow_state` | ✅ M1/M3/M5.1 confirmed | Cùng 6 options; Detail mirror hai chiều; create default Idea; shared Work Item state reflects cross-screen for the current mockup session. Refresh/API persistence remains DevInt scope. |
 | Owner | `work_items.assignee_id` | ✅ | Join `users` |
 | Plan Estimate | `work_items.story_point` | ✅ | Mapping tên UI `Plan Estimate` → DB `story_point` |
 | Task Estimate | DB design đã bổ sung `estimate_hours` | ✅ | Production migration cần implement |
@@ -97,6 +97,7 @@ Không nằm trong Phase 1:
 | P1-DC-003 | `Notes` là text/rich-text field riêng | Không dùng comment thread thay thế Notes trong Phase 1 |
 | P1-DC-004 | `Actual` nhập tay | Lưu vào `work_items.actual_hours`; phase sau mới cân nhắc aggregate từ time entries |
 | P1-DC-005 | Work Item sidebar dùng `Schedule State` và `Flow State` | `Status` sidebar đổi thành `Flow State`; options: Idea/Defined/In-Progress/Completed/Accepted/Release |
+| P1-DC-006 | Schedule State và Flow State mirror hai chiều trong MVP | Default cả hai là Idea; child Task không dùng catalog này |
 | P1-DC-006 | Defect Detail sidebar hiển thị `Priority` | Chỉ show với Defect; options: Low/Normal/High/Urgent/None |
 | P1-DC-008 | Manage là entry point cho Projects/Teams/Users | Workspace dropdown `Manage` mở màn Manage |
 | P1-DC-009 | Team list không hiển thị Members/Capacity/Velocity/Actions | Team list chỉ cần Key, Team, Project, Status, Lead, Updated |

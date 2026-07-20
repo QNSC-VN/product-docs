@@ -1,14 +1,12 @@
 import { useMemo, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { AlignLeft, ArrowDown, ArrowUpDown, Bold, ChevronLeft, ChevronRight, Filter, Info, Italic, Link2, List, ListOrdered, PencilLine, Plus, Search, Underline, X } from "lucide-react";
-import { type IterationItem, type Owner, type ReleaseItem, type Role, can, ITERATIONS_DATA, OWNERS, RELEASES_DATA, SCOPE_PROJECTS } from "../model";
+import { type IterationItem, type MilestoneItem, type MilestoneState, type NewIterationInput, type NewMilestoneInput, type NewReleaseInput, type Owner, type ReleaseItem, type Role, type WorkItem, can, OWNERS, SCOPE_PROJECTS } from "../model";
 
 type TimeboxType = "Iterations" | "Releases" | "Milestones";
 type NewTimeboxType = "Iteration" | "Release" | "Milestones";
-type MilestoneState = "Planned" | "At Risk" | "Met" | "Missed" | "Cancelled" | "Completed";
 type TimeboxState = IterationItem["state"] | ReleaseItem["status"] | MilestoneState;
 type IterationColumnKey = "name" | "theme" | "startDate" | "endDate" | "project" | "plannedVelocity" | "taskEstimate" | "state";
 type IterationSort = { column: IterationColumnKey; direction: "asc" | "desc" };
-type ArtifactItem = { id: string; name: string; type: "Release Note" | "Spec" | "Evidence" | "Link" };
 type SelectionGroup = "projects" | "teams" | "releases";
 type SelectionOption = { id: string; label: string; meta?: string };
 type TimeboxListItem = {
@@ -27,8 +25,9 @@ type TimeboxListItem = {
   projectKeys?: string[];
   projectNames?: string[];
   teams?: string[];
-  artifacts?: ArtifactItem[];
   owner?: Owner;
+  manualStartDate?: string;
+  manualEndDate?: string;
 };
 type TimeboxDraft = {
   id?: string;
@@ -46,8 +45,9 @@ type TimeboxDraft = {
   projectKeys?: string[];
   projectNames?: string[];
   teams?: string[];
-  artifacts?: ArtifactItem[];
   owner?: Owner;
+  manualStartDate?: string;
+  manualEndDate?: string;
 };
 
 const STATE_STYLES: Record<"Planned" | "Planning" | "Committed" | "Active" | "Accepted" | "At Risk" | "Met" | "Missed" | "Cancelled" | "Completed", { bg: string; text: string; border: string }> = {
@@ -95,12 +95,6 @@ const MIN_COLUMN_WIDTHS: Record<IterationColumnKey, number> = {
   taskEstimate: 96,
   state: 110,
 };
-
-const MILESTONES_DATA: TimeboxListItem[] = [
-  { id: "MS-Q4-RC", name: "Q4 Release Candidate", theme: "Release candidate coordination across platform and mobile scope.", startDate: "2024-07-01", endDate: "2024-11-01", project: "Nexus Platform 2025, Mobile App MVP", projectKey: "NXP", team: "Core Platform, Mobile Experience", plannedVelocity: "", taskEstimate: "", state: "Planned", releaseIds: ["REL-004", "REL-001"], projectKeys: ["NXP", "MOB"], projectNames: ["Nexus Platform 2025", "Mobile App MVP"], teams: ["Core Platform", "Mobile Experience"], artifacts: [{ id: "ART-RN-Q4", name: "Q4 release note rollup", type: "Release Note" }, { id: "ART-UAT-RC", name: "UAT sign-off evidence", type: "Evidence" }], owner: OWNERS[0] },
-  { id: "MS-SEC", name: "Security Review Complete", theme: "Authentication and infrastructure security checkpoint.", startDate: "2024-10-01", endDate: "2024-11-01", project: "Nexus Platform 2025, Infrastructure Refresh", projectKey: "NXP", team: "Identity & Access, Platform Reliability", plannedVelocity: "", taskEstimate: "", state: "At Risk", releaseIds: ["REL-001"], projectKeys: ["NXP", "INF"], projectNames: ["Nexus Platform 2025", "Infrastructure Refresh"], teams: ["Identity & Access", "Platform Reliability"], artifacts: [{ id: "ART-SEC-SAML", name: "SAML security review notes", type: "Spec" }], owner: OWNERS[2] },
-  { id: "MS-Q4-GA", name: "Q4 General Availability", theme: "Production launch milestone for Q4 and Q1 carry-forward scope.", startDate: "2024-10-01", endDate: "2025-02-01", project: "Nexus Platform 2025", projectKey: "NXP", team: "Core Platform, Data & Reporting", plannedVelocity: "", taskEstimate: "", state: "Completed", releaseIds: ["REL-001", "REL-002"], projectKeys: ["NXP"], projectNames: ["Nexus Platform 2025"], teams: ["Core Platform", "Data & Reporting"], artifacts: [{ id: "ART-GA-NOTES", name: "GA release notes", type: "Release Note" }], owner: OWNERS[0] },
-];
 
 function StateBadge({ state }: { state: keyof typeof STATE_STYLES }) {
   const style = STATE_STYLES[state];
@@ -162,26 +156,26 @@ function toDateInputValue(value?: string) {
   return `${parsed.getFullYear()}-${month}-${day}`;
 }
 
-function selectedReleases(releaseIds?: string[]) {
+function selectedReleases(releases: ReleaseItem[], releaseIds?: string[]) {
   const selectedIds = new Set(releaseIds || []);
-  return RELEASES_DATA.filter(release => selectedIds.has(release.id));
+  return releases.filter(release => selectedIds.has(release.id));
 }
 
-function releaseSummaryForIds(releaseIds?: string[]) {
-  const releases = selectedReleases(releaseIds);
-  if (releases.length === 0) return "No releases";
-  return releases.map(release => release.name).join(", ");
+function releaseSummaryForIds(releases: ReleaseItem[], releaseIds?: string[]) {
+  const selected = selectedReleases(releases, releaseIds);
+  if (selected.length === 0) return "No releases";
+  return selected.map(release => release.name).join(", ");
 }
 
-function releaseListTitle(releaseIds?: string[]) {
-  const releases = selectedReleases(releaseIds);
-  return releases.length ? releases.map(release => release.name).join(", ") : "No releases";
+function releaseListTitle(releases: ReleaseItem[], releaseIds?: string[]) {
+  const selected = selectedReleases(releases, releaseIds);
+  return selected.length ? selected.map(release => release.name).join(", ") : "No releases";
 }
 
-function releaseDateWindow(releaseIds?: string[]) {
-  const releases = selectedReleases(releaseIds);
-  const starts = releases.map(release => toDateInputValue(release.startDate)).filter(Boolean).sort();
-  const ends = releases.map(release => toDateInputValue(release.releaseDate)).filter(Boolean).sort();
+function releaseDateWindow(releases: ReleaseItem[], releaseIds?: string[]) {
+  const selected = selectedReleases(releases, releaseIds);
+  const starts = selected.map(release => toDateInputValue(release.startDate)).filter(Boolean).sort();
+  const ends = selected.map(release => toDateInputValue(release.releaseDate)).filter(Boolean).sort();
   return {
     startDate: starts[0] || "",
     endDate: ends[ends.length - 1] || "",
@@ -206,8 +200,8 @@ function summaryText(values?: string[], empty = "None") {
   return values.join(", ");
 }
 
-function buildIterationItems(): TimeboxListItem[] {
-  return ITERATIONS_DATA.map(iteration => ({
+function buildIterationItems(iterations: IterationItem[]): TimeboxListItem[] {
+  return iterations.map(iteration => ({
     id: iteration.id,
     name: iteration.name,
     theme: iteration.theme,
@@ -222,20 +216,48 @@ function buildIterationItems(): TimeboxListItem[] {
   }));
 }
 
-function buildReleaseItems(): TimeboxListItem[] {
-  return RELEASES_DATA.map(release => ({
+function buildReleaseItems(releases: ReleaseItem[]): TimeboxListItem[] {
+  return releases.map(release => ({
     id: release.id,
     name: release.name,
     theme: release.description,
     startDate: release.startDate,
     endDate: release.releaseDate,
-    project: "Nexus Platform 2025",
-    projectKey: "NXP",
-    team: "Core Platform",
+    project: SCOPE_PROJECTS.find(project => project.key === release.projectKey)?.name || release.projectKey,
+    projectKey: release.projectKey,
+    team: release.team,
     plannedVelocity: release.totalItems,
     taskEstimate: release.completedItems,
     state: release.status,
   }));
+}
+
+function buildMilestoneItems(milestones: MilestoneItem[], releases: ReleaseItem[]): TimeboxListItem[] {
+  return milestones.map(milestone => {
+    const window = releaseDateWindow(releases, milestone.releaseIds);
+    const hasLinkedReleases = milestone.releaseIds.length > 0;
+    const names = selectedProjectNames(milestone.projectKeys);
+    return {
+      id: milestone.id,
+      name: milestone.name,
+      theme: milestone.description,
+      startDate: hasLinkedReleases ? window.startDate : milestone.manualStartDate,
+      endDate: hasLinkedReleases ? window.endDate : milestone.manualEndDate,
+      project: summaryText(names),
+      projectKey: milestone.projectKeys[0],
+      team: summaryText(milestone.teams),
+      plannedVelocity: "",
+      taskEstimate: "",
+      state: milestone.state,
+      releaseIds: milestone.releaseIds,
+      projectKeys: milestone.projectKeys,
+      projectNames: names,
+      teams: milestone.teams,
+      owner: milestone.owner,
+      manualStartDate: milestone.manualStartDate,
+      manualEndDate: milestone.manualEndDate,
+    };
+  });
 }
 
 function IterationHeaderCell({ column, width, sort, onSort, onResize }: { column: (typeof COLUMNS)[number]; width: number; sort: IterationSort | null; onSort: (column: IterationColumnKey) => void; onResize: (column: IterationColumnKey, event: ReactMouseEvent<HTMLDivElement>) => void }) {
@@ -355,19 +377,20 @@ function SelectionModal({ title, options, selectedIds, onToggle, onClose }: { ti
   );
 }
 
-function ArtifactDashboard({ artifacts, artifactName, onArtifactNameChange, onAddArtifact }: { artifacts: ArtifactItem[]; artifactName: string; onArtifactNameChange: (value: string) => void; onAddArtifact: () => void }) {
+function ArtifactDashboard({ items, assignedIds, onToggle }: { items: WorkItem[]; assignedIds: string[]; onToggle: (id: string) => void }) {
   const [query, setQuery] = useState("");
   const normalizedQuery = query.trim().toLowerCase();
-  const filteredArtifacts = artifacts.filter(artifact => {
+  const candidates = items.filter(item => item.type === "Story" || item.type === "Defect");
+  const filteredArtifacts = candidates.filter(item => {
     if (!normalizedQuery) return true;
-    return `${artifact.id} ${artifact.name} ${artifact.type}`.toLowerCase().includes(normalizedQuery);
+    return `${item.id} ${item.title} ${item.type}`.toLowerCase().includes(normalizedQuery);
   });
 
   return (
     <section className="bg-white rounded overflow-hidden" style={{ border: "1px solid #dde2ea" }}>
       <div className="h-10 px-4 flex items-center gap-3" style={{ borderBottom: "1px solid #dde2ea", backgroundColor: "#f8fafc" }}>
         <h3 className="text-[12px] font-semibold" style={{ color: "#273449" }}>Artifacts</h3>
-        <span className="text-[10px]" style={{ color: "#8c94a6" }}>{artifacts.length} assigned</span>
+        <span className="text-[10px]" style={{ color: "#8c94a6" }}>{assignedIds.length} assigned</span>
         <div className="flex-1" />
         <div className="relative w-56">
           <Search size={12} className="absolute left-2 top-1/2 -translate-y-1/2" style={{ color: "#8c94a6" }} />
@@ -375,53 +398,51 @@ function ArtifactDashboard({ artifacts, artifactName, onArtifactNameChange, onAd
         </div>
       </div>
       <div className="overflow-auto">
-        <div className="grid h-8 items-center text-[10px] font-semibold uppercase tracking-wider" style={{ gridTemplateColumns: "96px minmax(220px, 1fr) 120px", color: "#64748b", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
+        <div className="grid h-8 items-center text-[10px] font-semibold uppercase tracking-wider" style={{ gridTemplateColumns: "96px minmax(220px, 1fr) 120px 80px", color: "#64748b", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
           <div className="px-3">ID</div>
           <div className="px-3">Name</div>
           <div className="px-3">Type</div>
+          <div className="px-3">Assigned</div>
         </div>
         {filteredArtifacts.length === 0 ? (
-          <div className="px-4 py-5 text-[12px]" style={{ color: "#8c94a6" }}>No artifacts assigned</div>
-        ) : filteredArtifacts.map(artifact => (
-          <div key={artifact.id} className="grid h-9 items-center text-[12px] hover:bg-[#f8fafc]" style={{ gridTemplateColumns: "96px minmax(220px, 1fr) 120px", borderBottom: "1px solid #edf0f4" }}>
-            <div className="px-3 font-mono" style={{ color: "#2558a6" }}>{artifact.id}</div>
+          <div className="px-4 py-5 text-[12px]" style={{ color: "#8c94a6" }}>No Story or Defect available</div>
+        ) : filteredArtifacts.map(item => (
+          <label key={item.id} className="grid min-h-9 items-center text-[12px] hover:bg-[#f8fafc] cursor-pointer" style={{ gridTemplateColumns: "96px minmax(220px, 1fr) 120px 80px", borderBottom: "1px solid #edf0f4" }}>
+            <div className="px-3 font-mono" style={{ color: "#2558a6" }}>{item.id}</div>
             <div className="px-3 min-w-0 flex items-center gap-2">
               <Link2 size={12} style={{ color: "#2558a6" }} />
-              <span className="truncate" style={{ color: "#1a2234" }}>{artifact.name}</span>
+              <span className="truncate" style={{ color: "#1a2234" }}>{item.title}</span>
             </div>
-            <div className="px-3" style={{ color: "#5c6478" }}>{artifact.type}</div>
-          </div>
+            <div className="px-3" style={{ color: "#5c6478" }}>{item.type}</div>
+            <div className="px-3"><input aria-label={`Assign ${item.id}`} type="checkbox" checked={assignedIds.includes(item.id)} onChange={() => onToggle(item.id)} /></div>
+          </label>
         ))}
-      </div>
-      <div className="flex gap-2 p-3" style={{ borderTop: "1px solid #edf0f4" }}>
-        <input aria-label="Artifact name" value={artifactName} onChange={event => onArtifactNameChange(event.target.value)} placeholder="Add artifact link/name..." className="min-w-0 flex-1 h-8 text-[12px] px-2.5 rounded bg-white focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} />
-        <button type="button" onClick={onAddArtifact} className="px-3 h-8 text-[11px] font-semibold rounded" style={{ border: "1px solid #bdd0ef", color: "#2558a6", backgroundColor: "#edf2fb" }}>Add</button>
       </div>
     </section>
   );
 }
 
-function IterationCreateDetailPage({ draft, onBack }: { draft: TimeboxDraft; onBack: () => void }) {
-  const [startDate, setStartDate] = useState(toDateInputValue(draft.startDate));
-  const [endDate, setEndDate] = useState(toDateInputValue(draft.endDate));
+function IterationCreateDetailPage({ draft, releases, workItems, onUpdateMilestone, onUpdateWorkItem, onBack }: { draft: TimeboxDraft; releases: ReleaseItem[]; workItems: WorkItem[]; onUpdateMilestone: (id: string, patch: Partial<MilestoneItem>) => void; onUpdateWorkItem: (id: string, patch: Partial<WorkItem>) => void; onBack: () => void }) {
+  const [startDate, setStartDate] = useState(toDateInputValue(draft.manualStartDate || draft.startDate));
+  const [endDate, setEndDate] = useState(toDateInputValue(draft.manualEndDate || draft.endDate));
   const [state, setState] = useState<TimeboxState>(draft.state || defaultStateForType(draft.type));
   const [plannedVelocity, setPlannedVelocity] = useState(draft.plannedVelocity === undefined ? "" : String(draft.plannedVelocity));
-  const [releaseIds, setReleaseIds] = useState<string[]>(draft.releaseIds?.length ? draft.releaseIds : RELEASES_DATA.slice(0, 2).map(release => release.id));
+  const [releaseIds, setReleaseIds] = useState<string[]>(draft.releaseIds || []);
   const [projectKeys, setProjectKeys] = useState<string[]>(draft.projectKeys?.length ? draft.projectKeys : [draft.projectKey]);
   const [teamNames, setTeamNames] = useState<string[]>(draft.teams?.length ? draft.teams : [draft.team].filter(Boolean));
-  const [artifacts, setArtifacts] = useState<ArtifactItem[]>(draft.artifacts || []);
-  const [artifactName, setArtifactName] = useState("");
   const [ownerName, setOwnerName] = useState(draft.owner?.name || OWNERS[0].name);
   const [selectionModal, setSelectionModal] = useState<SelectionGroup | null>(null);
   const [activeTab, setActiveTab] = useState<"details" | "artifacts">("details");
   const isMilestone = draft.type === "Milestones";
   const isProjectLevel = draft.type === "Release" || isMilestone;
-  const milestoneWindow = releaseDateWindow(releaseIds);
+  const milestoneWindow = releaseDateWindow(releases, releaseIds);
+  const hasLinkedReleases = releaseIds.length > 0;
   const fieldClass = "w-full text-[12px] px-3 py-2 rounded bg-white focus:outline-none";
   const fieldStyle = { border: "1px solid #d7dde7", color: "#1a2234" };
   const projectOptions: SelectionOption[] = SCOPE_PROJECTS.map(project => ({ id: project.key, label: project.name, meta: `${project.key} - ${project.teams.length} teams` }));
   const teamOptions: SelectionOption[] = allScopeTeams().map(team => ({ id: team, label: team }));
-  const milestoneReleaseOptions: SelectionOption[] = RELEASES_DATA.map(release => ({ id: release.id, label: release.name, meta: `${release.startDate} - ${release.releaseDate}` }));
+  const milestoneReleaseOptions: SelectionOption[] = releases.map(release => ({ id: release.id, label: release.name, meta: `${release.startDate} - ${release.releaseDate}` }));
+  const assignedArtifactIds = workItems.filter(item => isMilestone ? (item.milestoneIds || []).includes(draft.id || "") : item.releaseId === draft.id).map(item => item.id);
   const activeSelection = selectionModal === "projects"
     ? { title: "Projects", options: projectOptions, selectedIds: projectKeys, onToggle: (id: string) => setProjectKeys(previous => toggleStringValue(previous, id)) }
     : selectionModal === "teams"
@@ -432,16 +453,27 @@ function IterationCreateDetailPage({ draft, onBack }: { draft: TimeboxDraft; onB
 
   function toggleRelease(releaseId: string) {
     setReleaseIds(previous => {
-      if (previous.includes(releaseId)) return previous.filter(id => id !== releaseId);
-      return [...previous, releaseId];
+      const next = previous.includes(releaseId) ? previous.filter(id => id !== releaseId) : [...previous, releaseId];
+      if (draft.id && isMilestone) onUpdateMilestone(draft.id, { releaseIds: next });
+      return next;
     });
   }
 
-  function addArtifact() {
-    const name = artifactName.trim();
-    if (!name) return;
-    setArtifacts(previous => [...previous, { id: `ART-${previous.length + 1}`, name, type: "Link" }]);
-    setArtifactName("");
+  function updateMilestoneManualDates(patch: Partial<MilestoneItem>) {
+    if (draft.id && isMilestone) onUpdateMilestone(draft.id, patch);
+  }
+
+  function toggleArtifact(workItemId: string) {
+    const item = workItems.find(candidate => candidate.id === workItemId);
+    if (!item || !draft.id) return;
+    if (isMilestone) {
+      const current = item.milestoneIds || [];
+      onUpdateWorkItem(item.id, { milestoneIds: current.includes(draft.id) ? current.filter(id => id !== draft.id) : [...current, draft.id] });
+    } else {
+      onUpdateWorkItem(item.id, item.releaseId === draft.id
+        ? { release: "Unscheduled", releaseId: undefined }
+        : { release: draft.name, releaseId: draft.id });
+    }
   }
 
   return (
@@ -460,7 +492,7 @@ function IterationCreateDetailPage({ draft, onBack }: { draft: TimeboxDraft; onB
             <span className="h-5 flex items-center justify-center"><Info size={18} /></span>
             <span>Details</span>
           </button>
-          {isMilestone && (
+          {isProjectLevel && (
             <button onClick={() => setActiveTab("artifacts")} className="w-28 flex flex-col items-center justify-center gap-1 text-[11px] font-medium" style={{ backgroundColor: activeTab === "artifacts" ? "#2f6fc5" : "transparent", color: "white" }}>
               <span className="h-5 flex items-center justify-center"><Link2 size={18} /></span>
               <span>Artifacts</span>
@@ -485,7 +517,7 @@ function IterationCreateDetailPage({ draft, onBack }: { draft: TimeboxDraft; onB
                 <div>
                   <h2 className="text-[20px] font-semibold" style={{ color: "#273449" }}>Artifacts</h2>
                 </div>
-                <ArtifactDashboard artifacts={artifacts} artifactName={artifactName} onArtifactNameChange={setArtifactName} onAddArtifact={addArtifact} />
+                <ArtifactDashboard items={workItems} assignedIds={assignedArtifactIds} onToggle={toggleArtifact} />
               </>
             )}
           </div>
@@ -494,78 +526,13 @@ function IterationCreateDetailPage({ draft, onBack }: { draft: TimeboxDraft; onB
         {activeTab === "details" && <aside className="w-[340px] shrink-0 overflow-y-auto p-5 space-y-4 bg-white" style={{ borderLeft: "1px solid #d7dde7", scrollbarGutter: "stable" }}>
           {!isMilestone && <Field label="Project"><select defaultValue={draft.projectKey} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.map(project => <option key={project.key} value={project.key}>{project.key} / {project.name}</option>)}</select></Field>}
           {isMilestone && <Field label="Projects"><SelectionSummaryButton label="Projects" count={projectKeys.length} onClick={() => setSelectionModal("projects")} /></Field>}
-          {false && (
-            <Field label="Projects">
-              <div className="space-y-1.5 rounded bg-white px-2 py-2" style={fieldStyle}>
-                {SCOPE_PROJECTS.map(project => (
-                  <label key={project.key} className="flex items-start gap-2 rounded px-1 py-1 text-[12px]" style={{ color: "#1a2234" }}>
-                    <input type="checkbox" checked={projectKeys.includes(project.key)} onChange={() => setProjectKeys(previous => toggleStringValue(previous, project.key))} className="mt-0.5 h-3.5 w-3.5" />
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">{project.name}</span>
-                      <span className="block text-[10px]" style={{ color: "#8c94a6" }}>{project.key} · {project.teams.length} teams</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </Field>
-          )}
           {!isProjectLevel && <Field label="Team"><select defaultValue={draft.team} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.flatMap(project => project.teams).filter((team, index, teams) => teams.indexOf(team) === index).map(team => <option key={team}>{team}</option>)}</select></Field>}
           {isMilestone && <Field label="Teams"><SelectionSummaryButton label="Teams" count={teamNames.length} onClick={() => setSelectionModal("teams")} /></Field>}
-          {false && (
-            <Field label="Teams">
-              <div className="space-y-1 rounded bg-white px-2 py-2" style={fieldStyle}>
-                {allScopeTeams().map(team => (
-                  <label key={team} className="flex items-center gap-2 rounded px-1 py-0.5 text-[12px]" style={{ color: "#1a2234" }}>
-                    <input type="checkbox" checked={teamNames.includes(team)} onChange={() => setTeamNames(previous => toggleStringValue(previous, team))} className="h-3.5 w-3.5" />
-                    <span className="truncate">{team}</span>
-                  </label>
-                ))}
-              </div>
-            </Field>
-          )}
           {isMilestone && <Field label="Releases"><SelectionSummaryButton label="Releases" count={releaseIds.length} onClick={() => setSelectionModal("releases")} /></Field>}
-          {false && (
-            <Field label="Releases">
-              <div className="space-y-1.5 rounded bg-white px-2 py-2" style={fieldStyle}>
-                {RELEASES_DATA.map(release => (
-                  <label key={release.id} className="flex items-start gap-2 rounded px-1 py-1 text-[12px]" style={{ color: "#1a2234" }}>
-                    <input type="checkbox" checked={releaseIds.includes(release.id)} onChange={() => toggleRelease(release.id)} className="mt-0.5 h-3.5 w-3.5" />
-                    <span className="min-w-0">
-                      <span className="block truncate font-medium">{release.name}</span>
-                      <span className="block text-[10px]" style={{ color: "#8c94a6" }}>{release.startDate} - {release.releaseDate}</span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </Field>
-          )}
           {isMilestone && <Field label="Owner"><select value={ownerName} onChange={event => setOwnerName(event.target.value)} className={fieldClass} style={fieldStyle}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select></Field>}
-          <Field label={isMilestone ? "Target Start Date" : "Start Date"} required><input type="date" value={isMilestone ? milestoneWindow.startDate : startDate} onChange={event => setStartDate(event.target.value)} readOnly={isMilestone} className={fieldClass} style={{ ...fieldStyle, backgroundColor: isMilestone ? "#f3f5f8" : "white" }} /></Field>
-          <Field label={isMilestone ? "Target End Date" : "End Date"} required><input type="date" value={isMilestone ? milestoneWindow.endDate : endDate} onChange={event => setEndDate(event.target.value)} readOnly={isMilestone} className={fieldClass} style={{ ...fieldStyle, backgroundColor: isMilestone ? "#f3f5f8" : "white" }} /></Field>
+          <Field label={isMilestone ? "Target Start Date" : "Start Date"} required><input type="date" value={isMilestone && hasLinkedReleases ? milestoneWindow.startDate : startDate} onChange={event => { setStartDate(event.target.value); if (isMilestone) updateMilestoneManualDates({ manualStartDate: event.target.value }); }} readOnly={isMilestone && hasLinkedReleases} className={fieldClass} style={{ ...fieldStyle, backgroundColor: isMilestone && hasLinkedReleases ? "#f3f5f8" : "white" }} /></Field>
+          <Field label={isMilestone ? "Target End Date" : "End Date"} required><input type="date" value={isMilestone && hasLinkedReleases ? milestoneWindow.endDate : endDate} onChange={event => { setEndDate(event.target.value); if (isMilestone) updateMilestoneManualDates({ manualEndDate: event.target.value }); }} readOnly={isMilestone && hasLinkedReleases} className={fieldClass} style={{ ...fieldStyle, backgroundColor: isMilestone && hasLinkedReleases ? "#f3f5f8" : "white" }} /></Field>
           <Field label="State" required><select value={state} onChange={event => setState(event.target.value as TimeboxState)} className={fieldClass} style={fieldStyle}>{stateOptionsForType(draft.type).map(option => <option key={option}>{option}</option>)}</select></Field>
-          {false && (
-            <Field label="Artifacts">
-              <div className="rounded bg-white" style={fieldStyle}>
-                <div className="max-h-36 overflow-y-auto">
-                  {artifacts.length === 0 ? (
-                    <div className="px-3 py-2 text-[11px]" style={{ color: "#8c94a6" }}>No artifacts added</div>
-                  ) : artifacts.map(artifact => (
-                    <div key={artifact.id} className="flex items-center gap-2 px-3 py-2" style={{ borderBottom: "1px solid #edf0f4" }}>
-                      <Link2 size={12} style={{ color: "#2558a6" }} />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate text-[12px]" style={{ color: "#1a2234" }}>{artifact.name}</span>
-                        <span className="block text-[10px]" style={{ color: "#8c94a6" }}>{artifact.type}</span>
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex gap-1.5 p-2" style={{ borderTop: "1px solid #edf0f4" }}>
-                  <input aria-label="Artifact name" value={artifactName} onChange={event => setArtifactName(event.target.value)} placeholder="Add artifact link/name..." className="min-w-0 flex-1 text-[11px] px-2 py-1 rounded bg-white focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} />
-                  <button type="button" onClick={addArtifact} className="px-2 py-1 text-[11px] font-semibold rounded" style={{ border: "1px solid #bdd0ef", color: "#2558a6", backgroundColor: "#edf2fb" }}>Add</button>
-                </div>
-              </div>
-            </Field>
-          )}
           {!isMilestone && <Field label="Planned Velocity"><input type="number" min={0} value={plannedVelocity} onChange={event => setPlannedVelocity(event.target.value)} placeholder="0" className={fieldClass} style={fieldStyle} /></Field>}
         </aside>}
       </div>
@@ -574,7 +541,7 @@ function IterationCreateDetailPage({ draft, onBack }: { draft: TimeboxDraft; onB
   );
 }
 
-function NewTimeboxModal({ initialType, onClose, onCreateWithDetails }: { initialType: NewTimeboxType; onClose: () => void; onCreateWithDetails: (draft: TimeboxDraft) => void }) {
+function NewTimeboxModal({ initialType, releases, onClose, onCreate }: { initialType: NewTimeboxType; releases: ReleaseItem[]; onClose: () => void; onCreate: (draft: TimeboxDraft, openDetails: boolean) => void }) {
   const [type, setType] = useState<NewTimeboxType>(initialType);
   const [projectKey, setProjectKey] = useState(SCOPE_PROJECTS[0].key);
   const [team, setTeam] = useState(SCOPE_PROJECTS[0].teams[0]);
@@ -584,13 +551,12 @@ function NewTimeboxModal({ initialType, onClose, onCreateWithDetails }: { initia
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [state, setState] = useState<TimeboxState>(defaultStateForType(initialType));
-  const [releaseIds, setReleaseIds] = useState<string[]>(RELEASES_DATA.slice(0, 2).map(release => release.id));
-  const [artifactName, setArtifactName] = useState("");
+  const [releaseIds, setReleaseIds] = useState<string[]>([]);
   const [ownerName, setOwnerName] = useState(OWNERS[0].name);
   const selectedProject = SCOPE_PROJECTS.find(project => project.key === projectKey) || SCOPE_PROJECTS[0];
   const isProjectLevel = type === "Release" || type === "Milestones";
   const isMilestone = type === "Milestones";
-  const milestoneWindow = releaseDateWindow(releaseIds);
+  const milestoneWindow = releaseDateWindow(releases, releaseIds);
   const fieldClass = "w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white";
   const fieldStyle = { border: "1px solid #dde2ea", color: "#1a2234" };
 
@@ -607,30 +573,35 @@ function NewTimeboxModal({ initialType, onClose, onCreateWithDetails }: { initia
     });
   }
 
-  function addDraftArtifact(): ArtifactItem[] {
-    const name = artifactName.trim();
-    return name ? [{ id: "ART-NEW", name, type: "Link" }] : [];
-  }
+  const milestoneDates = releaseIds.length > 0 ? milestoneWindow : { startDate, endDate };
+  const canCreate = name.trim().length > 0 && (isMilestone ? (milestoneDates.startDate.length > 0 && milestoneDates.endDate.length > 0 && milestoneDates.endDate >= milestoneDates.startDate) : (startDate.length > 0 && endDate.length > 0 && endDate >= startDate));
 
-  function openDetails() {
+  function buildDraft(): TimeboxDraft {
     const selectedOwner = OWNERS.find(owner => owner.name === ownerName) || OWNERS[0];
     const milestoneProjectNames = selectedProjectNames(projectKeys);
-    onCreateWithDetails({
+    return {
       type,
       projectKey: type === "Milestones" ? projectKeys[0] || selectedProject.key : projectKey,
       projectName: type === "Milestones" ? summaryText(milestoneProjectNames, selectedProject.name) : selectedProject.name,
       team: type === "Milestones" ? summaryText(teamNames, team) : team,
       name: name.trim() || `New ${type}`,
-      startDate: type === "Milestones" ? milestoneWindow.startDate : startDate,
-      endDate: type === "Milestones" ? milestoneWindow.endDate : endDate,
+      startDate: type === "Milestones" ? milestoneDates.startDate : startDate,
+      endDate: type === "Milestones" ? milestoneDates.endDate : endDate,
       state,
       releaseIds: type === "Milestones" ? releaseIds : undefined,
       projectKeys: type === "Milestones" ? projectKeys : undefined,
       projectNames: type === "Milestones" ? milestoneProjectNames : undefined,
       teams: type === "Milestones" ? teamNames : undefined,
-      artifacts: type === "Milestones" ? addDraftArtifact() : undefined,
       owner: type === "Milestones" ? selectedOwner : undefined,
-    });
+      manualStartDate: type === "Milestones" ? startDate : undefined,
+      manualEndDate: type === "Milestones" ? endDate : undefined,
+    };
+  }
+
+  function submit(openDetails: boolean) {
+    if (!canCreate) return;
+    onCreate(buildDraft(), openDetails);
+    onClose();
   }
 
   return (
@@ -686,7 +657,7 @@ function NewTimeboxModal({ initialType, onClose, onCreateWithDetails }: { initia
           {isMilestone && (
             <Field label="Releases">
               <div className="space-y-1.5 rounded bg-white px-2 py-2" style={fieldStyle}>
-                {RELEASES_DATA.map(release => (
+                {releases.map(release => (
                   <label key={release.id} className="flex items-start gap-2 rounded px-1 py-1 text-[12px]" style={{ color: "#1a2234" }}>
                     <input type="checkbox" checked={releaseIds.includes(release.id)} onChange={() => toggleRelease(release.id)} className="mt-0.5 h-3.5 w-3.5" />
                     <span className="min-w-0">
@@ -699,10 +670,9 @@ function NewTimeboxModal({ initialType, onClose, onCreateWithDetails }: { initia
             </Field>
           )}
           {isMilestone && <Field label="Owner"><select value={ownerName} onChange={event => setOwnerName(event.target.value)} className={fieldClass} style={fieldStyle}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select></Field>}
-          {isMilestone && <Field label="Artifact"><input value={artifactName} onChange={event => setArtifactName(event.target.value)} placeholder="Artifact link or name..." className={fieldClass} style={fieldStyle} /></Field>}
           <div className="grid grid-cols-2 gap-4">
-            <Field label={isMilestone ? "Target Start Date" : "Start Date"} required><input type="date" value={isMilestone ? milestoneWindow.startDate : startDate} onChange={event => setStartDate(event.target.value)} readOnly={isMilestone} className={fieldClass} style={{ ...fieldStyle, backgroundColor: isMilestone ? "#f3f5f8" : "white" }} /></Field>
-            <Field label={isMilestone ? "Target End Date" : "End Date"} required><input type="date" value={isMilestone ? milestoneWindow.endDate : endDate} onChange={event => setEndDate(event.target.value)} readOnly={isMilestone} className={fieldClass} style={{ ...fieldStyle, backgroundColor: isMilestone ? "#f3f5f8" : "white" }} /></Field>
+            <Field label={isMilestone ? "Target Start Date" : "Start Date"} required><input type="date" value={isMilestone ? milestoneDates.startDate : startDate} onInput={event => setStartDate(event.currentTarget.value)} onChange={event => setStartDate(event.target.value)} readOnly={isMilestone && releaseIds.length > 0} className={fieldClass} style={{ ...fieldStyle, backgroundColor: isMilestone && releaseIds.length > 0 ? "#f3f5f8" : "white" }} /></Field>
+            <Field label={isMilestone ? "Target End Date" : "End Date"} required><input type="date" value={isMilestone ? milestoneDates.endDate : endDate} onInput={event => setEndDate(event.currentTarget.value)} onChange={event => setEndDate(event.target.value)} readOnly={isMilestone && releaseIds.length > 0} className={fieldClass} style={{ ...fieldStyle, backgroundColor: isMilestone && releaseIds.length > 0 ? "#f3f5f8" : "white" }} /></Field>
           </div>
           <Field label="State" required><select value={state} onChange={event => setState(event.target.value as TimeboxState)} className={fieldClass} style={fieldStyle}>{stateOptionsForType(type).map(option => <option key={option}>{option}</option>)}</select></Field>
         </div>
@@ -710,8 +680,8 @@ function NewTimeboxModal({ initialType, onClose, onCreateWithDetails }: { initia
           <span className="text-[10px]" style={{ color: "#8c94a6" }}>Ctrl+Enter to save</span>
           <div className="flex gap-2">
             <button onClick={onClose} className="px-3.5 py-1.5 text-[12px] font-medium rounded" style={{ border: "1px solid #dde2ea", color: "#5c6478" }} onMouseEnter={event => (event.currentTarget.style.backgroundColor = "#edf0f4")} onMouseLeave={event => (event.currentTarget.style.backgroundColor = "transparent")}>Cancel</button>
-            <button onClick={openDetails} className="px-4 py-1.5 text-[12px] font-semibold rounded" style={{ border: "1px solid #9fb5d5", color: "#1d3f73", backgroundColor: "#f5f8fc" }} onMouseEnter={event => (event.currentTarget.style.backgroundColor = "#e8eff8")} onMouseLeave={event => (event.currentTarget.style.backgroundColor = "#f5f8fc")}>Create with details</button>
-            <button onClick={onClose} className="px-4 py-1.5 text-[12px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={event => (event.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={event => (event.currentTarget.style.backgroundColor = "#1d3f73")}>Create Timebox</button>
+            <button disabled={!canCreate} onClick={() => submit(true)} className="px-4 py-1.5 text-[12px] font-semibold rounded disabled:opacity-45" style={{ border: "1px solid #9fb5d5", color: "#1d3f73", backgroundColor: "#f5f8fc" }} onMouseEnter={event => (event.currentTarget.style.backgroundColor = "#e8eff8")} onMouseLeave={event => (event.currentTarget.style.backgroundColor = "#f5f8fc")}>Create with details</button>
+            <button disabled={!canCreate} onClick={() => submit(false)} className="px-4 py-1.5 text-[12px] font-semibold text-white rounded disabled:opacity-45" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={event => (event.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={event => (event.currentTarget.style.backgroundColor = "#1d3f73")}>Create Timebox</button>
           </div>
         </div>
       </div>
@@ -719,11 +689,11 @@ function NewTimeboxModal({ initialType, onClose, onCreateWithDetails }: { initia
   );
 }
 
-export function IterationsPage({ role, readOnly = false }: { role: Role; readOnly?: boolean }) {
+export function IterationsPage({ role, readOnly = false, iterations, releases, milestones, workItems, onCreateIteration, onUpdateIteration, onCreateRelease, onUpdateRelease, onCreateMilestone, onUpdateMilestone, onUpdateWorkItem }: { role: Role; readOnly?: boolean; iterations: IterationItem[]; releases: ReleaseItem[]; milestones: MilestoneItem[]; workItems: WorkItem[]; onCreateIteration: (input: NewIterationInput) => IterationItem; onUpdateIteration: (id: string, patch: Partial<TimeboxListItem>) => void; onCreateRelease: (input: NewReleaseInput) => ReleaseItem; onUpdateRelease: (id: string, patch: Partial<ReleaseItem>) => void; onCreateMilestone: (input: NewMilestoneInput) => MilestoneItem; onUpdateMilestone: (id: string, patch: Partial<MilestoneItem>) => void; onUpdateWorkItem: (id: string, patch: Partial<WorkItem>) => void }) {
   const [timeboxType, setTimeboxType] = useState<TimeboxType>("Iterations");
-  const [iterationItems, setIterationItems] = useState<TimeboxListItem[]>(buildIterationItems);
-  const [releaseItems, setReleaseItems] = useState<TimeboxListItem[]>(buildReleaseItems);
-  const [milestoneItems, setMilestoneItems] = useState<TimeboxListItem[]>(MILESTONES_DATA);
+  const iterationItems = useMemo(() => buildIterationItems(iterations), [iterations]);
+  const releaseItems = useMemo(() => buildReleaseItems(releases), [releases]);
+  const milestoneItems = useMemo(() => buildMilestoneItems(milestones, releases), [milestones, releases]);
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -783,16 +753,71 @@ export function IterationsPage({ role, readOnly = false }: { role: Role; readOnl
     setShowFilters(false);
   }
 
-  function openCreateDetails(draft: TimeboxDraft) {
-    setShowCreateModal(false);
-    setCreateDetailDraft(draft);
+  function createTimebox(draft: TimeboxDraft, openDetails: boolean) {
+    if (draft.type === "Iteration") {
+      const created = onCreateIteration({
+        name: draft.name,
+        theme: draft.theme || "",
+        projectKey: draft.projectKey,
+        team: draft.team,
+        startDate: draft.startDate || "",
+        endDate: draft.endDate || "",
+        state: (draft.state || "Planning") as IterationItem["state"],
+      });
+      if (openDetails) setCreateDetailDraft({ ...draft, id: created.id });
+      return;
+    }
+    if (draft.type === "Release") {
+      const created = onCreateRelease({
+        name: draft.name,
+        description: draft.theme || "",
+        projectKey: draft.projectKey,
+        team: draft.team,
+        startDate: draft.startDate || "",
+        releaseDate: draft.endDate || "",
+        status: (draft.state || "Planning") as ReleaseItem["status"],
+      });
+      if (openDetails) setCreateDetailDraft({ ...draft, id: created.id });
+      return;
+    }
+    const created = onCreateMilestone({
+      name: draft.name,
+      description: draft.theme || "",
+      projectKeys: draft.projectKeys || [draft.projectKey],
+      teams: draft.teams || [draft.team],
+      releaseIds: draft.releaseIds || [],
+      startDate: draft.manualStartDate || draft.startDate || "",
+      endDate: draft.manualEndDate || draft.endDate || "",
+      state: (draft.state || "Planned") as MilestoneState,
+      owner: draft.owner || OWNERS[0],
+    });
+    if (openDetails) setCreateDetailDraft({ ...draft, id: created.id });
   }
 
   function updateTimeboxItem(id: string, patch: Partial<TimeboxListItem>) {
-    const updater = (items: TimeboxListItem[]) => items.map(item => item.id === id ? { ...item, ...patch } : item);
-    if (timeboxType === "Releases") setReleaseItems(updater);
-    else if (timeboxType === "Milestones") setMilestoneItems(updater);
-    else setIterationItems(updater);
+    if (timeboxType === "Releases") {
+      onUpdateRelease(id, {
+        ...(patch.name !== undefined ? { name: patch.name } : {}),
+        ...(patch.theme !== undefined ? { description: patch.theme } : {}),
+        ...(patch.startDate !== undefined ? { startDate: patch.startDate } : {}),
+        ...(patch.endDate !== undefined ? { releaseDate: patch.endDate } : {}),
+        ...(patch.state !== undefined ? { status: patch.state as ReleaseItem["status"] } : {}),
+        ...(patch.projectKey !== undefined ? { projectKey: patch.projectKey } : {}),
+        ...(patch.team !== undefined ? { team: patch.team } : {}),
+      });
+    } else if (timeboxType === "Milestones") {
+      onUpdateMilestone(id, {
+        ...(patch.name !== undefined ? { name: patch.name } : {}),
+        ...(patch.theme !== undefined ? { description: patch.theme } : {}),
+        ...(patch.state !== undefined ? { state: patch.state as MilestoneState } : {}),
+        ...(patch.releaseIds !== undefined ? { releaseIds: patch.releaseIds } : {}),
+        ...(patch.startDate !== undefined ? { manualStartDate: patch.startDate } : {}),
+        ...(patch.endDate !== undefined ? { manualEndDate: patch.endDate } : {}),
+        ...(patch.projectKeys !== undefined ? { projectKeys: patch.projectKeys } : {}),
+        ...(patch.teams !== undefined ? { teams: patch.teams } : {}),
+        ...(patch.owner !== undefined ? { owner: patch.owner } : {}),
+      });
+    } else onUpdateIteration(id, patch);
   }
 
   function startColumnResize(column: IterationColumnKey, event: ReactMouseEvent<HTMLDivElement>) {
@@ -833,13 +858,14 @@ export function IterationsPage({ role, readOnly = false }: { role: Role; readOnl
       projectKeys: iteration.projectKeys,
       projectNames: iteration.projectNames,
       teams: iteration.teams,
-      artifacts: iteration.artifacts,
       owner: iteration.owner,
+      manualStartDate: iteration.manualStartDate,
+      manualEndDate: iteration.manualEndDate,
     });
   }
 
   if (createDetailDraft) {
-    return <IterationCreateDetailPage draft={createDetailDraft} onBack={() => setCreateDetailDraft(null)} />;
+    return <IterationCreateDetailPage draft={createDetailDraft} releases={releases} workItems={workItems} onUpdateMilestone={onUpdateMilestone} onUpdateWorkItem={onUpdateWorkItem} onBack={() => setCreateDetailDraft(null)} />;
   }
 
   return (
@@ -939,7 +965,7 @@ export function IterationsPage({ role, readOnly = false }: { role: Role; readOnl
                   </div>}
                   {showColumn("plannedVelocity") && <div className="shrink-0 px-2" onClick={event => event.stopPropagation()} style={{ width: columnWidths.plannedVelocity }}>
                     {timeboxType === "Milestones" ? (
-                      <span className="block text-[11px] truncate" title={releaseListTitle(iteration.releaseIds)} style={{ color: "#2558a6" }}>{releaseSummaryForIds(iteration.releaseIds)}</span>
+                      <span className="block text-[11px] truncate" title={releaseListTitle(releases, iteration.releaseIds)} style={{ color: "#2558a6" }}>{releaseSummaryForIds(releases, iteration.releaseIds)}</span>
                     ) : editable ? (
                       <input aria-label={`${iteration.id} planned velocity`} type="number" min={0} value={iteration.plannedVelocity} onChange={event => updateTimeboxItem(iteration.id, { plannedVelocity: event.target.value === "" ? "" : Number(event.target.value) })} className="w-full text-right text-[11px] font-mono tabular-nums bg-transparent rounded-sm px-1 py-0.5 focus:outline-none focus:bg-white" style={{ color: "#5c6478", border: "1px solid transparent" }} />
                     ) : (
@@ -998,7 +1024,7 @@ export function IterationsPage({ role, readOnly = false }: { role: Role; readOnl
           </div>
         </div>
       </div>
-      {showCreateModal && <NewTimeboxModal initialType={modalTypeFromList(timeboxType)} onClose={() => setShowCreateModal(false)} onCreateWithDetails={openCreateDetails} />}
+      {showCreateModal && <NewTimeboxModal initialType={modalTypeFromList(timeboxType)} releases={releases} onClose={() => setShowCreateModal(false)} onCreate={createTimebox} />}
     </div>
   );
 }

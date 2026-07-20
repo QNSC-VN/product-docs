@@ -307,7 +307,8 @@ Navigation distinction:
 | Entry point | Scope |
 |---|---|
 | Top-right gear / Workspace Settings | Workspace-wide settings, role matrix, user management, audit and configuration surfaces |
-| Workspace dropdown / Manage Projects | Project and team management under the selected workspace |
+| Workspace dropdown / Manage Projects | Project management under the selected workspace |
+| Top-right gear / Teams | Workspace team list and permitted team administration |
 | Top-right gear / User Management | Company user invitation, role assignment, status and team allocation |
 
 Phase 5 deferred surfaces:
@@ -337,7 +338,7 @@ Coverage groups:
 | App Shell | View navigation/context/search results; Edit selected project/team context | `app_shell:view_navigation`, `app_shell:switch_context`, `app_shell:search_work_items` |
 | Home | View dashboard, My Work, Recent Activity and Project Health | `project:view`, `work_item:view` |
 | Manage Projects > Projects | View project list; Workspace Admin creates/archives/restores/deletes Projects; Project Admin edits Project Settings only for assigned managed Projects | `project:view`, `project:create`, `project:edit`, `project:archive`, `project:restore`, `project:delete` |
-| Manage Projects > Teams | View team list; Create team; Edit team info/status/members; Delete team access by deactivation | `workspace:manage_teams` |
+| Settings > Teams | View team list; Create team; Edit team info/status/members; Delete team access by deactivation | `workspace:manage_teams` |
 | Settings > User Management | View users; Create user invitation; Edit prod role/status/team membership; Delete user access | `workspace:manage_members` |
 | Backlog | View rows/search/filter/sort/page/resize; Create US/DE; Edit fields/iteration/rank; Delete work item; Release assignment is Project Admin only | `work_item:view`, `work_item:create`, `work_item:edit`, `work_item:delete` |
 | Work Item Detail | View fields/history; Create attachment/note mention; Edit fields/notes/relations/watchers; Delete attachment/work item | `work_item:view`, `work_item:edit`, `work_item:delete` |

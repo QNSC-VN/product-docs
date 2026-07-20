@@ -27,7 +27,7 @@ Workspace ACME
 
 | Tài liệu | Phần |
 |---|---|
-| [`Project_developement_plan.md`](../../Project_developement_plan.md) | Phase 0 / Project |
+| [`Mini_Rally_Product_Plan.xlsx`](../../Mini_Rally_Product_Plan.xlsx) | Phase 0 / Project |
 | [`mini_rally_project_overview.md`](../../../00_Documents/mini_rally_project_overview.md) | §6.3 Project, §11.3 Project Pages |
 | [`mini_rally_usecase_role_mapping.md`](../../../00_Documents/mini_rally_usecase_role_mapping.md) | §4 Project Management |
 | [`mini_rally_database_design.md`](../../../01_DB%20design/mini_rally_database_design.md) | §6 Project Management, §7 Workflow |
@@ -89,8 +89,8 @@ project.team.manage
 | PRJ-FR-012 | Settings điều khiển enable sprint/release/story point. |
 | PRJ-FR-013 | Project selector đổi URL/context và invalidate scoped cache. |
 | PRJ-FR-014 | Tạo/update/archive/member/settings phải có audit event. |
-| PRJ-FR-015 | Team thuộc Workspace và có thể liên kết với nhiều Project trong cùng Workspace qua `project_teams`. |
-| PRJ-FR-016 | Team membership tồn tại độc lập với Project–Team link; permission authority vẫn ở Workspace/Project role. |
+| PRJ-FR-015 | Phase 0 chỉ tiêu thụ Project–Team context cho navigation/filter. Team create/edit/member administration nằm tại `Settings > Teams` và `Settings > User Management` theo Phase 1/4 source-of-truth. |
+| PRJ-FR-016 | Team membership/Project–Team link là dependency của Project context; UI quản trị không thuộc Phase 0 Project screen. |
 | PRJ-FR-017 | Dropdown chỉ hiển thị Project/Team user được phép truy cập; cùng Team có thể xuất hiện dưới nhiều Project. |
 | PRJ-FR-018 | Work Item/Sprint có `team_id` chỉ khi cặp `(project_id, team_id)` đang hoặc từng có mapping hợp lệ theo history policy. |
 
@@ -132,9 +132,9 @@ project.team.manage
 | Project Settings | `SettingsPage` Project Settings | Save thật, permission/validation |
 | Project Members | Chưa có đầy đủ trong project settings | Member table/add role/remove |
 | Edit/Archive/Restore | `ProjectsPage` | ✅ Local CRUD; production cần API, audit và archived read-only enforcement |
-| Team List/Management | Chưa có | Bắt buộc bổ sung cho Phase 0 |
-| Link Team to Projects | Chưa có | Multi-project assignment UI |
-| Team Members | Chưa có | Add/remove/lead/status UI |
+| Team List/Management | `Settings > Teams` | Phase 1/4 administration surface; không phải Phase 0 Project requirement |
+| Link Team to Projects | `Settings > Teams` | Phase 1/4 administration surface |
+| Team Members | `Settings > User Management` / Team detail | Phase 1/4 administration surface |
 | Hierarchy selector | `TopNav` | ✅ Có visual/local selection; production load từ API |
 
 Đề xuất Project List columns:

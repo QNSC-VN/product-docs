@@ -38,6 +38,8 @@ Cho phép user tạo nhanh Story/Defect trong project/team đang chọn. Task kh
 | WIC-FR-009 | `Create with details` tạo item rồi mở Work Item Detail của item vừa tạo. |
 | WIC-FR-010 | Item key được sinh atomically, không dùng `MAX(item_no)+1`. |
 | WIC-FR-011 | Defect có thể dùng cùng quick modal; defect-specific fields điền ở detail sau. |
+| WIC-FR-012 | Story/Defect mới mặc định Schedule State = `Idea` và Flow State = `Idea`. |
+| WIC-FR-013 | Schedule State và Flow State dùng cùng catalog `Idea/Defined/In-Progress/Completed/Accepted/Release` và mirror hai chiều trong MVP. |
 
 ## 4. Screen Mapping với Mockup
 
@@ -65,8 +67,8 @@ Cho phép user tạo nhanh Story/Defect trong project/team đang chọn. Task kh
 | Title/Name | `title` | `work_items.title` | Item name | Required, trim, max 500 |
 | Owner | `assigneeId` | `work_items.assignee_id` | Responsible user | Nullable; user must belong to project/team policy |
 | Plan Estimate | `planEstimate` | `work_items.story_point` | Story point estimate | Nullable; decimal >= 0 |
-| Schedule State | Server default | `work_items.schedule_state` | Initial schedule state | Default `Defined` |
-| Flow State | Server default | `work_items.flow_state` | Initial flow state | Default `Defined` |
+| Schedule State | Server default | `work_items.schedule_state` | Initial schedule state | Default `Idea`; mirror Flow State trong MVP |
+| Flow State | Server default | `work_items.flow_state` | Initial flow state | Default `Idea`; mirror Schedule State trong MVP |
 | Reporter | Server-derived | `work_items.reporter_id` | User reporting item | Current user |
 | Created by | Server-derived | `work_items.created_by` | Audit | Current user |
 | Position | Server-derived | `work_items.position` | Backlog ordering | Append bottom/top per policy |

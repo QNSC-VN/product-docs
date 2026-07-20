@@ -18,7 +18,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, type IterationItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES, ITERATIONS_DATA } from "../model";
+import { type NewWorkItemInput, type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type TaskItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, type IterationItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
 
 type IterationColumnKey = "rank" | "id" | "name" | "status" | "iteration" | "blocked" | "planEstimate" | "taskEstimate" | "todoEstimate" | "owner";
@@ -32,7 +32,7 @@ export const TRACK_ACTION_GROUPS = [
 ];
 
 const ITERATION_STATUS_OPTIONS: StatusType[] = ["Idea", "Defined", "In-Progress", "Completed", "Accepted", "Release"];
-const ITERATION_STATUS_ORDER: Partial<Record<StatusType, number>> = { Idea: 1, Defined: 2, "In-Progress": 3, "Code Review": 3, Testing: 3, Completed: 4, Accepted: 5, Release: 6 };
+const ITERATION_STATUS_ORDER: Record<StatusType, number> = { Idea: 1, Defined: 2, "In-Progress": 3, Completed: 4, Accepted: 5, Release: 6 };
 const ITERATION_FILTER_COLUMNS: Array<{ key: IterationFilterColumn; label: string; mode: "search" | "select" }> = [
   { key: "id", label: "ID", mode: "search" },
   { key: "name", label: "Name", mode: "search" },
@@ -51,7 +51,7 @@ function formatIterationRange(iteration: IterationItem) {
 }
 
 function toIterationScheduleState(status: StatusType): StatusType {
-  return ITERATION_STATUS_OPTIONS.includes(status) ? status : "In-Progress";
+  return status;
 }
 
 function getIterationSortTooltip(column: IterationColumnKey, direction: "asc" | "desc") {
@@ -128,7 +128,7 @@ export function SelectedItemToolbar({ count, onClear }: { count: number; onClear
   );
 }
 
-function IterationAddItemModal({ iteration, onClose, onCreateWithDetails }: { iteration: IterationItem; onClose: () => void; onCreateWithDetails?: (item: WorkItem) => void }) {
+function IterationAddItemModal({ iteration, onClose, onCreateItem }: { iteration: IterationItem; onClose: () => void; onCreateItem: (input: NewWorkItemInput, openDetails: boolean) => void }) {
   const [type, setType] = useState<WorkItemType>("Story");
   const [title, setTitle] = useState("");
   const [projectKey, setProjectKey] = useState(iteration.projectKey);
@@ -143,39 +143,22 @@ function IterationAddItemModal({ iteration, onClose, onCreateWithDetails }: { it
     setTeam(nextProject.teams[0]);
   }
 
-  function buildDraftItem(): WorkItem {
+  const canCreate = title.trim().length > 0;
+
+  function submit(openDetails: boolean) {
+    if (!canCreate) return;
     const owner = OWNERS.find(candidate => candidate.name === ownerName) || OWNERS[0];
-    const typedPrefix = type === "Defect" ? "DE" : "US";
-    return {
-      id: `${typedPrefix}-NEW`,
-      type,
-      rank: 1,
+    onCreateItem({
+      type: type as "Story" | "Defect",
       title: title.trim() || `New ${type}`,
-      status: "Defined",
-      priority: type === "Defect" ? "High" : "Medium",
       owner,
       planEstimate,
-      taskCount: 0,
-      completedTasks: 0,
-      taskEstimate: 0,
-      todoEstimate: 0,
       iteration: iteration.name,
-      release: "Q4 2024",
-      tags: [],
-      description: title.trim() || `New ${type} created from ${iteration.name}.`,
-      lastUpdated: "Just now",
+      release: "Unscheduled",
       project: projectKey,
-    };
-  }
-
-  function openDetails() {
-    if (!onCreateWithDetails) {
-      onClose();
-      return;
-    }
-    const draft = buildDraftItem();
+      team,
+    }, openDetails);
     onClose();
-    onCreateWithDetails(draft);
   }
 
   return (
@@ -214,8 +197,8 @@ function IterationAddItemModal({ iteration, onClose, onCreateWithDetails }: { it
           <span className="text-[10px]" style={{ color: "#8c94a6" }}>New item will be created directly in this iteration.</span>
           <div className="flex gap-2">
             <button onClick={onClose} className="px-3.5 py-1.5 text-[12px] font-medium rounded" style={{ border: "1px solid #dde2ea", color: "#5c6478" }}>Cancel</button>
-            <button onClick={openDetails} className="px-4 py-1.5 text-[12px] font-semibold rounded" style={{ border: "1px solid #9fb5d5", color: "#1d3f73", backgroundColor: "#f5f8fc" }}>Create with details</button>
-            <button onClick={onClose} className="px-4 py-1.5 text-[12px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }}>Create Item</button>
+            <button disabled={!canCreate} onClick={() => submit(true)} className="px-4 py-1.5 text-[12px] font-semibold rounded disabled:opacity-45" style={{ border: "1px solid #9fb5d5", color: "#1d3f73", backgroundColor: "#f5f8fc" }}>Create with details</button>
+            <button disabled={!canCreate} onClick={() => submit(false)} className="px-4 py-1.5 text-[12px] font-semibold text-white rounded disabled:opacity-45" style={{ backgroundColor: "#1d3f73" }}>Create Item</button>
           </div>
         </div>
       </div>
@@ -223,9 +206,8 @@ function IterationAddItemModal({ iteration, onClose, onCreateWithDetails }: { it
   );
 }
 
-export function TrackPage({ title = "Iteration Status", initialView = "list", role, readOnly = false, activeItem, onItemClick, onOpenFull }: { title?: string; initialView?: "list" | "board"; role: Role; readOnly?: boolean; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
-  const [iterationItems, setIterationItems] = useState<WorkItem[]>(WORK_ITEMS);
-  const [view, setView] = useState<"list" | "board">(initialView);
+export function TrackPage({ title = "Iteration Status", role, readOnly = false, projectKey, iterations, onCreateItem, onUpdateIteration, items, tasks, onUpdateItem, activeItem, onItemClick, onOpenFull }: { title?: string; role: Role; readOnly?: boolean; projectKey: string; iterations: IterationItem[]; onCreateItem: (input: NewWorkItemInput, openDetails: boolean) => void; onUpdateIteration: (id: string, patch: Partial<IterationItem>) => void; items: WorkItem[]; tasks: TaskItem[]; onUpdateItem: (id: string, patch: Partial<WorkItem>) => void; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
+  const iterationItems = items;
   const [search, setSearch] = useState("");
   const [selectedIterationId, setSelectedIterationId] = useState("IT-24-3");
   const [iterationOpen, setIterationOpen] = useState(false);
@@ -241,26 +223,27 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);
 
-  const iterations = [...ITERATIONS_DATA].sort((a, b) => a.startDate.localeCompare(b.startDate));
-  const selectedIteration = iterations.find(iteration => iteration.id === selectedIterationId) ?? iterations[0];
-  const selectedIterationIndex = iterations.findIndex(iteration => iteration.id === selectedIteration.id);
-  const iterationOptions = Array.from(new Set([...iterations.map(iteration => iteration.name), "Unscheduled", ...iterationItems.map(item => item.iteration)])).sort();
+  const sortedIterations = [...iterations].sort((a, b) => a.startDate.localeCompare(b.startDate));
+  const selectedIteration = sortedIterations.find(iteration => iteration.id === selectedIterationId) ?? sortedIterations[0];
+  const selectedIterationIndex = sortedIterations.findIndex(iteration => iteration.id === selectedIteration.id);
+  const iterationOptions = Array.from(new Set([...sortedIterations.map(iteration => iteration.name), "Unscheduled", ...iterationItems.map(item => item.iteration)])).sort();
 
   function moveIteration(direction: -1 | 1) {
-    const next = Math.max(0, Math.min(iterations.length - 1, selectedIterationIndex + direction));
-    setSelectedIterationId(iterations[next].id);
+    const next = Math.max(0, Math.min(sortedIterations.length - 1, selectedIterationIndex + direction));
+    setSelectedIterationId(sortedIterations[next].id);
     setIterationOpen(false);
     setSelectedIds(new Set());
   }
 
   const editable = !readOnly && can.manageBacklog(role);
-  const boardEditable = editable && can.dragBoard(role);
   const activeFilterColumns = ITERATION_FILTER_COLUMNS.filter(column => filters[column.key] !== undefined);
   const activeFilterCount = activeFilterColumns.length;
   const availableFilterColumns = ITERATION_FILTER_COLUMNS.filter(column => column.label.toLowerCase().includes(filterColumnSearch.toLowerCase()));
 
   const sprintItems = iterationItems.filter(i =>
+    i.project === projectKey &&
     i.iteration === selectedIteration.name &&
+    (i.type === "Story" || i.type === "Defect") &&
     (i.title.toLowerCase().includes(search.toLowerCase()) || i.id.toLowerCase().includes(search.toLowerCase())) &&
     activeFilterColumns.every(filter => {
       const value = (filters[filter.key] || "").trim();
@@ -299,7 +282,7 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
     });
   }
   function updateItem(id: string, patch: Partial<WorkItem>) {
-    setIterationItems(previous => previous.map(item => item.id === id ? { ...item, ...patch } : item));
+    onUpdateItem(id, patch);
   }
   function updateItemOwner(id: string, ownerName: string) {
     const owner = OWNERS.find(candidate => candidate.name === ownerName);
@@ -365,7 +348,7 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
     if (index < 0 || targetIndex < 0 || targetIndex >= ordered.length) return;
     [ordered[index], ordered[targetIndex]] = [ordered[targetIndex], ordered[index]];
     const nextRank = new Map(ordered.map((item, idx) => [item.id, idx + 1]));
-    setIterationItems(previous => previous.map(item => nextRank.has(item.id) ? { ...item, rank: nextRank.get(item.id) ?? item.rank } : item));
+    nextRank.forEach((rank, itemId) => onUpdateItem(itemId, { rank }));
   }
   function startColumnResize(column: IterationColumnKey, event: React.MouseEvent<HTMLDivElement>) {
     event.preventDefault();
@@ -390,13 +373,18 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
   }
   const iterationTableWidth = 86 + Object.values(columnWidths).reduce((total, width) => total + width, 0);
 
-  const plannedPts = selectedIteration.plannedPoints || sprintItems.reduce((s, i) => s + i.planEstimate, 0);
+  const planEstimateTotal = sprintItems.reduce((sum, item) => sum + item.planEstimate, 0);
+  const sprintParentIds = new Set(sprintItems.map(item => item.id));
+  const sprintTasks = tasks.filter(task => sprintParentIds.has(task.parentWorkItemId));
+  const taskEstimateTotal = sprintTasks.reduce((sum, task) => sum + task.estimate, 0);
+  const todoEstimateTotal = sprintTasks.reduce((sum, task) => sum + task.todo, 0);
+  const plannedPts = planEstimateTotal;
   const acceptedPts = sprintItems.filter(i => i.status === "Accepted").reduce((s, i) => s + i.planEstimate, 0);
   const velocityPct = plannedPts > 0 ? Math.round((acceptedPts / plannedPts) * 100) : 0;
   const sprintDaysLeft = 6;
   const sprintDaysPct = Math.round(((10 - sprintDaysLeft) / 10) * 100);
   const defectCount = sprintItems.filter(i => i.type === "Defect").length;
-  const taskCount = sprintItems.filter(i => i.type === "Task").length;
+  const taskCount = sprintTasks.filter(task => task.state !== "Completed").length;
 
   return (
     <div className="flex flex-col flex-1 overflow-hidden">
@@ -413,7 +401,7 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
             </button>
             {iterationOpen && (
               <div className="absolute left-0 top-full mt-1 w-full bg-white rounded shadow-lg z-50 py-1" style={{ border: "1px solid #d9dee7" }}>
-                {iterations.map(iteration => (
+                {sortedIterations.map(iteration => (
                   <button key={iteration.id} onClick={() => { setSelectedIterationId(iteration.id); setIterationOpen(false); setSelectedIds(new Set()); }} className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-[#f4f6f9]" style={{ backgroundColor: selectedIteration.id === iteration.id ? "#edf2fb" : "transparent" }}>
                     <span className="text-[12px] font-semibold flex-1" style={{ color: selectedIteration.id === iteration.id ? "#1d3f73" : "#1a2234" }}>{iteration.name}</span>
                     <span className="text-[11px]" style={{ color: "#5c6478" }}>{formatIterationRange(iteration)}</span>
@@ -423,17 +411,16 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
               </div>
             )}
           </div>
-          <button disabled={selectedIterationIndex >= iterations.length - 1} onClick={() => moveIteration(1)} className="h-full px-2 flex items-center" style={{ color: selectedIterationIndex >= iterations.length - 1 ? "#b0b8c8" : "#2558a6", borderLeft: "1px solid #dde2ea" }}><ChevronRight size={14} /></button>
+          <button disabled={selectedIterationIndex >= sortedIterations.length - 1} onClick={() => moveIteration(1)} className="h-full px-2 flex items-center" style={{ color: selectedIterationIndex >= sortedIterations.length - 1 ? "#b0b8c8" : "#2558a6", borderLeft: "1px solid #dde2ea" }}><ChevronRight size={14} /></button>
         </div>
+        <label className="flex items-center gap-2 text-[11px] font-semibold" style={{ color: "#1a2234" }}>
+          Status
+          <select aria-label="Iteration status" disabled={readOnly} value={selectedIteration.state} onChange={event => onUpdateIteration(selectedIteration.id, { state: event.target.value as IterationItem["state"] })} className="h-7 px-2.5 text-[11px] rounded bg-white focus:outline-none" style={{ border: "1px solid #bdd0ef", color: "#2558a6" }}>
+            {(["Planning", "Committed", "Accepted"] as const).map(state => <option key={state}>{state}</option>)}
+          </select>
+        </label>
         <div className="flex-1" />
-        <div className="flex rounded overflow-hidden ml-2" style={{ border: "1px solid #dde2ea" }}>
-          {(["list", "board"] as const).map((v, i) => (
-            <button key={v} onClick={() => setView(v)} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium" style={{ backgroundColor: view === v ? "#1d3f73" : "transparent", color: view === v ? "#fff" : "#5c6478", borderLeft: i > 0 ? "1px solid #dde2ea" : undefined }}>
-              {v === "list" ? <LayoutList size={13} /> : <LayoutGrid size={13} />}
-              {v === "list" ? "List" : "Board"}
-            </button>
-          ))}
-        </div>
+        <span className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded" style={{ backgroundColor: "#edf2fb", color: "#1d3f73", border: "1px solid #bdd0ef" }}><LayoutList size={13} />List</span>
       </div>
 
       {/* Status summary strip */}
@@ -490,8 +477,7 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
         </div>
       </div>
 
-      {view === "list" ? (
-        <>
+      <>
           {/* Search + filter toolbar */}
           <div className="flex items-center gap-2 px-3 py-1.5 bg-white shrink-0" style={{ borderBottom: "1px solid #e2e6eb" }}>
             <div className="relative">
@@ -598,6 +584,21 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
                     <ResizableIterationHeader label="Owner" column="owner" width={columnWidths.owner} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
                   </div>
 
+                  <div aria-label="Iteration totals" className="flex items-center h-8 px-3 gap-1.5 text-[11px] font-semibold" style={{ backgroundColor: "#eef3fb", borderBottom: "1px solid #cfdced", color: "#1d3f73" }}>
+                    <div className="w-5 shrink-0" />
+                    <div className="w-4 shrink-0" />
+                    <div className="shrink-0" style={{ width: columnWidths.rank }} />
+                    <div className="shrink-0" style={{ width: columnWidths.id }} />
+                    <div className="shrink-0 px-1" style={{ width: columnWidths.name }}>Totals</div>
+                    <div className="shrink-0" style={{ width: columnWidths.status }} />
+                    <div className="shrink-0" style={{ width: columnWidths.iteration }} />
+                    <div className="shrink-0" style={{ width: columnWidths.blocked }} />
+                    <div className="shrink-0 text-right font-mono tabular-nums" style={{ width: columnWidths.planEstimate }}>{planEstimateTotal}</div>
+                    <div className="shrink-0 text-right font-mono tabular-nums" style={{ width: columnWidths.taskEstimate }}>{taskEstimateTotal}</div>
+                    <div className="shrink-0 text-right font-mono tabular-nums" style={{ width: columnWidths.todoEstimate }}>{todoEstimateTotal}</div>
+                    <div className="shrink-0" style={{ width: columnWidths.owner }} />
+                  </div>
+
                   {sprintItems.length === 0 ? <EmptyState message="No sprint items found" /> : paginatedItems.map((item, idx) => {
                     const isActive = activeItem?.id === item.id;
                     const isSelected = selectedIds.has(item.id);
@@ -649,11 +650,8 @@ export function TrackPage({ title = "Iteration Status", initialView = "list", ro
             </div>
             {activeItem && <DetailPanel item={activeItem} onClose={() => onItemClick(activeItem)} role={role} onOpenFull={onOpenFull} />}
           </div>
-        </>
-      ) : (
-        <TrackBoardView items={sprintItems} role={role} activeItem={activeItem} onItemClick={onItemClick} onOpenFull={onOpenFull} />
-      )}
-      {showModal && <IterationAddItemModal iteration={selectedIteration} onClose={() => setShowModal(false)} onCreateWithDetails={onOpenFull} />}
+      </>
+      {showModal && <IterationAddItemModal iteration={selectedIteration} onClose={() => setShowModal(false)} onCreateItem={onCreateItem} />}
     </div>
   );
 }

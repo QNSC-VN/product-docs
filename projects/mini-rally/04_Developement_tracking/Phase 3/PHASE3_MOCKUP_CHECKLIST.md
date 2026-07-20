@@ -15,7 +15,7 @@ BA decisions already confirmed:
 
 - `Team Status` is a dashboard/table grouped by member, not a board.
 - `Team Board` moves to Backlog for the future.
-- Team Board menu can remain visible in the mockup for now, but it is not a Phase 3.1 deliverable and not part of the current MVP scope.
+- Team Board is removed from active mockup navigation and retained only in Future Backlog.
 - Board drag/drop, WIP enforcement and board transition rules are not Phase 3.1.
 - Release Management is Project-level and will be handled after Team Status.
 - Milestones are a type beside Iterations/Releases/Milestones under Timeboxes.
@@ -42,14 +42,14 @@ Team Status approved behavior:
 - Task State is a dropdown.
 - Task State options are exactly `Defined`, `In-Progress`, `Completed`.
 - Work Item Detail `Tasks` tab is the Task Dashboard and supports inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
-- Completing a task refreshes the referenced US/DE Work Product roll-up. If any child task under the same parent is still not `Completed`, the parent status stays unchanged; when all child tasks are `Completed`, the parent US/DE status becomes `Completed`. Auto-completion does not remove manual parent status editing from existing Work Item edit surfaces.
-- Viewer/read-only roles cannot mutate inline fields.
+- Completing a task refreshes the referenced US/DE Work Product roll-up. Initial partial completion does not change parent status; when all child tasks are `Completed`, parent US/DE becomes `Completed`; reopening a Task from that state recalculates metrics and moves parent US/DE to `In-Progress`. Auto-roll-up does not remove manual parent status editing from existing Work Item edit surfaces.
+- Project Admin outside managed Project cannot mutate inline fields.
 
 ## 3. Mockup Coverage Summary
 
 | Area | Requirement | Mockup status | Mockup source | Notes |
 |---|---|---:|---|---|
-| Track nav | `Track > Team status` opens dedicated page | Done | `App.tsx`, `TeamStatusPage.tsx` | Team Board can remain visible but is future backlog |
+| Track nav | `Track > Team status` opens dedicated page | Done | `App.tsx`, `TeamStatusPage.tsx`, `layout.tsx` | Team Board is not present in active navigation and remains future backlog |
 | Iteration selector | Same picker style as Iteration Status | Done | `TeamStatusPage.tsx` | Prev/next + combined name/date dropdown |
 | Search input | Removed | Done | `TeamStatusPage.tsx` | No local Team Status search in P3.1 |
 | KPI strip | Removed | Done | `TeamStatusPage.tsx` | Table totals row is used instead |
@@ -64,7 +64,7 @@ Team Status approved behavior:
 | Work Product | Show parent US/DE | Done | `TeamStatusPage.tsx` | Parent title truncated |
 | Task Name | Inline editable | Done | `TeamStatusPage.tsx` | Stops row navigation |
 | State dropdown | Defined/In-Progress/Completed only | Done | `TeamStatusPage.tsx` | Accepted/Release removed |
-| State propagation | Task Completed refreshes parent US/DE roll-up | Documented | `01_Team_Status/SRS.md` | Parent auto-completes when all child tasks are Completed |
+| State propagation | Task state change refreshes parent US/DE roll-up | Documented | `01_Team_Status/SRS.md` | All completed -> parent Completed; reopened -> parent In-Progress |
 | Row click | Opens existing detail flow | Done in mockup | `TeamStatusPage.tsx`, `App.tsx` | Inline controls stop propagation |
 | Viewer read-only | No inline mutation for Viewer | Business rule | `01_Team_Status/SRS.md` | API must enforce |
 
@@ -102,6 +102,7 @@ Team Status approved behavior:
 - [ ] Task `Completed` refreshes referenced US/DE Work Product roll-up.
 - [ ] Parent US/DE remains unchanged while any child task is still not `Completed`.
 - [ ] Parent US/DE auto-completes when all child tasks are `Completed`.
+- [ ] Reopening a Task from the all-completed state auto-moves parent US/DE to `In-Progress` and recalculates metrics.
 - [ ] Parent US/DE remains manually editable from existing Work Item edit surfaces after auto-completion.
 - [ ] Task Dashboard inline edit persists Task Name, State, Owner, To Do, Actuals and Estimate without opening Task Detail.
 - [ ] Clicking Task ID in Task Dashboard opens Task Detail.
@@ -118,7 +119,7 @@ Team Status approved behavior:
 | P3-TS-DC-001 | Team Status is Phase 3.1 | Decided |
 | P3-TS-DC-002 | Team Status is dashboard/table, not Team Board | Decided |
 | P3-TS-DC-003 | Team Board moves to Backlog for the future | Decided |
-| P3-TS-DC-004 | Team Board can remain visible in mockup for now | Decided |
+| P3-TS-DC-004 | Team Board is removed from active navigation; future code/spec may remain in Future Backlog | Decided |
 | P3-TS-DC-005 | Iteration selector reuses Iteration Status picker style | Decided |
 | P3-TS-DC-006 | Remove Team Status local search input | Decided |
 | P3-TS-DC-007 | Remove KPI strip from Team Status | Decided |
@@ -128,7 +129,7 @@ Team Status approved behavior:
 | P3-TS-DC-011 | Task State is inline editable dropdown | Decided |
 | P3-TS-DC-012 | Team Status task states are only Defined, In-Progress and Completed | Decided |
 | P3-TS-DC-013 | Task ID is shown in ID column; US/DE belongs to Work Product column | Decided |
-| P3-TS-DC-014 | Completing a task refreshes the referenced US/DE roll-up; parent US/DE auto-completes when all child tasks are Completed; manual parent status editing remains available from Work Item edit surfaces | Decided |
+| P3-TS-DC-014 | Task state changes refresh the referenced US/DE roll-up; all child tasks Completed -> parent Completed; reopen one Task -> parent In-Progress; manual parent status editing remains available afterward | Decided |
 
 ## 6. Phase 3 Mockup Handoff Status
 
@@ -156,6 +157,7 @@ Team Status approved behavior:
 - Accepted releases remain editable for authorized users.
 - Release readiness information is manually gathered by users from linked US/DE release notes.
 - Reassigning a Story/Defect from one Release to another removes it from the old Release artifact view, recalculates old/new Release counts and shows user feedback.
+- Release Progress is not added to Timeboxes Release list/detail; `Portfolio > Release Planning` owns that future scope.
 
 ### P3.2 Development Must Verify
 
@@ -182,13 +184,16 @@ Team Status approved behavior:
 - Milestone detail right panel includes compact selected-count controls for Projects, Teams and Releases, plus Owner, Target Start Date, Target End Date and State.
 - Project, Team and Release count controls open searchable selection modals showing currently selected items.
 - Milestone can link to multiple Releases.
+- Release can link to multiple Milestones; both records can be created independently.
+- Work Item supports one Release and multiple Milestones through a Milestone multi-select.
 - Milestone Artifacts are assigned US/DE Story/Defect work items and use the Backlog dashboard presentation.
 - Milestone artifact assignment is independent from Release assignment; adding/removing a Milestone artifact must not change Release assignment.
+- Changing Work Item Release preserves selected Milestones; selected values stay visible and only add-new Milestone options are related-filtered.
 - Story/Defect artifact assignment must be rejected if the item is outside the Milestone's selected Project/Team scope.
 - Milestone does not include a readiness checklist in P3.3.
 - Milestone dashboard shows only Name, Target Start Date, Target End Date and Status.
-- Target Start Date is read-only and derived from the earliest linked Release Start Date.
-- Target End Date is read-only and derived from the latest linked Release end/release date.
+- With no linked Release, Target Start/End Date are manually editable planning dates.
+- With one or more linked Releases, Target Start Date is read-only and derived from the earliest linked Release Start Date; Target End Date is read-only and derived from the latest linked Release end/release date.
 - Timebox dashboard columns can be resized/expanded.
 
 ### P3.3 Development Must Verify
@@ -198,10 +203,10 @@ Team Status approved behavior:
 - [ ] Milestone can persist multiple linked Release IDs.
 - [ ] Milestone detail can open searchable Project, Team and Release selection modals from count summaries.
 - [x] Milestone Artifacts tab hides the right metadata panel.
-- [x] Milestone Artifacts are defined as assigned Story/Defect work items.
+- [x] M5.3 confirmed: Release/Milestone Artifacts use assigned Story/Defect rows and the obsolete `Add artifact link/name` input is removed.
 - [ ] Target Start Date recalculates when linked Releases change.
 - [ ] Target End Date recalculates when linked Releases change.
-- [ ] Target dates cannot be manually edited.
+- [ ] Target dates are manually editable with no linked Release and become derived/read-only when a Release is linked.
 - [ ] Milestone dashboard response includes only Name, Target Start Date, Target End Date and Status columns.
 - [ ] Milestone State accepts only `Planned`, `At Risk`, `Met`, `Missed`, `Cancelled`, `Completed`.
 - [ ] Owner is editable for authorized users.
@@ -214,6 +219,8 @@ Team Status approved behavior:
 - [ ] Milestone Artifacts dashboard reuses Backlog-style row presentation.
 - [ ] Milestone artifact assignment is independent from Release assignment.
 - [ ] Removing a Milestone artifact leaves Release assignment unchanged.
+- [ ] Work Item Milestone control is multi-select and supports one Work Item in multiple Milestone Artifact lists.
+- [ ] Changing Release keeps selected Milestones and filters only new Milestone options.
 - [ ] Assigning an artifact outside selected Project/Team scope is rejected.
 
 ## 6C. P3.4 Quality / Defect Ready Scope
@@ -226,7 +233,9 @@ Team Status approved behavior:
 - Defect Severity options: None, Critical, Major Problem, Minor Problem, Trivial.
 - Defect Priority options: None, Urgent, High, Normal, Low.
 - Defect State options: Submitted, Open, Fixed, Closed, Closed Declined.
-- Defect Flow State options: Idea, Defined, In-Progress, Completed, Accepted, Released.
+- Defect Flow State options: Idea, Defined, In-Progress, Completed, Accepted, Release.
+- Defect Schedule State and Flow State default to Idea and mirror two-way; Defect State remains independent.
+- Status reconciliation M1 completed in the mockup on 2026-07-18: `Released` was replaced by `Release`; changing Quality Flow State updates the same local US/DE schedule value while Defect State remains separate.
 - Current mockup supports search, filter placeholder, row selection, disabled/future bulk-action placeholder, sortable/resizable columns, pagination and detail panel.
 - Defect can be created from Backlog and `Quality > Defect`.
 - User Story is optional for Defect.
@@ -242,6 +251,7 @@ Team Status approved behavior:
 
 - [x] Confirm current P3.4 handoff covers Defect dashboard, create/edit, shared detail and core workflow.
 - [x] Confirm defect state and flow state option sets.
+- [x] Confirm Quality uses `Release`, not `Released`, and legacy US/DE values are absent from mock data.
 - [x] Confirm required dashboard columns.
 - [x] Confirm defect creation from Backlog and Quality > Defect.
 - [x] Confirm User Story is optional.

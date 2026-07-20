@@ -23,10 +23,9 @@ import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBa
 export const NAV_ITEMS: { key: Page; label: string; icon: React.ReactNode; children?: { key: Page; label: string; icon: React.ReactNode }[] }[] = [
   { key: "home", label: "Home", icon: <Home size={12} /> },
   { key: "backlog", label: "Plan", icon: <Calendar size={12} />, children: [{ key: "backlog", label: "Backlog", icon: <AlignJustify size={12} /> }, { key: "iterations", label: "Timeboxes", icon: <RotateCw size={12} /> }] },
-  { key: "track", label: "Track", icon: <Activity size={12} />, children: [{ key: "track", label: "Iteration Status", icon: <Activity size={12} /> }, { key: "teamBoard", label: "Team board", icon: <LayoutGrid size={12} /> }, { key: "teamStatus", label: "Team status", icon: <ListChecks size={12} /> }] },
+  { key: "track", label: "Track", icon: <Activity size={12} />, children: [{ key: "track", label: "Iteration Status", icon: <Activity size={12} /> }, { key: "teamStatus", label: "Team status", icon: <ListChecks size={12} /> }] },
   { key: "quality", label: "Quality", icon: <CheckCircle size={12} />, children: [{ key: "quality", label: "Defect", icon: <AlertTriangle size={12} /> }] },
-  { key: "portfolio", label: "Portfolio", icon: <Package size={12} /> },
-  { key: "releases", label: "Releases", icon: <Tag size={12} /> },
+  { key: "portfolio", label: "Portfolio", icon: <Package size={12} />, children: [{ key: "releasePlanning", label: "Release Planning (Phase 5)", icon: <Tag size={12} /> }] },
   { key: "reports", label: "Reports", icon: <BarChart2 size={12} /> },
 ];
 
@@ -112,7 +111,7 @@ export function TopNav({
                 })}
               </div>
               <div className="border-t border-[#e2e6eb] mt-1 pt-1 px-1.5 flex items-center justify-end">
-                {currentRole !== "Project Member" && <button aria-label="Manage workspace projects and teams" title="Manage workspace projects and teams" onClick={() => { onNavigate("projects"); setWsOpen(false); }} className="flex items-center gap-1 px-2 py-1.5 text-[10px] rounded hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><Settings size={11} /> Manage Projects</button>}
+                {currentRole !== "Project Member" && <button aria-label="Manage workspace projects" title="Manage workspace projects" onClick={() => { onNavigate("projects"); setWsOpen(false); }} className="flex items-center gap-1 px-2 py-1.5 text-[10px] rounded hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><Settings size={11} /> Manage Projects</button>}
               </div>
             </div>
           )}
@@ -252,6 +251,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam }: { curre
     teamStatus: [currentProject.name, "Track", "Team status"],
     quality: [currentProject.name, "Quality", "Defects"],
     portfolio: [currentProject.name, "Portfolio", "Initiatives"],
+    releasePlanning: [currentProject.name, "Portfolio", "Release Planning (Phase 5)"],
     releases: [currentProject.name, "Releases"],
     reports: [currentProject.name, "Reports"],
     notifications: [],

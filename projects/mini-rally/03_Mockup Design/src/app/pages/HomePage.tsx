@@ -39,7 +39,7 @@ export function HomePage({ role, onNavigate }: { role: Role; onNavigate: (p: Pag
   const activityFeed = [
     { icon: <Activity size={12} style={{ color: "#2558a6" }} />, bg: "#eef3fb", text: "US-4821 status changed to In-Progress by Marcus Webb", time: "2h ago" },
     { icon: <MessageSquare size={12} style={{ color: "#1d3f73" }} />, bg: "#eef2ff", text: "Sarah Chen commented on DE-1142 — heap profile attached", time: "4h ago" },
-    { icon: <Flag size={12} style={{ color: "#7e22ce" }} />, bg: "#faf5ff", text: "US-554 moved to Testing by Priya Nair", time: "5h ago" },
+    { icon: <Flag size={12} style={{ color: "#7e22ce" }} />, bg: "#faf5ff", text: "US-554 moved to In-Progress by Priya Nair", time: "5h ago" },
     { icon: <Paperclip size={12} style={{ color: "#5c4a87" }} />, bg: "#faf5ff", text: "Priya Nair attached wireframes-v3.pdf to FE-318", time: "6h ago" },
     { icon: <Zap size={12} style={{ color: "#e59f0c" }} />, bg: "#fef5e4", text: "Sprint 24.3 started — 9 items, 47 planned points", time: "Oct 14" },
     { icon: <Archive size={12} style={{ color: "#3d7a4e" }} />, bg: "#eef6f0", text: "Release Q4 2024 target confirmed — Nov 1, 2024", time: "Oct 13" },

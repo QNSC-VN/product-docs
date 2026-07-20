@@ -8,7 +8,7 @@ type DefectSort = { column: DefectColumnKey; direction: "asc" | "desc" };
 type DefectSeverity = "None" | "Critical" | "Major Problem" | "Minor Problem" | "Trivial";
 type DefectPriority = "None" | "Urgent" | "High" | "Normal" | "Low";
 type DefectState = "Submitted" | "Open" | "Fixed" | "Closed" | "Closed Declined";
-type DefectFlowState = "Idea" | "Defined" | "In-Progress" | "Completed" | "Accepted" | "Released";
+type DefectFlowState = StatusType;
 type DefectRowMeta = { userStory: string; fixedInBuild: string; submittedBy: Owner };
 
 const DEFECT_COLUMNS: Array<{ key: DefectColumnKey; label: string; width: number; min: number; align?: "left" | "center" | "right" }> = [
@@ -27,7 +27,7 @@ const DEFECT_COLUMNS: Array<{ key: DefectColumnKey; label: string; width: number
 ];
 
 const DEFECT_STATE_OPTIONS: DefectState[] = ["Submitted", "Open", "Fixed", "Closed", "Closed Declined"];
-const DEFECT_FLOW_STATE_OPTIONS: DefectFlowState[] = ["Idea", "Defined", "In-Progress", "Completed", "Accepted", "Released"];
+const DEFECT_FLOW_STATE_OPTIONS: DefectFlowState[] = ["Idea", "Defined", "In-Progress", "Completed", "Accepted", "Release"];
 const DEFECT_SEVERITY_OPTIONS: DefectSeverity[] = ["None", "Critical", "Major Problem", "Minor Problem", "Trivial"];
 const DEFECT_PRIORITY_OPTIONS: DefectPriority[] = ["None", "Urgent", "High", "Normal", "Low"];
 const DEFECT_PRIORITY_LABELS: Record<PriorityType, string> = { Low: "Low", Medium: "Normal", High: "High", Critical: "Urgent" };
@@ -36,16 +36,12 @@ const FIXED_BUILDS = ["2024.10.1", "2024.10.2", "2024.11.0", "Unassigned"];
 const SEVERITY_ORDER: Record<DefectSeverity, number> = { None: 0, Trivial: 1, "Minor Problem": 2, "Major Problem": 3, Critical: 4 };
 const PRIORITY_ORDER: Record<DefectPriority, number> = { None: 0, Low: 1, Normal: 2, High: 3, Urgent: 4 };
 const DEFECT_STATE_ORDER: Record<DefectState, number> = { Submitted: 1, Open: 2, Fixed: 3, Closed: 4, "Closed Declined": 5 };
-const FLOW_STATE_ORDER: Record<DefectFlowState, number> = { Idea: 1, Defined: 2, "In-Progress": 3, Completed: 4, Accepted: 5, Released: 6 };
+const FLOW_STATE_ORDER: Record<DefectFlowState, number> = { Idea: 1, Defined: 2, "In-Progress": 3, Completed: 4, Accepted: 5, Release: 6 };
 const DEFAULT_SEVERITIES: DefectSeverity[] = ["Critical", "Major Problem", "Minor Problem", "Trivial"];
 const DEFAULT_DEFECT_STATES: DefectState[] = ["Submitted", "Open", "Open", "Closed"];
 
 function defaultFlowState(status: StatusType): DefectFlowState {
-  if (status === "Defined") return "Defined";
-  if (status === "In-Progress" || status === "Code Review" || status === "Testing") return "In-Progress";
-  if (status === "Completed") return "Completed";
-  if (status === "Accepted") return "Accepted";
-  return "Idea";
+  return status;
 }
 
 function defectMeta(item: WorkItem, index: number): DefectRowMeta {
@@ -121,8 +117,8 @@ function ResizableDefectHeader({ column, width, sort, onSort, onResize }: { colu
   );
 }
 
-export function QualityPage({ role, readOnly = false, activeItem, onItemClick, onOpenFull }: { role: Role; readOnly?: boolean; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
-  const [defectItems, setDefectItems] = useState<WorkItem[]>(() => WORK_ITEMS.filter(item => item.type === "Defect"));
+export function QualityPage({ role, readOnly = false, projectKey, items, onUpdateItem, activeItem, onItemClick, onOpenFull }: { role: Role; readOnly?: boolean; projectKey: string; items: WorkItem[]; onUpdateItem: (id: string, patch: Partial<WorkItem>) => void; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
+  const defectItems = items.filter(item => item.type === "Defect" && item.project === projectKey);
   const [search, setSearch] = useState("");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [showModal, setShowModal] = useState(false);
@@ -133,19 +129,18 @@ export function QualityPage({ role, readOnly = false, activeItem, onItemClick, o
   const [severityById, setSeverityById] = useState<Record<string, DefectSeverity>>(() => Object.fromEntries(WORK_ITEMS.filter(item => item.type === "Defect").map((item, index) => [item.id, DEFAULT_SEVERITIES[index % DEFAULT_SEVERITIES.length]])));
   const [priorityById, setPriorityById] = useState<Record<string, DefectPriority>>(() => Object.fromEntries(WORK_ITEMS.filter(item => item.type === "Defect").map(item => [item.id, DEFECT_PRIORITY_LABELS[item.priority] as DefectPriority])));
   const [stateById, setStateById] = useState<Record<string, DefectState>>(() => Object.fromEntries(WORK_ITEMS.filter(item => item.type === "Defect").map((item, index) => [item.id, DEFAULT_DEFECT_STATES[index % DEFAULT_DEFECT_STATES.length]])));
-  const [flowStateById, setFlowStateById] = useState<Record<string, DefectFlowState>>(() => Object.fromEntries(WORK_ITEMS.filter(item => item.type === "Defect").map(item => [item.id, defaultFlowState(item.status)])));
   const editable = !readOnly && can.createDefects(role);
 
   const rows = defectItems.map((item, index) => ({ item, meta: defectMeta(item, index) }));
   const filtered = rows.filter(({ item, meta }) => {
     const query = search.trim().toLowerCase();
     if (!query) return true;
-    return [item.id, item.title, meta.userStory, stateById[item.id] || "", flowStateById[item.id] || "", item.iteration, item.owner.name, meta.submittedBy.name].some(value => value.toLowerCase().includes(query));
+    return [item.id, item.title, meta.userStory, stateById[item.id] || "", defaultFlowState(item.status), item.iteration, item.owner.name, meta.submittedBy.name].some(value => value.toLowerCase().includes(query));
   }).sort((a, b) => {
     if (!sort) return (a.item.rank || 999) - (b.item.rank || 999);
     const result = compareValues(
-      getSortValue(a.item, a.meta, severityById[a.item.id] || "None", priorityById[a.item.id] || "None", stateById[a.item.id] || "Submitted", flowStateById[a.item.id] || "Idea", sort.column),
-      getSortValue(b.item, b.meta, severityById[b.item.id] || "None", priorityById[b.item.id] || "None", stateById[b.item.id] || "Submitted", flowStateById[b.item.id] || "Idea", sort.column)
+      getSortValue(a.item, a.meta, severityById[a.item.id] || "None", priorityById[a.item.id] || "None", stateById[a.item.id] || "Submitted", defaultFlowState(a.item.status), sort.column),
+      getSortValue(b.item, b.meta, severityById[b.item.id] || "None", priorityById[b.item.id] || "None", stateById[b.item.id] || "Submitted", defaultFlowState(b.item.status), sort.column)
     );
     return sort.direction === "asc" ? result : -result;
   });
@@ -173,7 +168,7 @@ export function QualityPage({ role, readOnly = false, activeItem, onItemClick, o
   }
 
   function updateItem(id: string, patch: Partial<WorkItem>) {
-    setDefectItems(previous => previous.map(item => item.id === id ? { ...item, ...patch } : item));
+    onUpdateItem(id, patch);
   }
 
   function updateOwner(id: string, ownerName: string) {
@@ -196,7 +191,7 @@ export function QualityPage({ role, readOnly = false, activeItem, onItemClick, o
   }
 
   function updateFlowState(id: string, flowState: DefectFlowState) {
-    setFlowStateById(previous => ({ ...previous, [id]: flowState }));
+    updateItem(id, { status: flowState });
   }
 
   function toggleSort(column: DefectColumnKey) {
@@ -257,7 +252,7 @@ export function QualityPage({ role, readOnly = false, activeItem, onItemClick, o
                 const severity = severityById[item.id] || "None";
                 const priority = priorityById[item.id] || "None";
                 const defectState = stateById[item.id] || "Submitted";
-                const flowState = flowStateById[item.id] || "Idea";
+                const flowState = defaultFlowState(item.status);
                 return (
                   <div key={item.id} onClick={() => onItemClick(item)} className="flex items-center h-8 px-3 gap-0 cursor-pointer hover:bg-[#f7f8fa]" style={{ width: tableWidth, minWidth: "100%", borderBottom: "1px solid #edf0f4", backgroundColor: activeItem?.id === item.id ? "#edf2fb" : selected ? "#f3f6fb" : "white" }}>
                     <div className="w-7 shrink-0" onClick={event => { event.stopPropagation(); toggleSelect(item.id); }}><input type="checkbox" checked={selected} onChange={() => toggleSelect(item.id)} onClick={event => event.stopPropagation()} className="w-3.5 h-3.5 rounded" style={{ accentColor: "#1d3f73" }} /></div>

@@ -56,7 +56,7 @@ Permission granularity is deferred. Current P2.3 mockup assumes admin/full acces
 | Work item in Iteration | Work item with `iterationId` equal to the selected Iteration. |
 | Schedule State | Work item execution state shown in Iteration Status list. Allowed values: Idea, Defined, In-Progress, Completed, Accepted, Release. |
 | Defects metric | Count of work items whose type is `Defect` in the selected Iteration. It is not a per-story defect count. |
-| Tasks metric | Count of work items whose type is `Task` in the selected Iteration. |
+| Tasks metric | Count of active child Tasks (`state != Completed`) under Story/Defect items in the selected Iteration/current Project-Team context. |
 
 ## 4A. Business Rules / Business Flow
 
@@ -109,8 +109,11 @@ Nghiệp vụ chính:
 | P2-IS-FR-013 | Iteration End metric shows remaining days until Iteration end date. |
 | P2-IS-FR-014 | Accepted metric shows accepted points and accepted percentage for current Iteration. |
 | P2-IS-FR-015 | Defects metric counts current Iteration work items where type is `Defect`. |
-| P2-IS-FR-016 | Tasks metric counts current Iteration work items where type is `Task`. |
-| P2-IS-FR-017 | Iteration Status list displays only work items assigned to the selected Iteration. |
+| P2-IS-FR-016 | Tasks metric keeps the `N active` display and counts child Tasks with State other than `Completed` under current Iteration Story/Defect items. |
+| P2-IS-FR-016A | Task is never assigned to Iteration independently; it inherits Iteration through its parent Story/Defect. |
+| P2-IS-FR-016B | A `Totals` row appears immediately below the list column header and shows total Plan Est, Task Est and To Do. |
+| P2-IS-FR-016C | Plan Est total sums scoped Story/Defect Plan Estimates; Task Est and To Do totals sum child Task values for the same scoped parents. |
+| P2-IS-FR-017 | Iteration Status list displays only Story/Defect items assigned to the selected Iteration. Child Tasks are not independent rows. |
 | P2-IS-FR-017A | Iteration Status list is sourced from Backlog/work_items where `iterationId` equals the selected Iteration. |
 | P2-IS-FR-018 | List columns are: selection checkbox, rank, ID, Type, Name, Schedule State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner. |
 | P2-IS-FR-019 | The list must not include a per-row `Defects` column. |
@@ -129,7 +132,7 @@ Nghiệp vụ chính:
 | P2-IS-FR-032 | User with edit permission can inline edit Owner. |
 | P2-IS-FR-032A | User with edit permission can inline edit Iteration. |
 | P2-IS-FR-033 | Work item Schedule State options in Iteration Status are exactly: Idea, Defined, In-Progress, Completed, Accepted, Release. |
-| P2-IS-FR-034 | Existing work items with unsupported status values must be mapped or normalized before display in this screen. |
+| P2-IS-FR-034 | Legacy `Code Review`, `Testing` or `Released` values must be reconciled before display; the UI must not silently normalize a value only for this screen. |
 | P2-IS-FR-035 | User can select rows and see selected-row actions consistent with Backlog list behavior where supported. |
 | P2-IS-FR-036 | Row click opens the full Work Item Detail page, reusing the Backlog Work Item Detail flow. |
 | P2-IS-FR-036A | Work Item Detail right panel includes Iteration field and uses the same options as Backlog. |
@@ -165,8 +168,8 @@ Nghiệp vụ chính:
 | Show filter | Filter banner toggle | Same behavior pattern as Backlog |
 | Manage filters | Multi-column filter chooser | Same behavior pattern as Backlog |
 | Add Item | Button beside filter controls | Opens Add Item to Iteration modal |
-| List / Board toggle | List and Board buttons if kept in UI | List is required for P2.3; Board button is placeholder only and board execution is Phase 3 |
-| Work item list | Dense editable table | Assigned work items for selected Iteration, including Iteration column |
+| List / Board toggle | List only in Phase 0-4 | Board view/toggle is Future Backlog and must not appear as active scope |
+| Work item list | Dense editable table | Assigned Story/Defect items for selected Iteration, including Iteration column and Totals row |
 | Row click | Work item row | Opens full Work Item Detail page |
 | Work Item Detail right panel | Shared Backlog detail panel | Shows Iteration field and allows same assignment behavior |
 | Add Item modal | Create new work item only | Story/Defect, preselected Iteration |
@@ -190,7 +193,7 @@ Nghiệp vụ chính:
 | Row selection | `selected` | UI state | Client-only |
 | Rank | `rank` | `work_items.rank` | Read-only unless rank actions are enabled |
 | ID | `itemKey` | `work_items.item_key` | Read-only |
-| Type | `type` | `work_items.type` | Story, Defect, Feature, Task may display if already assigned; Add Item creates Story/Defect only |
+| Type | `type` | `work_items.type` | Phase 0-4 Iteration Status rows are Story/Defect only; child Tasks contribute roll-ups/metrics |
 | Name | `title` | `work_items.title` | Editable, required |
 | Schedule State | `scheduleState` | `work_items.schedule_state` or workflow status mapping | Editable; enum below |
 | Iteration | `iterationId` / `iteration` | `work_items.iteration_id -> planning.sprints` | Editable; selected Iteration by default; nullable -> Unscheduled |
@@ -213,7 +216,7 @@ Allowed Schedule State values in Iteration Status:
 | Accepted | `accepted` | Accepted by PO/QA per team process |
 | Release | `release` | Ready for or moved to release state |
 
-Legacy/sample values such as `Code Review` and `Testing` are not valid options for this screen. If such values exist in source data, production must either map them to `In-Progress` or block them from this view with a clear migration rule.
+Legacy/sample values such as `Code Review`, `Testing` and spelling `Released` are not valid. They must be reconciled in the shared Work Item source before rendering; Iteration Status must not silently map them only for this screen.
 
 ## 8. Metric Rules
 
@@ -223,11 +226,16 @@ Legacy/sample values such as `Code Review` and `Testing` are not valid options f
 | Iteration End | Difference between current date and Iteration end date; show days left, ended, or starts later as applicable |
 | Accepted | `acceptedPlanEstimate / totalPlanEstimate`, displayed as percent and accepted points |
 | Defects | Count of assigned work items where `type = Defect` |
-| Tasks | Count of assigned work items where `type = Task` |
+| Tasks | Count child Tasks with `state != Completed` under scoped Story/Defect parents |
+| Total Plan Est | Sum `planEstimate` for scoped Story/Defect rows |
+| Total Task Est | Sum child Task `estimate` for scoped Story/Defect parents |
+| Total To Do | Sum child Task `toDo` for scoped Story/Defect parents |
 
 Rules:
 
 - Exclude deleted/archived work items from all metrics.
+- Exclude deleted child Tasks from Task count and Totals.
+- Moving a Story/Defect to another Iteration moves its child Task contribution to the target Iteration metrics/totals.
 - Use selected Iteration only.
 - If denominator is 0, show 0% and avoid divide-by-zero.
 - `Accepted` means Schedule State equals `Accepted`, unless backend has a final accepted status mapping.
@@ -451,6 +459,8 @@ Detailed role matrix for PO/PM/Developer/Tester/Viewer is deferred. API must not
 - [ ] Changing selected Iteration refreshes metrics and list.
 - [ ] Metric strip shows Planned Velocity, Iteration End, Accepted, Defects and Tasks.
 - [ ] Defects metric counts work items of type Defect in the selected Iteration.
+- [ ] Tasks metric shows active non-Completed child Task count, not standalone Task rows.
+- [ ] Totals row under the table header shows Plan Est, Task Est and To Do from the same scoped parent/task dataset.
 - [ ] Work item list shows only items assigned to selected Iteration.
 - [ ] Work item list is sourced from Backlog/work_items assignment.
 - [ ] Work item list shows Iteration column.
@@ -462,6 +472,7 @@ Detailed role matrix for PO/PM/Developer/Tester/Viewer is deferred. API must not
 - [ ] Inline edit works for Name, Schedule State, Plan Est and Owner.
 - [ ] Inline edit works for Iteration and moves the item to the selected target Iteration after refresh/re-query.
 - [ ] Schedule State options are exactly Idea, Defined, In-Progress, Completed, Accepted, Release.
+- [ ] Iteration Status displays List only; Board view/toggle remains Future Backlog.
 - [ ] Row click opens full Work Item Detail.
 - [ ] Work Item Detail right panel shows Iteration field.
 - [ ] Add Item button is beside filter controls.

@@ -76,7 +76,7 @@ BA working rule:
 | P4-SET-02 | BA/SRS + Mockup | Project Settings | Reuse Phase 1 Manage > Projects create/edit/archive baseline; document single entry point and Phase 4 role context | P4-SET-01 | TBD | 0.25h | `DONE` |
 | P4-SET-03 | BA/SRS + Mockup | Workflow Status | Deferred: project-specific workflow configuration moves to Future Backlog; default Agile statuses remain baseline | P4-SET-02 | TBD | 0.25h | `DEFERRED` |
 | P4-SET-04 | BA/SRS + Mockup | Labels | Deferred: label management moves to Future Backlog; no label assignment/filtering flow in Phase 4 | P4-SET-02 | TBD | 0.25h | `DEFERRED` |
-| P4-SET-05 | BA/SRS + Mockup | User Management | Move user administration to top-right Settings gear; Manage Projects keeps Projects and Teams only | P4-SET-02 | TBD | 0.75h | `DONE` |
+| P4-SET-05 | BA/SRS + Mockup | Team/User Management | Move Team and User administration to top-right Settings gear; Manage Projects keeps Projects only | P4-SET-02 | TBD | 0.75h | `DONE` |
 | P4-SET-06 | BA/SRS + Mockup | Audit Log | WA-only administrative/settings audit with Time, Actor and Detail columns | P4-SET-05 | TBD | 0.5h | `DONE` |
 | P4-SET-07 | BA/SRS + Mockup | Destructive Confirmations | Confirmation modal for archive/restore/deactivate/delete/remove actions | P4-SET-06 | TBD | 0.5h | `DONE` |
 

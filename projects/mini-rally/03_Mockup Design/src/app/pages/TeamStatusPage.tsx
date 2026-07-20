@@ -1,31 +1,21 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { ArrowUpDown, Check, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
-import { type IterationItem, type Owner, type Role, type StatusType, type WorkItem, can, ITERATIONS_DATA, OWNERS, WORK_ITEMS } from "../model";
+import { type IterationItem, type Owner, type Role, type StatusType, type TaskItem, type TaskState, type WorkItem, can, ITERATIONS_DATA, OWNERS } from "../model";
 import { Avatar, TypeBadge } from "../components/shared";
 
 type TeamStatusPageProps = {
   role: Role;
   readOnly?: boolean;
+  items: WorkItem[];
+  tasks: TaskItem[];
+  onUpdateTask: (id: string, patch: Partial<TaskItem>) => void;
   onOpenFull: (item: WorkItem) => void;
 };
 
 type MemberGroup = {
   owner: Owner;
-  items: TeamStatusTask[];
+  items: TaskItem[];
   capacity: number;
-  estimate: number;
-  todo: number;
-  actuals: number;
-};
-
-type TeamStatusTask = {
-  id: string;
-  rank: number;
-  title: string;
-  workProductId: string;
-  owner: Owner;
-  state: StatusType;
-  release: string;
   estimate: number;
   todo: number;
   actuals: number;
@@ -61,7 +51,7 @@ const MIN_COLUMN_WIDTHS: Record<TeamStatusColumnKey, number> = {
   owner: 120,
 };
 
-const TEAM_STATUS_OPTIONS: StatusType[] = ["Defined", "In-Progress", "Completed"];
+const TEAM_STATUS_OPTIONS: TaskState[] = ["Defined", "In-Progress", "Completed"];
 
 const DEFAULT_CAPACITY: Record<string, number> = {
   "Marcus Webb": 54,
@@ -96,57 +86,6 @@ function toTeamScheduleState(status: StatusType): StatusType {
 function workProductIdFor(item: WorkItem) {
   return item.id.replace("-", "");
 }
-
-const INITIAL_TEAM_STATUS_TASKS: TeamStatusTask[] = [
-  {
-    id: "TA-404821",
-    rank: 1,
-    title: "DEV - Configure SAML metadata upload",
-    workProductId: "US-4821",
-    owner: OWNERS[0],
-    state: "Completed",
-    release: "Q4 2024",
-    estimate: 5,
-    todo: 0,
-    actuals: 5,
-  },
-  {
-    id: "TA-404822",
-    rank: 2,
-    title: "DEV - Map IdP attributes to tenant profile",
-    workProductId: "US-4821",
-    owner: OWNERS[0],
-    state: "In-Progress",
-    release: "Q4 2024",
-    estimate: 6,
-    todo: 2,
-    actuals: 4,
-  },
-  {
-    id: "TA-411420",
-    rank: 3,
-    title: "QA - Reproduce Firefox widget refresh loop",
-    workProductId: "DE-1142",
-    owner: OWNERS[1],
-    state: "Defined",
-    release: "Q4 2024",
-    estimate: 3,
-    todo: 3,
-    actuals: 0,
-  },
-  {
-    id: "TA-411421",
-    rank: 4,
-    title: "DEV - Release detached chart observers",
-    workProductId: "DE-1142",
-    owner: OWNERS[1],
-    state: "Defined",
-    release: "Q4 2024",
-    estimate: 3,
-    todo: 3,
-    actuals: 0,
-  },
-];
 
 function buildGridTemplate(widths: Record<TeamStatusColumnKey, number>) {
   return `${widths.rank}px ${widths.id}px minmax(${widths.taskName}px,1fr) ${widths.workProduct}px ${widths.release}px ${widths.state}px ${widths.capacity}px ${widths.estimate}px ${widths.todo}px ${widths.actuals}px ${widths.owner}px`;
@@ -202,7 +141,7 @@ function GroupRow({ group, expanded, editable, gridTemplate, onToggle, onCapacit
   );
 }
 
-function ItemRow({ task, parent, editable, gridTemplate, onOpen, onUpdate }: { task: TeamStatusTask; parent: WorkItem; editable: boolean; gridTemplate: string; onOpen: (item: WorkItem) => void; onUpdate: (id: string, patch: Partial<TeamStatusTask>) => void }) {
+function ItemRow({ task, parent, editable, gridTemplate, onOpen, onUpdate }: { task: TaskItem; parent: WorkItem; editable: boolean; gridTemplate: string; onOpen: (item: WorkItem) => void; onUpdate: (id: string, patch: Partial<TaskItem>) => void }) {
   const parentStatus = toTeamScheduleState(parent.status);
   return (
     <div onClick={() => onOpen(parent)} className="grid h-8 items-center text-[11px] cursor-pointer hover:bg-[#f7f8fa]" style={{ gridTemplateColumns: gridTemplate, borderBottom: "1px solid #edf0f4", color: "#3a4254" }}>
@@ -212,17 +151,17 @@ function ItemRow({ task, parent, editable, gridTemplate, onOpen, onUpdate }: { t
         <span className="font-mono text-[10px] font-medium truncate" style={{ color: "#2563eb" }}>{task.id}</span>
       </div>
       <div className="px-2 min-w-0" onClick={event => event.stopPropagation()}>
-        <input aria-label={`${task.id} task name`} readOnly={!editable} value={task.title} onChange={event => onUpdate(task.id, { title: event.target.value })} className="block w-full truncate text-[11px] bg-transparent focus:outline-none focus:bg-white focus:px-1 focus:py-0.5 focus:rounded" style={{ color: "#1a2234", border: editable ? "1px solid transparent" : "0" }} />
+        <input aria-label={`${task.id} task name`} readOnly={!editable} value={task.name} onChange={event => onUpdate(task.id, { name: event.target.value })} className="block w-full truncate text-[11px] bg-transparent focus:outline-none focus:bg-white focus:px-1 focus:py-0.5 focus:rounded" style={{ color: "#1a2234", border: editable ? "1px solid transparent" : "0" }} />
       </div>
       <div className="px-2 flex items-center gap-2 min-w-0">
         <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold text-white shrink-0" style={{ backgroundColor: parent.type === "Defect" ? "#d4a20c" : "#c9c514" }}>{parent.type === "Defect" ? "D" : "S"}</span>
         <span className="min-w-0 flex-1 truncate text-[11px]" style={{ color: "#2563eb" }}>{workProductIdFor(parent)}: <span style={{ color: "#5c6478" }}>{parent.title}</span></span>
         <span className="shrink-0 rounded px-1 py-px text-[9px] font-semibold" style={{ backgroundColor: parentStatus === "Completed" ? "#eef6f0" : "#eef3fb", color: parentStatus === "Completed" ? "#1e6930" : "#2558a6" }}>{parentStatus === "Completed" ? "Done" : parentStatus}</span>
       </div>
-      <div className="px-2 truncate">{task.release}</div>
+      <div className="px-2 truncate">{parent.release}</div>
       <div className="px-2" onClick={event => event.stopPropagation()}>
         {editable ? (
-          <select aria-label={`${task.id} schedule state`} value={task.state} onChange={event => onUpdate(task.id, { state: event.target.value as StatusType })} className="w-[106px] max-w-full text-[11px] rounded-sm bg-white focus:outline-none" style={{ border: "1px solid #bdd0ef", color: "#2558a6" }}>
+          <select aria-label={`${task.id} schedule state`} value={task.state} onChange={event => onUpdate(task.id, { state: event.target.value as TaskState })} className="w-[106px] max-w-full text-[11px] rounded-sm bg-white focus:outline-none" style={{ border: "1px solid #bdd0ef", color: "#2558a6" }}>
             {TEAM_STATUS_OPTIONS.map(status => <option key={status}>{status}</option>)}
           </select>
         ) : (
@@ -238,11 +177,9 @@ function ItemRow({ task, parent, editable, gridTemplate, onOpen, onUpdate }: { t
   );
 }
 
-export function TeamStatusPage({ role, readOnly = false, onOpenFull }: TeamStatusPageProps) {
+export function TeamStatusPage({ role, readOnly = false, items, tasks, onUpdateTask, onOpenFull }: TeamStatusPageProps) {
   const [selectedIterationId, setSelectedIterationId] = useState("IT-24-3");
   const [iterationOpen, setIterationOpen] = useState(false);
-  const [teamItems, setTeamItems] = useState<WorkItem[]>(WORK_ITEMS);
-  const [teamTasks, setTeamTasks] = useState<TeamStatusTask[]>(INITIAL_TEAM_STATUS_TASKS);
   const [expandedOwners, setExpandedOwners] = useState<Set<string>>(new Set(OWNERS.map(owner => owner.name)));
   const [capacityByOwner, setCapacityByOwner] = useState<Record<string, number>>(DEFAULT_CAPACITY);
   const [columnWidths, setColumnWidths] = useState<Record<TeamStatusColumnKey, number>>(DEFAULT_COLUMN_WIDTHS);
@@ -253,19 +190,19 @@ export function TeamStatusPage({ role, readOnly = false, onOpenFull }: TeamStatu
   const editable = !readOnly && can.edit(role);
   const gridTemplate = buildGridTemplate(columnWidths);
   const tableWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
-  const parentById = useMemo(() => new Map(teamItems.map(item => [item.id, item])), [teamItems]);
+  const parentById = useMemo(() => new Map(items.map(item => [item.id, item])), [items]);
 
   const groups = useMemo<MemberGroup[]>(() => {
-    const items = teamTasks.filter(task => parentById.get(task.workProductId)?.iteration === selectedIteration.name);
+    const scopedTasks = tasks.filter(task => parentById.get(task.parentWorkItemId)?.iteration === selectedIteration.name);
 
     return OWNERS.map(owner => {
-      const ownerItems = items.filter(item => item.owner.name === owner.name);
+      const ownerItems = scopedTasks.filter(item => item.owner.name === owner.name);
       const estimate = ownerItems.reduce((sum, item) => sum + item.estimate, 0);
       const todo = ownerItems.reduce((sum, item) => sum + item.todo, 0);
       const actuals = ownerItems.reduce((sum, item) => sum + item.actuals, 0);
       return { owner, items: ownerItems, capacity: capacityByOwner[owner.name] ?? DEFAULT_CAPACITY[owner.name] ?? 40, estimate, todo, actuals };
     }).filter(group => group.items.length > 0);
-  }, [capacityByOwner, parentById, selectedIteration.name, teamTasks]);
+  }, [capacityByOwner, parentById, selectedIteration.name, tasks]);
 
   const totals = groups.reduce((acc, group) => ({
     capacity: acc.capacity + group.capacity,
@@ -289,37 +226,6 @@ export function TeamStatusPage({ role, readOnly = false, onOpenFull }: TeamStatu
     const next = Math.max(0, Math.min(iterations.length - 1, selectedIterationIndex + direction));
     setSelectedIterationId(iterations[next].id);
     setIterationOpen(false);
-  }
-
-  function updateTask(id: string, patch: Partial<TeamStatusTask>) {
-    setTeamTasks(previous => {
-      const next = previous.map(task => {
-        if (task.id !== id) return task;
-        const updated = { ...task, ...patch };
-        if (patch.state === "Completed") return { ...updated, todo: 0, actuals: Math.max(updated.actuals, updated.estimate) };
-        return updated;
-      });
-
-      const changedTask = next.find(task => task.id === id);
-      if (changedTask && patch.state === "Completed") {
-        const siblingTasks = next.filter(task => task.workProductId === changedTask.workProductId);
-        const completedTasks = siblingTasks.filter(task => task.state === "Completed").length;
-        const allCompleted = siblingTasks.length > 0 && completedTasks === siblingTasks.length;
-
-        setTeamItems(previousItems => previousItems.map(item => {
-          if (item.id !== changedTask.workProductId) return item;
-          return {
-            ...item,
-            status: allCompleted ? "Completed" : item.status,
-            completedTasks,
-            taskCount: siblingTasks.length,
-            todoEstimate: siblingTasks.reduce((sum, task) => sum + task.todo, 0),
-          };
-        }));
-      }
-
-      return next;
-    });
   }
 
   function startColumnResize(column: TeamStatusColumnKey, event: React.MouseEvent<HTMLDivElement>) {
@@ -409,9 +315,9 @@ export function TeamStatusPage({ role, readOnly = false, onOpenFull }: TeamStatu
                 onCapacityChange={value => setCapacityByOwner(previous => ({ ...previous, [group.owner.name]: value }))}
               />
               {expandedOwners.has(group.owner.name) && group.items.map(task => {
-                const parent = parentById.get(task.workProductId);
+                const parent = parentById.get(task.parentWorkItemId);
                 if (!parent) return null;
-                return <ItemRow key={task.id} task={task} parent={parent} editable={editable} gridTemplate={gridTemplate} onOpen={onOpenFull} onUpdate={updateTask} />;
+                return <ItemRow key={task.id} task={task} parent={parent} editable={editable} gridTemplate={gridTemplate} onOpen={onOpenFull} onUpdate={onUpdateTask} />;
               })}
             </div>
           ))}
