@@ -71,7 +71,8 @@ erDiagram
 | `access` | RBAC + ABAC | `roles`, `permissions`, `role_permissions`, **`user_role_assignments`** *(R1)* |
 | `work` | Work-item core | `projects`, `project_members`, `project_settings`, `teams`, `team_members`, `project_teams`, `workflow_statuses`, `workflow_transitions`, `work_items`, `work_item_relations`, `labels`, `work_item_labels`, **`custom_field_defs`** *(R5, fast-follow)* |
 | `planning` | Backlog / sprint / release | `sprints`, `releases`, **`sprint_daily_snapshots`** *(R4)* — ~~`sprint_items`~~ ~~`release_items`~~ dropped *(R2)* |
-| `collab` | Collaboration | `comments`, `attachments`, `watchers`, `saved_filters` |
+| `collab` | Collaboration | `comments`, `watchers`, `saved_filters` — ~~`attachments`~~ moved *(see §9.8)* |
+| `storage` | Object-storage metadata | **`files`** *(R7)* — owner-agnostic blob rows; ownership via per-context link tables such as `work.work_item_attachments` |
 | `platform` | Cross-cutting infra | `outbox_events`, `idempotency_keys`, `activity_logs`, `notifications` |
 
 > Roles/permissions split into their own `access` schema (was "Role & Permission" group) to match the `access` module that owns the permission engine in `DOMAIN_DESIGN.md`. Changes vs BA model are tagged *(Rn)* — see §1.1.
@@ -386,27 +387,86 @@ CREATE INDEX ix_snapshot_burndown ON planning.sprint_daily_snapshots (tenant_id,
 -- Append-only read model: written by scheduled job + sprint events. No version. + RLS (§5)
 ```
 
-### 9.8 `collab.attachments` *(R7)*
+### 9.8 `storage.files` + `work.work_item_attachments` *(R7)*
+
+> **Superseded design.** This section previously specified a single
+> `collab.attachments` table. Two things changed in implementation:
+> the table landed in the `work` schema (not `collab`) with `workspace_id`
+> (not `tenant_id`), and as of migration `0053` it is split in two.
+>
+> **Why the split:** the original single table carried both blob metadata and
+> `work_item_id NOT NULL`, so every additional upload surface (avatars,
+> workspace logos, comment attachments, inline description images) needed either
+> a duplicate table or a nullable-column discriminator. Blob metadata now lives
+> once in `storage.files`; ownership is expressed by per-context LINK tables.
+> Adding a surface = one link table + one policy descriptor.
+>
+> A polymorphic `owner_type`/`owner_id` pair was considered and rejected: it
+> cannot carry a foreign key, and it pushes tenant scoping into application-level
+> registry lookups.
 
 ```sql
-CREATE TABLE collab.attachments (
-    id           UUID         NOT NULL DEFAULT uuidv7(),
-    tenant_id    UUID         NOT NULL,
-    work_item_id UUID         NOT NULL REFERENCES work.work_items(id),
-    s3_key       VARCHAR(1024) NOT NULL,                 -- object storage pointer (never blob in DB)
-    filename     VARCHAR(500) NOT NULL,
-    content_type VARCHAR(150) NOT NULL,
-    size_bytes   BIGINT       NOT NULL,
-    scan_status  VARCHAR(20)  NOT NULL DEFAULT 'pending'
-        CONSTRAINT chk_att_scan CHECK (scan_status IN ('pending','clean','infected','failed')),
-    uploaded_by  UUID         NOT NULL,
-    created_at   TIMESTAMPTZ  NOT NULL DEFAULT now(),
-    deleted_at   TIMESTAMPTZ,
-    PRIMARY KEY (id)
+-- Owner-agnostic blob metadata. One row per stored object, always.
+CREATE TABLE storage.files (
+    id              UUID          PRIMARY KEY DEFAULT gen_random_uuid(),
+    workspace_id    UUID          NOT NULL,
+    storage_key     VARCHAR(1024) NOT NULL,   -- object pointer (never blob in DB)
+    filename        VARCHAR(500)  NOT NULL,   -- display only; NEVER used to build the key
+    mime_type       VARCHAR(255)  NOT NULL,
+    size_bytes      BIGINT        NOT NULL,
+    checksum_sha256 VARCHAR(64),              -- base64 SHA-256; see integrity note
+    visibility      file_visibility NOT NULL DEFAULT 'private',
+    status          file_status     NOT NULL DEFAULT 'pending',
+    uploaded_by     UUID          NOT NULL,
+    created_at      TIMESTAMPTZ   NOT NULL DEFAULT now(),
+    confirmed_at    TIMESTAMPTZ,
+    deleted_at      TIMESTAMPTZ
 );
-CREATE INDEX ix_att_work_item ON collab.attachments (tenant_id, work_item_id) WHERE deleted_at IS NULL;
--- comments table gains: mentioned_user_ids UUID[] (R6) → outbox → notification fan-out. + RLS (§5)
+CREATE UNIQUE INDEX uq_files_storage_key ON storage.files (storage_key);
+CREATE INDEX ix_files_workspace ON storage.files (workspace_id);
+-- Partial: drives the orphan reaper, stays small regardless of total file count.
+CREATE INDEX ix_files_pending_cleanup ON storage.files (created_at)
+    WHERE status = 'pending' AND deleted_at IS NULL;
+-- Dedup lookup, workspace-scoped so a checksum cannot reference another tenant.
+CREATE INDEX ix_files_workspace_checksum ON storage.files (workspace_id, checksum_sha256)
+    WHERE status = 'completed' AND deleted_at IS NULL;
+
+-- Link table: real FKs both sides, so deletes cascade properly.
+CREATE TABLE work.work_item_attachments (
+    work_item_id UUID        NOT NULL REFERENCES work.work_items(id) ON DELETE CASCADE,
+    file_id      UUID        NOT NULL REFERENCES storage.files(id)   ON DELETE CASCADE,
+    workspace_id UUID        NOT NULL,
+    attached_by  UUID        NOT NULL,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (work_item_id, file_id)
+);
+CREATE INDEX ix_wia_file ON work.work_item_attachments (file_id);  -- reaper: still referenced?
+-- + RLS (§5) on both tables
 ```
+
+**Integrity.** `checksum_sha256` is computed by the client, bound into the
+presigned PUT signature (`x-amz-checksum-sha256`) so the bucket rejects a
+mismatched body, and re-read on confirm. A size comparison alone cannot detect a
+same-length substitution.
+
+**Visibility.** `private` objects are reachable only via a short-lived presigned
+GET minted after an authorization check. `public` objects live in a separate
+CDN-fronted bucket and are readable by anyone holding the key — avatars and
+workspace logos only. The CDN origin must never point at the private bucket.
+
+**Deletion.** Objects are removed only by the worker reaper, never in the request
+path: a file may be referenced by several link rows, and only a sweep can see
+that the last reference is gone. The reaper covers three cases — pending past
+24 h, soft-deleted, and unreferenced (with a 1 h grace window so it cannot race
+an in-flight confirm).
+
+> **⚠️ `scan_status` is NOT implemented.** R7 called for an AV scanning gate;
+> the shipped design has no scanning and no such column. Uploads are gated by a
+> MIME allow-list (client-declared, never verified against magic bytes), a size
+> cap, and a per-owner quota. `image/svg+xml` is excluded from every policy
+> because it is active content. Downloads force
+> `Content-Disposition: attachment` unless the surface's policy opts into inline
+> rendering with a raster-only MIME set. **AV scanning remains an open gap.**
 
 ---
 
