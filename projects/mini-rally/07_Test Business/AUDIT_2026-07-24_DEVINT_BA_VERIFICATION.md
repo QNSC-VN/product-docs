@@ -140,8 +140,9 @@ Ran a code-verification pass on the 18 previously-unverified gaps. Result: **7 F
 - Seed split: `pnpm db:seed` = **clean dev baseline** (roles + QNSC workspace + SSO + one platform-admin, NO fixtures); `pnpm db:seed:test` = the **one-project** (NXP) full end-to-end fixture for E2E + manual testing. Dropped the 2nd project (MOB) + PBAC demo users (cross-project permission moves to a service test).
 - Fixture already writes invariant-correct values (flow=schedule mirror, estimate=todo+actual), so **WID-006 + TIME-001 no longer reproduce** in demo data.
 
+**E2E consolidation (DONE 2026-07-26)** — added `golden-journey.e2e.ts` (one coherent UI flow: create iteration → story into it → surfaces on Iteration Status + Backlog with iteration name → schedule-state transition persists → Release detail); removed a dead skipping test; renamed the redundant `ba-retest-flow` Vitest spec → `core-business-rules` and dropped its 4 duplicate rules (owned by the richer flow specs). Verified: Playwright 14/14 + core-business-rules 9/9 pass on a freshly-seeded QNSC DB.
+
 **REMAINING worklist**
-- **E2E consolidation (in progress)** — build ONE golden Playwright journey (project→work item→iteration→task→status→release) and prune/consolidate the overlapping specs (14 Playwright UI + 108 Vitest integration).
 - **Docs-only reconciliation** (no code): **AUTH-001** (rewrite Phase-0 Auth SRS to Entra SSO reality), **WID-003** (SoT §2.3 = zero-or-one Release; reconcile BA's multi-Release ask), **WS-002** (workspace-name-editable now BA-approved — update SRS).
 - **CREATE-005** — retest post-create visibility under an active filter (was BLOCKED at audit time; create now works).
 - **TIME-001** (optional) — defensive total re-derive; deferred (write-path already derives; seed now correct).
