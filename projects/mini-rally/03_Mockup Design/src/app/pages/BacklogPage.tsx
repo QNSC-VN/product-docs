@@ -19,10 +19,10 @@ import {
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
 import { type IterationItem, type NewWorkItemInput, type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
-import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
+import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, ScheduleStateBar, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
 
-export type BacklogColumnKey = "rank" | "type" | "id" | "name" | "priority" | "estimate" | "owner" | "status" | "iteration" | "release";
-type BacklogFilterColumn = "id" | "name" | "type" | "priority" | "estimate" | "owner" | "status" | "iteration" | "release";
+export type BacklogColumnKey = "rank" | "type" | "id" | "name" | "priority" | "estimate" | "owner" | "status" | "flowState" | "iteration" | "release";
+type BacklogFilterColumn = "id" | "name" | "type" | "priority" | "estimate" | "owner" | "status" | "flowState" | "iteration" | "release";
 type BacklogFilters = Partial<Record<BacklogFilterColumn, string>>;
 type BacklogSort = { column: BacklogColumnKey; direction: "asc" | "desc" };
 const DEFECT_PRIORITY_LABELS: Record<string, string> = { Critical: "Urgent", High: "High", Medium: "Normal", Low: "Low" };
@@ -39,6 +39,7 @@ const BACKLOG_FILTER_COLUMNS: Array<{ key: BacklogFilterColumn; label: string; m
   { key: "estimate", label: "Est", mode: "search" },
   { key: "owner", label: "Owner", mode: "select" },
   { key: "status", label: "Schedule State", mode: "select" },
+  { key: "flowState", label: "Flow State", mode: "select" },
   { key: "iteration", label: "Iteration", mode: "select" },
   { key: "release", label: "Release", mode: "select" },
 ];
@@ -61,6 +62,7 @@ function getSortValue(item: WorkItem, column: BacklogColumnKey): string | number
     case "estimate": return item.planEstimate;
     case "owner": return item.owner.name.toLowerCase();
     case "status": return BACKLOG_STATUS_ORDER[item.status] ?? 0;
+    case "flowState": return BACKLOG_STATUS_ORDER[item.status] ?? 0;
     case "iteration": return item.iteration.toLowerCase();
     case "release": return item.release.toLowerCase();
   }
@@ -101,8 +103,9 @@ export function ResizableBacklogHeader({ label, width, column, onResize, sort, o
   );
 }
 
-export function BacklogPage({ role, project, team, iterations, releases, items, onCreateItem, onUpdateItem, activeItem, onItemClick, onOpenFull }: { role: Role; project: ScopeProject; team: string; iterations: IterationItem[]; releases: ReleaseItem[]; items: WorkItem[]; onCreateItem: (input: NewWorkItemInput, openDetails: boolean) => void; onUpdateItem: (id: string, patch: Partial<WorkItem>) => void; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
-  const backlogItems = items.filter(item => item.type === "Story" || item.type === "Defect");
+export function BacklogPage({ role, project, team, iterations, releases, features, items, onCreateItem, onUpdateItem, activeItem, onItemClick, onOpenFull }: { role: Role; project: ScopeProject; team: string; iterations: IterationItem[]; releases: ReleaseItem[]; features: Feature[]; items: WorkItem[]; onCreateItem: (input: NewWorkItemInput, openDetails: boolean) => void; onUpdateItem: (id: string, patch: Partial<WorkItem>) => void; activeItem: WorkItem | null; onItemClick: (i: WorkItem) => void; onOpenFull?: (item: WorkItem) => void }) {
+  const workItemRows = items.filter(item => item.type === "Story" || item.type === "Defect");
+  const backlogItems = workItemRows.filter(item => item.iteration === "Unscheduled");
   const [search, setSearch] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState<BacklogFilters>({});
@@ -113,11 +116,11 @@ export function BacklogPage({ role, project, team, iterations, releases, items, 
   const [showModal, setShowModal] = useState(false);
   const [pageSize, setPageSize] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
-  const [columnWidths, setColumnWidths] = useState<Record<BacklogColumnKey, number>>({ rank: 56, type: 72, id: 82, name: 520, priority: 96, estimate: 56, owner: 124, status: 128, iteration: 128, release: 88 });
+  const [columnWidths, setColumnWidths] = useState<Record<BacklogColumnKey, number>>({ rank: 56, type: 72, id: 82, name: 440, priority: 96, estimate: 56, owner: 124, status: 166, flowState: 128, iteration: 128, release: 88 });
   const [sort, setSort] = useState<BacklogSort | null>(null);
 
-  const releaseOptions = Array.from(new Set(["Unscheduled", ...releases.map(release => release.name), ...backlogItems.map(item => item.release)])).sort();
-  const iterationOptions = Array.from(new Set([...iterations.map(iteration => iteration.name), "Unscheduled", ...backlogItems.map(item => item.iteration)])).sort();
+  const releaseOptions = Array.from(new Set(["Unscheduled", ...releases.map(release => release.name), ...workItemRows.map(item => item.release)])).sort();
+  const iterationOptions = Array.from(new Set([...iterations.map(iteration => iteration.name), "Unscheduled", ...workItemRows.map(item => item.iteration)])).sort();
   const editable = can.manageBacklog(role) && !(role === "Project Admin" && !ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
   const canEditRelease = editable && role !== "Project Member";
   const activeFilterColumns = BACKLOG_FILTER_COLUMNS.filter(column => filters[column.key] !== undefined);
@@ -138,6 +141,7 @@ export function BacklogPage({ role, project, team, iterations, releases, items, 
         case "priority": return item.type === "Defect" && (DEFECT_PRIORITY_LABELS[item.priority] ?? "None") === value;
         case "owner": return item.owner.name === value;
         case "status": return item.status === value;
+        case "flowState": return item.status === value;
         case "iteration": return item.iteration === value;
         case "release": return item.release === value;
       }
@@ -233,7 +237,7 @@ export function BacklogPage({ role, project, team, iterations, releases, items, 
     setCurrentPage(1);
   }
   function moveItem(id: string, direction: -1 | 1) {
-    const ordered = [...backlogItems].sort((a, b) => (a.rank || 99) - (b.rank || 99));
+    const ordered = backlogItems.filter(item => item.project === project.key).sort((a, b) => (a.rank || 99) - (b.rank || 99));
     const index = ordered.findIndex(item => item.id === id);
     const targetIndex = index + direction;
     if (index < 0 || targetIndex < 0 || targetIndex >= ordered.length) return;
@@ -397,6 +401,7 @@ export function BacklogPage({ role, project, team, iterations, releases, items, 
               <ResizableBacklogHeader label="Est" column="estimate" width={columnWidths.estimate} onResize={startColumnResize} sort={sort} onSort={toggleSort} align="center" />
               <ResizableBacklogHeader label="Owner" column="owner" width={columnWidths.owner} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
               <ResizableBacklogHeader label="Schedule State" column="status" width={columnWidths.status} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
+              <ResizableBacklogHeader label="Flow State" column="flowState" width={columnWidths.flowState} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
               <ResizableBacklogHeader label="Iteration" column="iteration" width={columnWidths.iteration} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
               <ResizableBacklogHeader label="Release" column="release" width={columnWidths.release} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
             </div>
@@ -430,7 +435,10 @@ export function BacklogPage({ role, project, team, iterations, releases, items, 
                     {editable ? <select aria-label={`${item.id} owner`} value={item.owner.name} onChange={event => updateItemOwner(item.id, event.target.value)} className="min-w-0 flex-1 text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select> : <span className="text-[11px] truncate" style={{ color: "#5c6478" }}>{item.owner.initials}</span>}
                   </div>
                   <div className="shrink-0 overflow-hidden" style={{ width: columnWidths.status }} onClick={event => event.stopPropagation()}>
-                    {editable ? <select aria-label={`${item.id} schedule state`} value={item.status} onChange={event => updateItem(item.id, { status: event.target.value as StatusType })} className="w-[118px] text-[11px] rounded-sm bg-white focus:outline-none" style={{ border: "1px solid #bdd0ef", color: "#2558a6" }}>{BACKLOG_STATUS_OPTIONS.map(status => <option key={status}>{status}</option>)}</select> : <StatusBadge status={item.status} />}
+                    <ScheduleStateBar aria-label={`${item.id} schedule state`} value={item.status} onChange={editable ? next => updateItem(item.id, { status: next }) : undefined} />
+                  </div>
+                  <div className="shrink-0 overflow-hidden" style={{ width: columnWidths.flowState }} onClick={event => event.stopPropagation()}>
+                    {editable ? <select aria-label={`${item.id} flow state`} value={item.status} onChange={event => updateItem(item.id, { status: event.target.value as StatusType })} className="w-[118px] text-[11px] rounded-sm bg-white focus:outline-none" style={{ border: "1px solid #bdd0ef", color: "#2558a6" }}>{BACKLOG_STATUS_OPTIONS.map(status => <option key={status}>{status}</option>)}</select> : <StatusBadge status={item.status} />}
                   </div>
                   <div className="shrink-0 overflow-hidden text-[11px]" style={{ width: columnWidths.iteration, color: "#5c6478" }} onClick={event => event.stopPropagation()}>
                     {editable ? <select aria-label={`${item.id} iteration`} value={item.iteration} onChange={event => updateItem(item.id, { iteration: event.target.value })} className="w-[122px] text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{iterationOptions.map(iteration => <option key={iteration}>{iteration}</option>)}</select> : item.iteration}
@@ -460,7 +468,7 @@ export function BacklogPage({ role, project, team, iterations, releases, items, 
         </div>
         {activeItem && <DetailPanel item={activeItem} onClose={() => onItemClick(activeItem)} role={role} onOpenFull={onOpenFull} />}
       </div>
-      {showModal && <NewItemModal onClose={() => setShowModal(false)} onCreate={onCreateItem} defaultProjectKey={project.key} defaultTeam={team} defaultType="Story" allowedTypes={["Story", "Defect"]} />}
+      {showModal && <NewItemModal onClose={() => setShowModal(false)} onCreate={onCreateItem} defaultProjectKey={project.key} defaultTeam={team} defaultType="Story" allowedTypes={["Story", "Defect"]} features={features} />}
     </div>
   );
 }

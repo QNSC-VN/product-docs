@@ -28,7 +28,7 @@
 - Defect Flow State updates independently from Defect State.
 - Permission rules are not finalized in Phase 3.4.
 - Reopen from `Closed` or `Closed Declined` is not part of Phase 3.4 acceptance until BA confirms permission, reason and audit rules.
-- Bulk actions (Copy / Delete) are executable on the defect list (real Rally parity); defect hard-delete stays backend-guarded.
+- Bulk actions are not executable in Phase 3.4; any visible bulk-action placeholder must be disabled or clearly treated as future scope.
 
 ## 2. Confirmed Dashboard Columns
 
@@ -67,7 +67,7 @@
 | P3-QA-FR-014 | Defect Flow State can be updated independently from Defect State. |
 | P3-QA-FR-015 | Fixed In Build is an optional manual text field that captures the build/version/release label where the defect fix is expected or delivered. |
 | P3-QA-FR-016 | Defect Schedule State and Flow State use the same six values, default to `Idea` and mirror two-way in MVP; Defect State remains independent. |
-| P3-QA-FR-016 | Bulk actions (Copy / Delete) are available on the defect list (real Rally parity); defect hard-delete stays backend-guarded (`DEFECT_DELETE_FORBIDDEN`). |
+| P3-QA-FR-016 | Bulk actions must not execute in Phase 3.4 until BA confirms available actions and permissions. |
 | P3-QA-FR-017 | Reopen from Closed/Closed Declined is deferred and must not be required for Phase 3.4 acceptance. |
 
 ## 4. BA Confirmations
@@ -77,7 +77,7 @@
 | P3-QA-Q01 | Does P3.4 cover only Defect dashboard or wider Quality workflows? | Confirmed: dashboard plus create/edit/detail behavior |
 | P3-QA-Q02 | What is the final defect lifecycle/state transition set? | Confirmed: Submitted -> Open -> Fixed -> Closed; Submitted/Open -> Closed Declined; reopen is deferred until permission/audit rules are confirmed |
 | P3-QA-Q03 | Which columns are required on the Defect dashboard? | Confirmed: Rank, ID, Name, User Story, Severity, Priority, State, Flow State, Fixed In Build, Iteration, Submitted By, Owner |
-| P3-QA-Q04 | Which bulk actions are in Phase 3.4? | Resolved: Copy + Delete available (real Rally); defect hard-delete backend-guarded |
+| P3-QA-Q04 | Which bulk actions are in Phase 3.4? | Deferred; bulk-action placeholder must be disabled/future only |
 | P3-QA-Q05 | Is defect creation supported? | Confirmed: create from Backlog and Quality > Defect |
 | P3-QA-Q06 | Is User Story required for Defect? | Confirmed: optional |
 | P3-QA-Q07 | Can Defect be deleted? | Confirmed: no; use Closed or Closed Declined |
@@ -168,7 +168,7 @@ Rules:
 - Invalid State, Flow State, Severity and Priority values must be rejected.
 - Legacy Flow State `Code Review`, `Testing` and spelling `Released` are not valid after reconciliation.
 - Reopen from `Closed` or `Closed Declined` should be rejected or hidden in Phase 3.4 unless BA later confirms permission and audit behavior.
-- Bulk actions reuse existing per-item endpoints (Copy = create, Delete = guarded).
+- Bulk action endpoints are out of scope for Phase 3.4.
 
 ### 7.3 Defect Detail
 
@@ -189,5 +189,5 @@ Backlog Defect and `Quality > Defect` must navigate to the same Defect detail pa
 11. State transition rules follow the confirmed State flow.
 12. Flow State can be changed independently from State.
 13. Fixed In Build is visible on dashboard/detail as an optional manual text field.
-14. Bulk actions (Copy / Delete) execute on the defect list; defect hard-delete is backend-guarded.
+14. Bulk action placeholder is disabled/future and does not execute Phase 3.4 mutations.
 15. Reopen from Closed/Closed Declined is not required for Phase 3.4 acceptance.

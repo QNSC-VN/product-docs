@@ -10,7 +10,7 @@
 | Timebox | **1.5 working days = 12 hours** |
 | Quy ước ngày công | 1 day = 8 hours |
 | Company scope | Single-company: `ACME Space Inc.` |
-| Modules | App Shell, Authentication, Company Context, Project Management |
+| Modules | App Shell, Authentication, Workspace Context, Project Management |
 | Trạng thái tổng thể | `DONE — 2026-06-25` |
 | Mockup | Login Admin và Project CRUD đã có; App Shell hierarchy đã có |
 | SRS/DB mapping | Hoàn thành |

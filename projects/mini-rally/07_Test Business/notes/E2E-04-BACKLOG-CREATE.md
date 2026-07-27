@@ -12,7 +12,7 @@
 3. Team options are filtered by the selected Project and must not offer an incompatible Team.
 4. One successful submit creates exactly one shared Story.
 5. New Schedule State and Flow State both default to `Idea` and mirror thereafter.
-6. On Backlog, Flow State is the six-button state control; Schedule State is a dropdown.
+6. On Backlog, Schedule State is the six-button state control; Flow State is a dropdown.
 
 ## DevInt actual
 
@@ -27,7 +27,7 @@
 
 - `DEV-007 / P0`: provide a valid create path for the active Project, prevent incompatible Team selection, show field-level validation and commit exactly one record.
 - `DEV-008 / P1`: add Project defaulted to current context and filter Team options to active Project membership; keep Iteration and Release out of quick create because they are assigned later.
-- `DEV-009 / P0`: render Flow State as the six-button control, add Schedule State as a dropdown, use the exact six-value catalog and mirror both fields atomically.
+- `DEV-009 / P0`: render Schedule State as the six-button control, add Flow State as a dropdown, use the exact six-value catalog and mirror both fields atomically.
 
 ## Evidence
 

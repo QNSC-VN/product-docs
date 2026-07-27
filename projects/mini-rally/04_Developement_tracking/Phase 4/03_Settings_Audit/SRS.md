@@ -57,9 +57,9 @@ Rules:
 
 | Field | Behavior | Notes |
 |---|---|---|
-| Company Name | Editable by Workspace Admin | Display name for the company/workspace |
+| Workspace Name | Editable by Workspace Admin | Display name for the fixed Workspace |
 | Workspace Slug | Read-only | System identifier; shown for reference, not edited from the mockup |
-| Company Scope | Read-only | Shows that this MVP has one company workspace |
+| Workspace Scope | Read-only | Shows that this MVP has one fixed Workspace |
 | Workspace Admin | Read-only | Internal/dev setup assigns the primary admin account; Workspace Settings only displays it |
 
 ### 3.4 Save Behavior
@@ -164,17 +164,17 @@ Rules:
 
 - `Manage Projects` keeps only `Projects`; `Teams` is a workspace administration section under the top-right Settings gear.
 - User invite, role assignment, status changes, team allocation and company access removal are under Settings > User Management.
-- User Management edits Role, Status and Teams **inline** in the row cells (real Rally parity); there is no per-row Edit modal or inline action buttons.
+- User Management list does not show inline row action buttons such as `Change Role` or `Remove`.
 - User Management list columns are Name, Email, Phone number, Role, Status and Last Login.
 - Workspace Admin appears in the User Management list like other users.
 - Workspace Admin account is assigned by internal/dev setup.
 - Clicking Workspace Admin opens User Details in read-only mode.
-- There is no read-only User Details dialog; the editable fields (Role, Status, Teams) are edited inline in the row.
+- Workspace Admin User Details dialog must not allow editing any field and must not show `Save Changes`.
 - User Management provides search by name, phone number and email.
 - Search bar is placed beside the role filter.
-- Rows are not clickable to open a dialog; editing happens inline in the Role / Status / Teams cells.
-- Workspace Admin edits Role, Status and Teams inline; Name is IdP/Profile-owned (not editable here).
-- Email is displayed read-only in the user row.
+- Clicking a user row opens a User Details dialog.
+- User Details dialog allows Workspace Admin to update Name, Role, Status and Phone number.
+- Email is displayed read-only in the User Details dialog.
 - Workspace Admin is the only role that can access User Management.
 - Project Admin and Project Member do not see User Management.
 - Role/matrix/project-team allocation changes still take effect on the affected user's next login.

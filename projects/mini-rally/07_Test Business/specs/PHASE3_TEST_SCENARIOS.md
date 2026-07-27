@@ -20,7 +20,7 @@ Important scope rules:
 | P3-TS-001 | P0 | Open Team Status | Open `Track -> Team Status` | Dedicated Team Status page opens; it is not Team Board | Not Run |
 | P3-TS-002 | P0 | Project/Team/Iteration context | Select Project/Team and Iteration | Team Status data is filtered by selected context and Iteration | Not Run |
 | P3-TS-003 | P0 | Group by member/owner | Open Team Status with assigned Tasks | Rows are grouped by member/owner; task rows remain task-level rows | Not Run |
-| P3-TS-004 | P1 | Local search present | Inspect Team Status header | Team Status shows a local search input that filters visible rows (real Rally); the KPI strip remains deferred | Not Run |
+| P3-TS-004 | P1 | No local search/KPI strip | Inspect Team Status header | Local Team Status search input and KPI strip are not shown | Not Run |
 | P3-TS-005 | P1 | Task state options | Open task state inline control | Options are exactly `Defined`, `In-Progress`, `Completed` | Pass (M4 runtime) |
 | P3-TS-006 | P0 | Inline edit Task name/state | Edit Task Name and State from Team Status | Values persist; parent roll-up refreshes | Partial (M4 runtime passed State synchronization; Name not exercised) |
 | P3-TS-007 | P0 | Partial task completion does not auto-complete parent | Complete only one child Task while other child Tasks remain not Completed | Parent Story/Defect does not auto-complete | Pass (M4 initial US-4821 state with 4/6 completed) |
@@ -54,7 +54,7 @@ Important scope rules:
 | P3-REL-013 | P1 | Release Artifacts table behavior | Open Release Artifacts | Assigned Story/Defect rows use Backlog-style search/sort/resize/pagination/inline edit where permitted | Not Run |
 | P3-REL-014 | P1 | Release readiness is user-managed | Inspect Release readiness behavior | System does not auto-calculate readiness; user reads linked US/DE release notes and Release Notes | Not Run |
 | P3-REL-015 | P0 | Out-of-scope Project Admin read-only | Open Release dashboard/detail as Project Admin outside managed Project | Values are readable; inline edit/create/assignment is hidden/disabled and API rejects mutation | Not Run |
-| P3-REL-016 | P0 | Release detail progress/burndown | Open a Release detail | Release detail shows a progress/burndown chart (real Rally); only the Portfolio `Release Planning` surface remains Phase 5 | Not Run |
+| P3-REL-016 | P0 | Release Progress is not Phase 3 | Inspect Timeboxes Release list and detail | No Release Progress column, percentage or progress widget is present; tracking remains Phase 5 `Portfolio > Release Planning` | Pass (M5.3 runtime) |
 
 ## P3-MS - Milestones
 
@@ -96,10 +96,10 @@ Important scope rules:
 | P3-QA-010 | P0 | Core Defect state flow | Move through Submitted -> Open -> Fixed -> Closed | Valid transitions succeed | Not Run |
 | P3-QA-011 | P0 | Closed Declined path | Move Submitted/Open -> Closed Declined | Valid decline transition succeeds | Not Run |
 | P3-QA-012 | P1 | Reopen deferred | Try reopen from Closed/Closed Declined | Reopen is hidden/rejected unless BA later confirms permission/audit behavior | Not Run |
-| P3-QA-013 | P0 | Defect grid bulk Copy/Delete | Select Defect rows; use bulk Copy and Delete | Grid exposes bulk Copy and Delete (real Rally); Delete removes selected Defect(s) with confirmation, while a Defect's own hard-delete stays backend-guarded and Closed/Closed Declined remains the normal lifecycle exit | Not Run |
+| P3-QA-013 | P0 | Defect cannot be deleted | Look for/delete Defect action | Delete is unavailable or rejected; use Closed/Closed Declined instead | Not Run |
 | P3-QA-014 | P0 | Fixed In Build | Edit Fixed In Build | Optional manual text persists; no required format/blocking validation | Not Run |
 | P3-QA-015 | P1 | Flow State independent from Defect State | Edit Flow State without changing Defect State | Flow State uses shared US/DE catalog, mirrors Schedule State and persists independently from Defect State | Pass (M3 runtime: DE-1142 Flow Accepted -> Backlog Schedule Accepted) |
-| P3-QA-016 | P1 | Grid bulk actions active | Select rows and run a bulk action | Grid bulk actions (Copy, Delete) are active and execute on the selected rows | Not Run |
+| P3-QA-016 | P1 | Bulk actions future only | If bulk-action placeholder is visible, attempt action | Placeholder is disabled/future and does not execute mutation | Not Run |
 | P3-QA-017 | P0 | Out-of-scope Project Admin read-only | Open Quality Defect dashboard/detail as Project Admin outside managed Project | Values are readable; create/edit/state mutation is hidden/disabled and API rejects mutation | Not Run |
 | P3-QA-018 | P0 | Quality uses reconciled status catalog | Inspect Schedule/Flow values and create a Defect | Both fields default to `Idea`, mirror each other and use exactly `Idea/Defined/In-Progress/Completed/Accepted/Release` | Not Run |
 

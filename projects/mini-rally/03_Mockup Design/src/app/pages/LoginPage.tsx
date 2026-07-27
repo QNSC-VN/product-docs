@@ -1,33 +1,17 @@
-import { useState, type FormEvent } from "react";
-import { AlertCircle, Check, Eye, EyeOff, Layers, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
+import { useState } from "react";
+import { Check, Layers, ShieldCheck } from "lucide-react";
 
 type LoginPageProps = {
   onLogin: () => void;
 };
 
 export function LoginPage({ onLogin }: LoginPageProps) {
-  const [email, setEmail] = useState("admin@acme.com");
-  const [password, setPassword] = useState("Admin@123");
-  const [showPassword, setShowPassword] = useState(false);
-  const [rememberMe, setRememberMe] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
 
-  function submitLogin(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setError("");
-    if (!email.trim() || !password) {
-      setError("Enter both email and password to continue.");
-      return;
-    }
+  function startMicrosoftSso() {
     setSubmitting(true);
     window.setTimeout(() => {
-      if (email.trim().toLowerCase() === "admin@acme.com" && password === "Admin@123") {
-        onLogin();
-      } else {
-        setError("Email or password is incorrect. Use the demo Admin account below.");
-        setSubmitting(false);
-      }
+      onLogin();
     }, 450);
   }
 
@@ -43,9 +27,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         <div className="relative max-w-xl">
           <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-semibold uppercase tracking-widest mb-5" style={{ backgroundColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.78)" }}><ShieldCheck size={12} /> Workspace Administration</div>
           <h1 className="text-[32px] xl:text-[38px] font-semibold leading-tight tracking-tight">Plan clearly.<br />Deliver with confidence.</h1>
-          <p className="mt-4 text-[14px] leading-6 max-w-md" style={{ color: "rgba(255,255,255,0.66)" }}>Manage company workspaces, projects, teams and delivery from one focused operating view.</p>
+          <p className="mt-4 text-[14px] leading-6 max-w-md" style={{ color: "rgba(255,255,255,0.66)" }}>Manage the workspace, projects, teams and delivery from one focused operating view.</p>
           <div className="mt-8 grid grid-cols-3 gap-3 max-w-lg">
-            {["Workspace control", "Project visibility", "Team governance"].map(item => <div key={item} className="flex items-center gap-2 text-[11px]" style={{ color: "rgba(255,255,255,0.74)" }}><span className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}><Check size={9} /></span>{item}</div>)}
+            {["Microsoft SSO", "Project visibility", "Team governance"].map(item => <div key={item} className="flex items-center gap-2 text-[11px]" style={{ color: "rgba(255,255,255,0.74)" }}><span className="w-4 h-4 rounded-full flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,0.12)" }}><Check size={9} /></span>{item}</div>)}
           </div>
         </div>
 
@@ -62,39 +46,31 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           <div className="bg-white rounded-md shadow-sm overflow-hidden" style={{ border: "1px solid #d9dee7" }}>
             <div className="px-7 pt-7 pb-5" style={{ borderBottom: "1px solid #edf0f4" }}>
               <div className="flex items-center justify-between gap-4">
-                <div><p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#8c94a6" }}>Admin access</p><h2 className="text-[21px] font-semibold tracking-tight" style={{ color: "#1a2234" }}>Sign in to Mini Rally</h2></div>
+                <div><p className="text-[10px] font-semibold uppercase tracking-widest mb-1" style={{ color: "#8c94a6" }}>Microsoft SSO</p><h2 className="text-[21px] font-semibold tracking-tight" style={{ color: "#1a2234" }}>Sign in to Mini Rally</h2></div>
                 <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: "#edf2fb", color: "#1d3f73" }}><ShieldCheck size={19} /></div>
               </div>
-              <p className="text-[12px] mt-2" style={{ color: "#5c6478" }}>Use your Workspace Admin account to continue.</p>
+              <p className="text-[12px] mt-2" style={{ color: "#5c6478" }}>Use your organization Microsoft account. Mini Rally does not collect a local password in the Phase 0 baseline.</p>
             </div>
 
-            <form onSubmit={submitLogin} className="px-7 py-6">
-              {error && <div role="alert" className="flex items-start gap-2 px-3 py-2.5 rounded mb-4 text-[11px]" style={{ color: "#b91c1c", backgroundColor: "#fef2f2", border: "1px solid #f0c7c1" }}><AlertCircle size={14} className="shrink-0 mt-px" />{error}</div>}
+            <div className="px-7 py-6">
+              <button type="button" disabled={submitting} onClick={startMicrosoftSso} className="w-full py-2.5 rounded text-[12px] font-semibold text-white disabled:opacity-60 flex items-center justify-center gap-2" style={{ backgroundColor: "#1d3f73" }}>
+                <span className="grid grid-cols-2 gap-0.5 w-3.5 h-3.5" aria-hidden="true">
+                  <span style={{ backgroundColor: "#f25022" }} />
+                  <span style={{ backgroundColor: "#7fba00" }} />
+                  <span style={{ backgroundColor: "#00a4ef" }} />
+                  <span style={{ backgroundColor: "#ffb900" }} />
+                </span>
+                {submitting ? "Redirecting to Microsoft…" : "Continue with Microsoft"}
+              </button>
 
-              <label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }} htmlFor="admin-email">Email address</label>
-              <div className="relative mb-4">
-                <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#8c94a6" }} />
-                <input id="admin-email" type="email" autoComplete="username" value={email} onChange={event => setEmail(event.target.value)} className="w-full pl-9 pr-3 py-2.5 rounded text-[12px] focus:outline-none" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
+              <div className="mt-4 rounded px-3 py-2.5 text-[11px] leading-5" style={{ backgroundColor: "#f7f8fa", border: "1px solid #edf0f4", color: "#5c6478" }}>
+                After Microsoft validates the account, Mini Rally creates the app session, resolves the fixed Workspace and opens Home or the safe return URL.
               </div>
-
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#5c6478" }} htmlFor="admin-password">Password</label>
-                <button type="button" className="text-[10px] font-medium" style={{ color: "#2558a6" }}>Forgot password?</button>
-              </div>
-              <div className="relative mb-4">
-                <LockKeyhole size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: "#8c94a6" }} />
-                <input id="admin-password" type={showPassword ? "text" : "password"} autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} className="w-full pl-9 pr-10 py-2.5 rounded text-[12px] focus:outline-none" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
-                <button type="button" aria-label={showPassword ? "Hide password" : "Show password"} onClick={() => setShowPassword(value => !value)} className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1" style={{ color: "#8c94a6" }}>{showPassword ? <EyeOff size={14} /> : <Eye size={14} />}</button>
-              </div>
-
-              <label className="inline-flex items-center gap-2 text-[11px] cursor-pointer mb-5" style={{ color: "#5c6478" }}><input type="checkbox" checked={rememberMe} onChange={event => setRememberMe(event.target.checked)} style={{ accentColor: "#1d3f73" }} />Keep me signed in on this device</label>
-
-              <button type="submit" disabled={submitting} className="w-full py-2.5 rounded text-[12px] font-semibold text-white disabled:opacity-60" style={{ backgroundColor: "#1d3f73" }}>{submitting ? "Signing in…" : "Sign in as Workspace Admin"}</button>
-            </form>
+            </div>
 
             <div className="px-7 py-4" style={{ backgroundColor: "#f7f8fa", borderTop: "1px solid #edf0f4" }}>
-              <p className="text-[9px] font-semibold uppercase tracking-widest mb-2" style={{ color: "#8c94a6" }}>Demo Admin account</p>
-              <div className="grid grid-cols-[70px_1fr] gap-y-1 text-[10px]"><span style={{ color: "#8c94a6" }}>Email</span><code style={{ color: "#1a2234" }}>admin@acme.com</code><span style={{ color: "#8c94a6" }}>Password</span><code style={{ color: "#1a2234" }}>Admin@123</code></div>
+              <p className="text-[9px] font-semibold uppercase tracking-widest mb-2" style={{ color: "#8c94a6" }}>Phase 0 baseline</p>
+              <p className="text-[10px] leading-5" style={{ color: "#5c6478" }}>Local email/password login, forgot password and reset password are Future Backlog unless BA reopens the authentication scope.</p>
             </div>
           </div>
 

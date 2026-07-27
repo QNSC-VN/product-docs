@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P2-ITERATION-MANAGEMENT` |
 | Status | Draft for Development |
-| Updated date | 2026-06-28 |
+| Updated date | 2026-07-24 |
 | Scope | Plan > Timeboxes > Iterations |
 | Priority | P2.2 - required |
 | Depends on | Phase 0 Project/Team context, Phase 1 Work Item base, Phase 2.1 Backlog Enhancement |
@@ -31,6 +31,15 @@ BA update 2026-06-28:
 - Existing Backlog Story/Defect assignment into an Iteration is required so P2.3 Iteration Status can display real backlog work assigned to the selected Iteration.
 - The primary assignment field is `work_items.iteration_id`. The user may update it from Backlog list, Work Item Detail right panel, or an Iteration detail assigned-items panel if implemented.
 - Assignment must validate Project and Team context.
+
+BA reconciliation update 2026-07-24:
+
+- Team is optional for Iteration. Blank Team means a Project-level / Project backlog Iteration.
+- If Team is selected, the Iteration is Team-scoped and the selected Team must belong to the selected Project.
+- `All Teams` is not required for Iteration Status in Phase 0-4.
+- Assigning Story/Defect into an Iteration does not auto-commit the Iteration.
+- User can manually change Iteration State at any time when permitted.
+- When all assigned Story/Defect items are `Accepted`, the system may auto-set the Iteration to `Accepted` as a convenience, but this does not lock the Iteration and does not remove manual status control.
 
 ## 2. Reference Documents
 
@@ -80,11 +89,11 @@ Workspace selector chọn Project/Team
 
 Nghiệp vụ chính:
 
-- Project/Team context được lấy từ workspace selector ở top navigation.
+- Project and optional Team context is read from the workspace selector in the top navigation.
 - Khi user chọn Team nào thuộc Project nào, Timeboxes/Iterations chỉ hiển thị Iterations thuộc đúng Project/Team đó.
-- Khi tạo Iteration, Project và Team được auto-fill theo Project/Team context hiện tại.
+- Khi tạo Iteration, Project được auto-fill theo context hiện tại; Team có thể để trống để tạo Project-level / Project backlog Iteration.
 - Account hiện tại trong mockup là Workspace Admin, nên vẫn có quyền đổi Project/Team trong quick create/detail nếu cần.
-- Iteration belongs to one Project and one Team context in Phase 2.
+- Iteration belongs to one Project. Team is optional: blank Team means Project-level / Project backlog Iteration; selected Team means Team-scoped Iteration.
 - A Work Item can belong to zero or one Iteration at a time.
 - Moving a Work Item to another Iteration updates the same `iterationId`; it does not duplicate the item.
 - `Unscheduled` means `iterationId` is null or unset.
@@ -96,11 +105,11 @@ Nghiệp vụ chính:
 | ID | Requirement |
 |---|---|
 | P2-IT-FR-001 | User can open `Plan > Timeboxes` from the Plan navigation menu. |
-| P2-IT-FR-001A | Timeboxes reads current Project/Team from the workspace selector. |
-| P2-IT-FR-001B | Iterations list only shows Iterations belonging to the selected Project/Team context. |
-| P2-IT-FR-001C | Create Iteration auto-fills Project and Team from current context. |
-| P2-IT-FR-001D | Workspace Admin may override Project/Team in create/detail, but selected Team must be valid for selected Project. |
-| P2-IT-FR-001E | `All Teams` is allowed as a Phase 2 context; permission-specific create/edit restrictions are deferred. |
+| P2-IT-FR-001A | Timeboxes reads current Project and optional Team from the workspace selector. |
+| P2-IT-FR-001B | Iterations list shows Iterations belonging to the selected Project and, when Team is supplied, the selected Team. |
+| P2-IT-FR-001C | Create Iteration auto-fills Project from current context and allows Team to remain blank for Project-level / Project backlog Iteration. |
+| P2-IT-FR-001D | Workspace Admin may override Project/Team in create/detail, but selected Team must be valid for selected Project if Team is supplied. |
+| P2-IT-FR-001E | `All Teams` is not required for Iteration Status in Phase 0-4; Project-level Iteration is represented by blank Team. |
 | P2-IT-FR-002 | Timeboxes page defaults to type `Iterations`. |
 | P2-IT-FR-003 | Type dropdown is hidden in Phase 2; Timeboxes shows Iterations only. |
 | P2-IT-FR-004 | Releases and Milestones are explicitly out of scope for P2.2 and must not block Iteration delivery. |
@@ -110,7 +119,7 @@ Nghiệp vụ chính:
 | P2-IT-FR-008 | Date columns sort oldest-newest/newest-oldest; numeric columns sort smallest-largest/largest-smallest; text columns sort A-Z/Z-A. |
 | P2-IT-FR-009 | User can filter Iterations by State: All, Planning, Committed, Accepted. |
 | P2-IT-FR-010 | User with manage iteration permission can open quick create modal with `Create Iteration`. |
-| P2-IT-FR-011 | Quick create modal contains Type, Project, Team, Name, Start Date, End Date, State. |
+| P2-IT-FR-011 | Quick create modal contains Type, Project, optional Team, Name, Start Date, End Date, State. |
 | P2-IT-FR-012 | Quick create modal required fields: Name, Start Date, End Date, State. |
 | P2-IT-FR-013 | Quick create `Create Iteration` creates an Iteration without opening detail after successful save. |
 | P2-IT-FR-014 | Quick create `Create with details` opens a full-page Iteration detail view. |
@@ -126,7 +135,7 @@ Nghiệp vụ chính:
 | P2-IT-FR-024 | Viewer can view list/detail but cannot create, update or delete iterations. |
 | P2-IT-FR-025 | Release and Milestone detail/create behavior is not implemented in P2.2. |
 | P2-IT-FR-026 | Iterations created in Timeboxes are available as assignment targets in Backlog list and Work Item Detail. |
-| P2-IT-FR-027 | Assignment search only returns active, non-archived backlog items from the same Project and Team as the Iteration. |
+| P2-IT-FR-027 | Assignment search only returns active, non-archived Story/Defect backlog items from the same Project and matching Team scope as the Iteration. Project-level Iterations accept Project backlog items without Team. |
 | P2-IT-FR-028 | User can unassign a work item from the Iteration by setting Iteration to `Unscheduled`, without deleting the Backlog item. |
 | P2-IT-FR-029 | Assigned work items become visible in P2.3 Iteration Status for that Iteration. |
 | P2-IT-FR-030 | Assignment does not support Feature or Task as independent backlog items unless a later phase changes the work item hierarchy. |
@@ -161,7 +170,7 @@ Production should map Iterations to `planning.sprints` unless the backend introd
 | ID | `id` / `iterationKey` | `planning.sprints.id` plus generated display key | Read-only |
 | Name | `name` | `planning.sprints.name` | Required, trimmed |
 | Project | `projectId` | `planning.sprints.project_id` | Required; project must be active |
-| Team | `teamId` | `planning.sprints.team_id` if available, otherwise project-team mapping extension | Required for UI scope |
+| Team | `teamId` | `planning.sprints.team_id` if available, otherwise project-team mapping extension | Optional; null/blank means Project-level / Project backlog Iteration |
 | Theme | `theme` | New/extended column recommended: `planning.sprints.theme` or metadata JSON | Nullable rich text/text |
 | Notes | `notes` | New/extended column recommended: `planning.sprints.notes` or metadata JSON | Nullable rich text/text |
 | Start Date | `startDate` | `planning.sprints.start_date` | Required |
@@ -177,9 +186,10 @@ Current DB schema has `planning.sprints.state` values `future`, `active`, `close
 | UI State | DB State Option | Meaning |
 |---|---|---|
 | Planning | `future` or `active` according to date/execution context | Iteration is planned or running; agreeing sprint scope is business context, not a status value |
+| Committed | `active` or explicit `committed` if backend supports UI labels | Scope is committed/running; user-triggered status, not automatic assignment result |
 | Accepted | `closed` | Iteration is completed/accepted |
 
-If backend chooses to store UI labels directly, allowed values must still be exactly: `planning`, `accepted`.
+If backend chooses to store UI labels directly, allowed values must still be exactly: `planning`, `committed`, `accepted`.
 
 ## 8. API Contracts
 
@@ -238,7 +248,7 @@ Request:
 
 ```json
 {
-  "teamId": "uuid",
+  "teamId": null,
   "name": "Sprint 24.4",
   "theme": "Q1 platform prep",
   "notes": "",
@@ -254,7 +264,7 @@ Response: `201 Created` with the created iteration DTO.
 Rules:
 
 - `name`, `startDate`, `endDate`, `state` are required.
-- `teamId` must belong to project.
+- `teamId` is optional. If supplied, it must belong to project. If omitted/null, the Iteration is Project-level / Project backlog.
 - Date range must not be invalid.
 - State defaults to `planning` only if UI sends no state; UI should send state explicitly.
 
@@ -298,7 +308,7 @@ Allowed fields:
 | `theme` | Nullable rich text/text |
 | `notes` | Nullable rich text/text |
 | `projectId` | Same tenant; changing project should usually be blocked after creation |
-| `teamId` | Team must belong to project |
+| `teamId` | Optional; if supplied, Team must belong to project |
 | `startDate` | Required |
 | `endDate` | Required and >= startDate |
 | `state` | `planning`, `committed`, `accepted` |
@@ -396,12 +406,12 @@ Role guidance:
 - State must be one of Planning, Committed or Accepted.
 - Planned Velocity must be numeric and >= 0 if supplied.
 - Project must be active.
-- Team must belong to selected Project.
+- Team is optional. If supplied, it must belong to selected Project.
 - Iteration date overlap policy:
   - Default recommendation: warn but do not block overlapping iterations across different teams.
   - Block overlapping iterations for the same team only if BA later confirms.
 - Accepted Iteration does not lock dates, Project/Team, assignment or status by lifecycle alone. Authorized users can still manually edit fields according to normal permissions.
-- Assigning an existing work item to an Iteration requires matching Project and Team.
+- Assigning an existing work item to an Iteration requires matching Project and matching Team scope. A Project-level Iteration accepts Project backlog items without Team; a Team-scoped Iteration accepts items for the same Team.
 - Unassigning an item must preserve the work item's Backlog identity, rank and history.
 
 ### 10.1 Iteration Lifecycle And Manual Status Baseline
@@ -452,16 +462,16 @@ Assignment and board rules:
 
 1. User can open `Plan > Timeboxes`.
 2. Page title is `Timeboxes` and defaults type to `Iterations`.
-3. Timeboxes respects the active workspace selector Project/Team context.
+3. Timeboxes respects the active workspace selector Project and optional Team context.
 4. Iterations list only shows Iterations for the selected Project/Team.
 5. Iterations list shows columns Name, Theme, Start Date, End Date, Project, Planned Velocity, Task Estimate and State.
 6. User can search iterations.
 7. User can filter by State.
 8. User can sort list columns.
 9. `Create Iteration` opens quick create modal.
-10. Quick create modal includes Type, Project, Team, Name, Start Date, End Date and State.
-11. Quick create auto-fills Project and Team from the active workspace selector context.
-12. Workspace Admin can override Project/Team where enabled, but selected Team must belong to selected Project.
+10. Quick create modal includes Type, Project, optional Team, Name, Start Date, End Date and State.
+11. Quick create auto-fills Project from the active workspace selector context and allows Team to remain blank for Project backlog scope.
+12. Workspace Admin can override Project/Team where enabled, but selected Team must belong to selected Project when supplied.
 13. Name, Start Date, End Date and State are required.
 14. `Create with details` opens full-page detail, not a modal detail.
 15. Clicking an existing row opens full-page detail.
@@ -495,11 +505,11 @@ Assignment and board rules:
 | P2-IT-TS-011 | Viewer opens Timeboxes | Create button hidden or disabled; fields read-only |
 | P2-IT-TS-012 | Try End Date before Start Date | Validation error |
 | P2-IT-TS-013 | Switch workspace selector to another Team | Iterations list reloads and only shows Iterations for that Team/Project |
-| P2-IT-TS-014 | Create Iteration after selecting Core Platform team | Project and Team fields default to Nexus Platform 2025 / Core Platform |
+| P2-IT-TS-014 | Create Iteration without Team | Iteration is created as Project-level / Project backlog Iteration |
 | P2-IT-TS-015 | Workspace Admin selects Team outside selected Project | Validation rejects invalid Project/Team pair |
 | P2-IT-TS-016 | Inspect Timeboxes type options in P2.2 production | Release/Milestone options are not visible; no P2.2 dev scope |
-| P2-IT-TS-017 | Assign existing Story from same Project/Team to Sprint 24.3 | Story is assigned and appears in Iteration Status |
-| P2-IT-TS-018 | Assign item from another Team | Validation rejects assignment |
+| P2-IT-TS-017 | Assign existing Story from same Project and matching Team scope to Sprint 24.3 | Story is assigned and appears in Iteration Status |
+| P2-IT-TS-018 | Assign item from another Team into Team-scoped Iteration | Validation rejects assignment |
 | P2-IT-TS-019 | Unassign an item from Sprint 24.3 | Item leaves Iteration Status but remains in Backlog |
 
 ## 14. Implementation Breakdown

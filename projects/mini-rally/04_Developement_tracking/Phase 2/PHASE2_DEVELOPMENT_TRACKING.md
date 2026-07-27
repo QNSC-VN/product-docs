@@ -13,13 +13,13 @@
 | Mockup | P2.1, P2.2 and P2.3 updated |
 | SRS/DB mapping | P2.1, P2.2 and P2.3 reconciled for dev handoff |
 | Production implementation | In review / gap fixing in Rally prod |
-| Last updated | 2026-07-12 |
+| Last updated | 2026-07-24 |
 
 > BA decision 2026-07-12: `Team Status` is moved out of Phase 2 and into Phase 3. `Team Board` is moved out of Phase 2/3/4 and into Backlog for the future. Phase 2 focuses on `Project -> Team -> Backlog -> Timeboxes/Iterations -> Iteration Status`.
 
-> BA decision 2026-06-28: Workspace selector Project/Team is the global Phase 2 context. Backlog, Timeboxes/Iterations, Iteration Status and related records must be filtered by the selected Project/Team. Create Work Item and Create Iteration auto-fill Project/Team from this context. Current mock account is Workspace Admin, so admin may change Project/Team in create/edit forms where enabled, but the selected Team must belong to the selected Project.
+> BA decision 2026-07-24: Workspace selector Project and optional Team is the global Phase 2 context. Blank Team means Project-level / Project backlog scope. Backlog, Timeboxes/Iterations, Iteration Status and related records must be filtered by selected Project and matching optional Team scope. Create Work Item and Create Iteration auto-fill Project from this context and allow Team to remain blank when the item/timebox belongs to Project backlog scope.
 
-> BA decision 2026-07-06: `All Teams` is valid as a Phase 2 context for Backlog, Timeboxes/Iterations and Iteration Status. Permission-specific create/edit restrictions under `All Teams` are deferred to the permissions phase.
+> BA decision 2026-07-24: `All Teams` is not required for Phase 0-4 Iteration Status. Team-scoped behavior is represented by selecting a Team; Project-level behavior is represented by blank Team.
 
 > BA decision 2026-07-06: Phase 2 Timeboxes shows Iterations only. Release and Milestone type options are hidden in Phase 2 and return in Phase 3.
 
@@ -64,7 +64,7 @@
 
 | ID | Module | Development task | Deliverable | Dependency | Estimate | Actual | Status |
 |---|---|---|---|---|---:|---:|---|
-| P2-BL-01 | Contract | Extend backlog query params | Project/Team context, quick search, dynamic filters, sort contract | Phase 1 Backlog API | 1.0h | 0h | `NOT STARTED` |
+| P2-BL-01 | Contract | Extend backlog query params | Project and optional Team context, quick search, dynamic filters, sort contract | Phase 1 Backlog API | 1.0h | 0h | `NOT STARTED` |
 | P2-BL-02 | Backend | Inline update API support | PATCH work item fields allowed from backlog | Work Item update API | 1.0h | 0h | `NOT STARTED` |
 | P2-BL-03 | Backend | Bulk release assignment | Bulk mutation with permission checks | Release FK existing | 1.0h | 0h | `NOT STARTED` |
 | P2-BL-04 | Backend | Bulk iteration assignment | Bulk mutation updates `work_items.iteration_id` with project/team validation | Iteration FK existing | 1.0h | 0h | `NOT STARTED` |
@@ -72,19 +72,19 @@
 | P2-BL-06 | Frontend | Search + Manage Filters integration | Toolbar search, multi-column filter manager, URL/query state, including Iteration | P2-BL-01 | 1.0h | 0h | `NOT STARTED` |
 | P2-BL-07 | Frontend | Inline edit grid behavior | Optimistic edit/rollback/read-only states including Iteration | P2-BL-02 | 1.25h | 0h | `NOT STARTED` |
 | P2-BL-08 | Frontend | Bulk release/iteration assignment UI | Selected rows + mutation + refresh | P2-BL-03..04 | 0.75h | 0h | `NOT STARTED` |
-| P2-BL-09 | Verification | Contract/unit/e2e coverage | Project/Team context filter, create defaults, inline edit, iteration assignment, reorder, permission tests | P2-BL-01..08 | 0.75h | 0h | `NOT STARTED` |
+| P2-BL-09 | Verification | Contract/unit/e2e coverage | Project and optional Team context filter, create defaults, inline edit, iteration assignment, reorder, permission tests | P2-BL-01..08 | 0.75h | 0h | `NOT STARTED` |
 
 ## 5. Development Task Plan - P2.2 Iteration Management
 
 | ID | Module | Development task | Deliverable | Dependency | Estimate | Actual | Status |
 |---|---|---|---|---|---:|---:|---|
-| P2-IT-01 | Contract | Define Iteration DTOs and OpenAPI | List/create/detail/update contracts | Project/Team context | 1.0h | 0h | `NOT STARTED` |
+| P2-IT-01 | Contract | Define Iteration DTOs and OpenAPI | List/create/detail/update contracts | Project and optional Team context | 1.0h | 0h | `NOT STARTED` |
 | P2-IT-02 | DB/Backend | Verify or add sprint/iteration fields | Theme, Notes, Planned Velocity mapping decided and migrated if needed | `planning.sprints` | 1.0h | 0h | `NOT STARTED` |
-| P2-IT-03 | Backend | List/search/filter/sort iterations | `GET /projects/:id/iterations` filtered by selected Project/Team context | P2-IT-01 | 1.25h | 0h | `NOT STARTED` |
-| P2-IT-04 | Backend | Create iteration | Required fields, Project/Team default validation and permission checks | P2-IT-02 | 1.0h | 0h | `NOT STARTED` |
+| P2-IT-03 | Backend | List/search/filter/sort iterations | `GET /projects/:id/iterations` filtered by selected Project and optional Team scope | P2-IT-01 | 1.25h | 0h | `NOT STARTED` |
+| P2-IT-04 | Backend | Create iteration | Required fields, Project default, optional Team validation and permission checks | P2-IT-02 | 1.0h | 0h | `NOT STARTED` |
 | P2-IT-05 | Backend | Get/update iteration detail | Theme/Notes/right-panel fields update | P2-IT-02 | 1.25h | 0h | `NOT STARTED` |
 | P2-IT-06 | Frontend | Timeboxes route/list | Iterations list with search, state filter, sort, pagination | P2-IT-03 | 1.25h | 0h | `NOT STARTED` |
-| P2-IT-07 | Frontend | Quick create modal | Type, Project, Team, Name, Start/End Date, State | P2-IT-04 | 1.0h | 0h | `NOT STARTED` |
+| P2-IT-07 | Frontend | Quick create modal | Type, Project, optional Team, Name, Start/End Date, State | P2-IT-04 | 1.0h | 0h | `NOT STARTED` |
 | P2-IT-08 | Frontend | Full-page Iteration detail | Open from Create with details and row click | P2-IT-05 | 1.5h | 0h | `NOT STARTED` |
 | P2-IT-09 | Frontend | Permission/read-only/error states | Viewer read-only, validation, save pending/error | P2-IT-04..08 | 1.0h | 0h | `NOT STARTED` |
 | P2-IT-10 | Backend | Expose iteration assignment options | Iterations available to Work Item assignment with project/team validation | Work Item API, P2-IT-02 | 1.0h | 0h | `NOT STARTED` |
@@ -96,15 +96,15 @@
 | ID | Module | Development task | Deliverable | Dependency | Estimate | Actual | Status |
 |---|---|---|---|---|---:|---:|---|
 | P2-IS-01 | Contract | Define Iteration Status DTOs and query params | OpenAPI/API contract for selector, metrics, list | P2.2 Iteration DTO | 1.0h | 0h | `NOT STARTED` |
-| P2-IS-02 | Backend | Implement Iteration selector source | Timeboxes Iteration records sorted by date and filtered by Project/Team context | P2.2 Iteration backend | 0.75h | 0h | `NOT STARTED` |
+| P2-IS-02 | Backend | Implement Iteration selector source | Timeboxes Iteration records sorted by date and filtered by Project and optional Team scope | P2.2 Iteration backend | 0.75h | 0h | `NOT STARTED` |
 | P2-IS-03 | Backend | Implement Iteration Status metrics | Planned velocity, end days, accepted, defects, tasks | Work item iteration assignment | 1.25h | 0h | `NOT STARTED` |
 | P2-IS-04 | Backend | Implement Iteration work item list | Search/filter/sort/pagination by selected Iteration, including Iteration field | P2.1 list patterns, P2-BL-04 | 1.5h | 0h | `NOT STARTED` |
 | P2-IS-05 | Backend | Support inline update fields | PATCH title/status/iteration/estimate/owner with permission | Work Item update API | 1.0h | 0h | `NOT STARTED` |
-| P2-IS-06 | Backend | Create Story/Defect into Iteration | POST selected Iteration work item endpoint with Project/Team auto-fill from context | Work Item create API | 1.0h | 0h | `NOT STARTED` |
+| P2-IS-06 | Backend | Create Story/Defect into Iteration | POST selected Iteration work item endpoint with Project auto-fill and optional Team from Iteration scope | Work Item create API | 1.0h | 0h | `NOT STARTED` |
 | P2-IS-07 | Frontend | Build Track > Iteration Status route/header | Track dropdown, title, selector, no old context bar | App shell | 1.0h | 0h | `NOT STARTED` |
 | P2-IS-08 | Frontend | Build metrics strip | Metrics cards and loading/empty states | P2-IS-03 | 0.75h | 0h | `NOT STARTED` |
-| P2-IS-09 | Frontend | Build enhanced Iteration list | Backlog-style search/filter/sort/resize/pagination with Iteration column | P2-IS-04 | 1.75h | 0h | `NOT STARTED` |
-| P2-IS-10 | Frontend | Implement inline editing | Name/status/iteration/estimate/owner update flow | P2-IS-05 | 1.25h | 0h | `NOT STARTED` |
+| P2-IS-09 | Frontend | Build enhanced Iteration list | Backlog-style search/filter/sort/resize/pagination with Schedule State, Flow State and Iteration columns | P2-IS-04 | 1.75h | 0h | `NOT STARTED` |
+| P2-IS-10 | Frontend | Implement inline editing | Name/Schedule State/Flow State/iteration/estimate/owner update flow | P2-IS-05 | 1.25h | 0h | `NOT STARTED` |
 | P2-IS-11 | Frontend | Implement Add Item modal | Story/Defect create and create-with-details flow | P2-IS-06 | 1.25h | 0h | `NOT STARTED` |
 | P2-IS-12 | Frontend | Work Item Detail right-panel Iteration field | Detail opened from Iteration Status shows editable Iteration | P2-BL-02 | 0.5h | 0h | `NOT STARTED` |
 | P2-IS-13 | Verification | Unit/contract/e2e tests | Selector, metrics, filters, iteration column, create, detail route | P2-IS-01..12 | 1.0h | 0h | `NOT STARTED` |
@@ -116,9 +116,9 @@ Phase 2 must preserve this end-to-end business chain:
 ```text
 Manage Project
 -> Manage Team under Project
--> User selects Project/Team from workspace selector
--> Backlog creates and manages Story/Defect for that Project/Team
--> Timeboxes creates Iteration for that Project/Team
+-> User selects Project and optional Team from workspace selector
+-> Backlog creates and manages Story/Defect for that Project and optional Team scope
+-> Timeboxes creates Iteration for that Project and optional Team scope
 -> Existing Backlog Story/Defect can be assigned to the Iteration from Backlog list or Work Item Detail
 -> Iteration Status shows only work items assigned to the selected Iteration
 ```
@@ -127,15 +127,15 @@ Mandatory rules for development:
 
 - Team creation belongs to Phase 1 Manage (`Projects`, `Teams`, `Users`).
 - A Team must belong to or be available for the selected Project before it can be used on Backlog, Iteration or Iteration Status.
-- Workspace selector Project/Team is the active data context for Phase 2 screens.
+- Workspace selector Project and optional Team is the active data context for Phase 2 screens.
 - Changing workspace selector Project/Team must refresh Backlog, Timeboxes/Iterations and Iteration Status selector/list data.
-- Backlog must show only Story/Defect records in the selected Project/Team context.
-- Timeboxes/Iterations must show only Iterations in the selected Project/Team context.
-- Iteration Status selector must show only Iterations in the selected Project/Team context.
-- Create Work Item and Create Iteration must auto-fill Project and Team from the active workspace selector context.
-- Workspace Admin can change Project/Team in create/edit forms where enabled; validation must still enforce Team belongs to Project.
-- Iteration belongs to a Project/Team context for Phase 2. `All Teams` is a valid list context; permission-specific create/edit behavior for that context is deferred.
-- A backlog work item can be assigned to an Iteration only when Project and Team match the Iteration context.
+- Backlog must show only Story/Defect records in the selected Project and matching optional Team scope.
+- Timeboxes/Iterations must show only Iterations in the selected Project and matching optional Team scope.
+- Iteration Status selector must show only Iterations in the selected Project and matching optional Team scope.
+- Create Work Item and Create Iteration must auto-fill Project from the active workspace selector context; Team may be blank for Project backlog scope.
+- Workspace Admin can change Project/Team in create/edit forms where enabled; validation must still enforce Team belongs to Project when supplied.
+- Iteration belongs to a Project and optional Team scope for Phase 2. `All Teams` is not required for Iteration Status in Phase 0-4.
+- A backlog work item can be assigned to an Iteration only when Project and Team scope match the Iteration context.
 - Backlog list and Work Item Detail must expose the Work Item `Iteration` field.
 - Iteration Status reads assigned work items from the same backlog/work item source of truth. It must not keep a separate execution-only item store.
 - `Add Item` on Iteration Status creates a new Story/Defect directly into the selected Iteration and the same item must also exist in Backlog.
@@ -196,16 +196,16 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 
 - [ ] User can open `Plan > Timeboxes`.
 - [ ] Timeboxes defaults to `Iterations`.
-- [ ] Timeboxes respects the active workspace selector Project/Team context.
+- [ ] Timeboxes respects the active workspace selector Project and optional Team context.
 - [ ] Iterations list shows Name, Theme, Start Date, End Date, Project, Planned Velocity, Task Estimate, State.
-- [ ] Iterations list only shows records for the selected Project/Team.
+- [ ] Iterations list only shows records for the selected Project and matching optional Team scope.
 - [ ] User can search Iterations.
 - [ ] User can filter Iterations by State.
 - [ ] User can sort Iteration list columns.
 - [ ] `Create Iteration` opens quick create modal.
-- [ ] Quick create modal includes Project, Team, Name, Start Date, End Date, State.
-- [ ] Quick create auto-fills Project and Team from workspace selector context.
-- [ ] Workspace Admin can override Project/Team when enabled, but Team must belong to Project.
+- [ ] Quick create modal includes Project, optional Team, Name, Start Date, End Date, State.
+- [ ] Quick create auto-fills Project from workspace selector context and allows Team blank for Project backlog scope.
+- [ ] Workspace Admin can override Project/Team when enabled, but Team must belong to Project when supplied.
 - [ ] Name, Start Date, End Date and State are required.
 - [ ] `Create with details` opens full-page detail.
 - [ ] Clicking an existing row opens full-page detail.
@@ -214,7 +214,7 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 - [ ] Detail page does not duplicate Project/Team in top context bar or subtitle.
 - [ ] Existing row detail preloads Theme, dates, State and Planned Velocity.
 - [ ] User can assign existing Backlog Story/Defect items to an Iteration from Backlog list or Work Item Detail.
-- [ ] System rejects assignment when work item Project/Team does not match Iteration Project/Team.
+- [ ] System rejects assignment when work item Project/Team scope does not match Iteration Project/Team scope.
 - [ ] User can unassign an item from an Iteration without deleting the Backlog item.
 - [ ] Assigned items appear in Iteration Status for the selected Iteration.
 - [ ] Viewer cannot create, edit or assign iterations.
@@ -224,35 +224,35 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 
 - [ ] User can open `Track > Iteration Status`.
 - [ ] Phase 2 only implements Iteration Status under Track.
-- [ ] Iteration Status respects the active workspace selector Project/Team context.
+- [ ] Iteration Status respects the active workspace selector Project and optional Team context.
 - [ ] Team Board and Team Status are not Phase 2 development scope.
 - [ ] Page title is `Iteration`.
 - [ ] Saved Views is not displayed.
 - [ ] Top Project/Release/Iteration/Team context filter bar is not displayed.
 - [ ] Iteration selector combines Iteration name and date range in one control.
 - [ ] Iteration selector options come from Timeboxes Iteration records.
-- [ ] Iteration selector shows Iterations in the selected Project/Team context, including valid `All Teams` behavior.
+- [ ] Iteration selector shows Iterations in the selected Project and matching optional Team scope. `All Teams` is not required for Phase 0-4.
 - [ ] Changing Iteration refreshes metrics and list.
 - [ ] Metric strip shows Planned Velocity, Iteration End, Accepted, Defects and Tasks.
 - [ ] Defects metric counts work items of type Defect in selected Iteration.
 - [ ] Tasks metric counts non-Completed child Tasks of selected Iteration US/DE; Task is not an independent Iteration row.
-- [ ] Totals row below header shows Plan Est, Task Est and To Do from the same scoped US/DE/task dataset.
+- [ ] Totals row below header shows Plan Est, Task Est (`To Do + Actual`) and To Do from the same scoped US/DE/task dataset.
 - [ ] Work item list shows selected Iteration items only.
 - [ ] Work item list is sourced from Backlog/work_items assignment, not a separate store.
 - [ ] Per-row Defects column is not displayed.
-- [ ] Work item list shows Iteration column.
+- [ ] Work item list shows Schedule State, Flow State and Iteration columns.
 - [ ] Quick search and Manage Filters behave like Backlog Enhancement.
 - [ ] Sort, resize, pagination and inline edit behave like Backlog Enhancement, including Iteration field.
-- [ ] Schedule State values are Idea, Defined, In-Progress, Completed, Accepted, Release.
+- [ ] Schedule State and Flow State values are Idea, Defined, In-Progress, Completed, Accepted, Release.
 - [ ] List is the only active Phase 0-4 view; Board view/toggle remains Future Backlog.
 - [ ] Row click opens full Work Item Detail.
 - [ ] Work Item Detail right panel shows Iteration field.
 - [ ] Add Item button is beside filter controls.
 - [ ] Quick Create and bottom Add work item row are not displayed.
 - [ ] Add Item modal supports only Story and Defect.
-- [ ] Add Item modal does not show Schedule State or Choose Existing Backlog Item.
+- [ ] Add Item modal does not show Schedule State, Flow State or Choose Existing Backlog Item.
 - [ ] Create Item creates a Story/Defect directly in the selected Iteration and also available in Backlog.
-- [ ] Create Item auto-fills Project and Team from the active workspace selector and selected Iteration.
+- [ ] Create Item auto-fills Project from selected Iteration and allows Team blank for Project backlog scope.
 - [ ] Create with details opens full Work Item Detail using Backlog flow.
 
 ## 12. Risk & Decision Log
@@ -288,9 +288,10 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 | 2026-06-27 | Added P2.3 Iteration Status SRS, task plan and acceptance checklist | Prepare Iteration Status for development |
 | 2026-07-12 | Moved Team Status to Phase 3 and Team Board to Future Backlog | Phase 2 focuses Iteration Status linked with Backlog |
 | 2026-06-28 | Added existing Backlog-to-Iteration assignment into P2.2 | Close business gap for Iteration Status source data |
-| 2026-06-28 | Added global workspace selector Project/Team context rules | Ensure Backlog, Iterations and Iteration Status filter and create records under the selected Project/Team |
+| 2026-06-28 | Added global workspace selector Project/Team context rules | Historical baseline before Team optional reconciliation |
 | 2026-07-12 | Reconciled Phase 2 tracking status with prod audit conclusion | BA/SRS is ready; Rally prod is in review/gap fixing, not not-started |
-| 2026-07-12 | Added All Teams, hidden Release/Milestone type options and rank/LexoRank rules | Resolve Phase 2 documentation mismatches found in audit |
+| 2026-07-12 | Added hidden Release/Milestone type options and rank/LexoRank rules | Resolve Phase 2 documentation mismatches found in audit; All Teams rule was superseded on 2026-07-24 |
+| 2026-07-24 | Reconciled Phase 2 Team optional scope, Schedule State six boxes and Flow State dropdown | Align with BA-confirmed A4 business rule |
 
 ## 15. Reference Documents
 

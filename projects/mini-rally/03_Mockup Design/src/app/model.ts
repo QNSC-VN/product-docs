@@ -1,10 +1,13 @@
 ﻿export type Role = "Workspace Admin" | "Project Admin" | "Project Member";
-export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "releasePlanning" | "releases" | "reports" | "notifications" | "settings";
+export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "capacityPlanning" | "releasePlanning" | "releases" | "reports" | "notifications" | "settings";
 export type WorkItemType = "Story" | "Defect" | "Task" | "Feature";
 export type StatusType = "Idea" | "Defined" | "In-Progress" | "Completed" | "Accepted" | "Release";
 export type TaskState = "Defined" | "In-Progress" | "Completed";
 export type PriorityType = "Critical" | "High" | "Medium" | "Low";
 export type MilestoneState = "Planned" | "At Risk" | "Met" | "Missed" | "Cancelled" | "Completed";
+export type PortfolioState = "No Entry" | "Intake" | "Idea Prioritization" | "Problem Discovery" | "Solution Discovery" | "Feature Prioritization" | "Developing" | "Accepted" | "Measuring" | "Done" | "Cancelled";
+export type EstimateSize = "No Entry" | "XS" | "S" | "M" | "L" | "XL";
+export type CapacityPlanStatus = "Draft" | "Published";
 
 export interface Owner { name: string; initials: string; color: string; }
 export interface WorkItem {
@@ -12,7 +15,7 @@ export interface WorkItem {
   status: StatusType; priority: PriorityType; owner: Owner;
   planEstimate: number; taskCount: number; completedTasks: number;
   taskEstimate?: number; todoEstimate?: number;
-  iteration: string; release: string; releaseId?: string; milestoneIds?: string[]; tags: string[];
+  iteration: string; release: string; releaseId?: string; milestoneIds?: string[]; featureId?: string; tags: string[];
   description: string; lastUpdated: string; dueDate?: string;
   blocked?: boolean; defectCount?: number; commentCount?: number;
   attachmentCount?: number; project?: string; team?: string; rank?: number;
@@ -31,16 +34,61 @@ export interface NewWorkItemInput {
   type: "Story" | "Defect";
   title: string;
   project: string;
-  team: string;
+  team?: string;
   owner: Owner;
   planEstimate: number;
   iteration?: string;
   release?: string;
   releaseId?: string;
+  featureId?: string;
+}
+export interface NewFeatureInput {
+  name: string;
+  project: string;
+  team: string;
+  owner: Owner;
+  release: string;
+  releaseId?: string;
+  state: PortfolioState;
+  preliminaryEstimate: EstimateSize;
+}
+export interface CapacityPlanTeam {
+  team: string;
+  capacity: number;
+}
+export interface CapacityPlanAllocation {
+  id: string;
+  featureId: string;
+  team?: string;
+  value: number;
+  /** Distinguishes a manually committed allocation from a full Feature estimate copied at allocation time. */
+  estimateSource?: "Manual" | "Feature Estimate";
+  rank: number;
+}
+export interface CapacityPlan {
+  id: string;
+  name: string;
+  projectKey: string;
+  releaseId: string;
+  release: string;
+  status: CapacityPlanStatus;
+  lastUpdated: string;
+  viewBy: "Points" | "Count";
+  publishedMode?: "Visibility Only" | "Update Fields";
+  teams: CapacityPlanTeam[];
+  allocations: CapacityPlanAllocation[];
+}
+export interface NewCapacityPlanInput {
+  name: string;
+  projectKey: string;
+  releaseId: string;
+  viewBy: "Points" | "Count";
 }
 export interface NewTaskInput {
   name: string;
   owner: Owner;
+  todo: number;
+  actuals: number;
   estimate: number;
 }
 export interface NewIterationInput {
@@ -61,9 +109,20 @@ export interface NewMilestoneInput {
   releaseIds: string[]; startDate: string; endDate: string; state: MilestoneState; owner: Owner;
 }
 export interface Feature {
-  id: string; title: string; status: StatusType; priority: PriorityType;
-  owner: Owner; release: string; planEstimate: number; acceptedEstimate: number;
-  storyCount: number; completedStories: number;
+  id: string; name: string; status: PortfolioState; priority: PriorityType;
+  owner: Owner; release: string; releaseId?: string; project?: string; team?: string;
+  preliminaryEstimate: EstimateSize;
+  refinedEstimate?: number;
+  refinedWorkItemCountEstimate?: number;
+  rank?: number;
+  milestoneIds?: string[];
+  createdAt: string;
+  plannedStartDate?: string; plannedEndDate?: string; marketReleaseDate?: string;
+  description?: string; notes?: string; successCriteria?: string; attachments?: string[];
+  archivedAt?: string;
+  // Feature has no Plan Estimate. Percent Done rollups are computed from linked
+  // Story/Defect (WorkItem.featureId). Estimated Progress uses optional refined
+  // top-down fields, falling back to Preliminary Estimate sizing.
 }
 export interface Project {
   key: string; name: string; activeSprint: string; progress: number;
@@ -117,6 +176,8 @@ export const can = {
   delete: (_r: Role) => true,
   manageUsers: (r: Role) => r === "Workspace Admin",
   manageSprints: (r: Role) => r !== "Project Member",
+  manageFeatures: (r: Role) => r !== "Project Member",
+  manageCapacityPlans: (r: Role) => r !== "Project Member",
   manageBacklog: (_r: Role) => true,
   manageSettings: (r: Role) => r !== "Project Member",
   manageRoles: (r: Role) => r === "Workspace Admin",
@@ -161,7 +222,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Implement SSO authentication via SAML 2.0 for enterprise tenant onboarding",
     status: "In-Progress", priority: "High", owner: OWNERS[0], project: "NXP",
     planEstimate: 8, taskCount: 6, completedTasks: 4, taskEstimate: 16, todoEstimate: 4,
-    iteration: "Sprint 24.3", release: "Q4 2024", tags: ["auth", "security"],
+    iteration: "Sprint 24.3", release: "Q4 2024", featureId: "FE-311", tags: ["auth", "security"],
     dueDate: "Oct 28, 2024", commentCount: 4, attachmentCount: 2, defectCount: 0,
     description: "Enterprise customers require SAML 2.0 SSO support for automated provisioning through their identity provider. Covers IdP metadata upload, attribute mapping, and session management across tenant boundaries.",
     lastUpdated: "Oct 21, 2024",
@@ -181,23 +242,13 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Bulk export to CSV for work item backlog with custom field mapping",
     status: "Completed", priority: "Medium", owner: OWNERS[2], project: "NXP",
     planEstimate: 5, taskCount: 4, completedTasks: 4, taskEstimate: 10, todoEstimate: 0,
-    iteration: "Sprint 24.2", release: "Q4 2024", tags: ["export", "backlog"],
+    iteration: "Sprint 24.2", release: "Q4 2024", featureId: "FE-315", tags: ["export", "backlog"],
     commentCount: 2, defectCount: 0,
     description: "Users need to export their full backlog to CSV for offline reporting. Supports custom field selection, column ordering, and encoding options for compatibility with Excel and Google Sheets.",
     lastUpdated: "Oct 18, 2024",
   },
   {
-    id: "FE-318", type: "Feature", rank: 4,
-    title: "Advanced reporting module with configurable KPI dashboards and drill-through",
-    status: "In-Progress", priority: "High", owner: OWNERS[3], project: "NXP",
-    planEstimate: 21, taskCount: 14, completedTasks: 8, taskEstimate: 42, todoEstimate: 18,
-    iteration: "Sprint 24.3", release: "Q1 2025", tags: ["reporting", "dashboards"],
-    commentCount: 9, attachmentCount: 4, defectCount: 1,
-    description: "New reporting module providing configurable KPI dashboard templates, drill-through capabilities from summary to detail, and scheduled email delivery of report snapshots.",
-    lastUpdated: "Oct 22, 2024",
-  },
-  {
-    id: "US-4803", type: "Story", rank: 5,
+    id: "US-4803", type: "Story", rank: 4,
     title: "Per-user notification preference center with channel routing and digest options",
     status: "Defined", priority: "Low", owner: OWNERS[4], project: "NXP",
     planEstimate: 5, taskCount: 5, completedTasks: 0, taskEstimate: 0, todoEstimate: 0,
@@ -221,7 +272,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Sprint velocity chart renders incorrect data when user timezone differs from server",
     status: "In-Progress", priority: "High", owner: OWNERS[1], project: "NXP",
     planEstimate: 3, taskCount: 3, completedTasks: 1, taskEstimate: 8, todoEstimate: 4,
-    iteration: "Sprint 24.3", release: "Q4 2024", tags: ["reporting", "timezone"],
+    iteration: "Sprint 24.3", release: "Q4 2024", featureId: "FE-318", tags: ["reporting", "timezone"],
     commentCount: 3, defectCount: 0,
     description: "When browser timezone is UTC-5 or earlier, sprint completion dates shift by one day on the velocity chart, causing stories accepted on sprint's last day to appear in the following sprint.",
     lastUpdated: "Oct 21, 2024",
@@ -269,7 +320,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Report export generates corrupt XLSX file for datasets over 10,000 rows",
     status: "Defined", priority: "High", owner: OWNERS[3], project: "NXP",
     planEstimate: 3, taskCount: 2, completedTasks: 0,
-    iteration: "Unscheduled", release: "Q4 2024", tags: ["export", "reporting"],
+    iteration: "Unscheduled", release: "Q4 2024", featureId: "FE-318", tags: ["export", "reporting"],
     description: "When exporting reports containing more than 10,000 rows, the resulting XLSX file fails to open in Excel. LibreOffice reports an XML structure error on the shared strings table.",
     lastUpdated: "Oct 20, 2024",
   },
@@ -355,11 +406,11 @@ export const WORK_ITEMS: WorkItem[] = [
 ];
 
 export const FEATURES: Feature[] = [
-  { id: "FE-318", title: "Advanced Reporting Module", status: "In-Progress", priority: "High", owner: OWNERS[3], release: "Q1 2025", planEstimate: 55, acceptedEstimate: 18, storyCount: 12, completedStories: 4 },
-  { id: "FE-311", title: "Enterprise Authentication Suite (SAML / OIDC)", status: "Completed", priority: "High", owner: OWNERS[0], release: "Q4 2024", planEstimate: 34, acceptedEstimate: 34, storyCount: 9, completedStories: 9 },
-  { id: "FE-322", title: "Mobile Application MVP — iOS & Android", status: "Defined", priority: "Medium", owner: OWNERS[4], release: "Q2 2025", planEstimate: 89, acceptedEstimate: 0, storyCount: 22, completedStories: 0 },
-  { id: "FE-315", title: "Backlog Automation & Smart Prioritization Engine", status: "In-Progress", priority: "High", owner: OWNERS[1], release: "Q1 2025", planEstimate: 42, acceptedEstimate: 14, storyCount: 10, completedStories: 3 },
-  { id: "FE-308", title: "Cross-Project Portfolio Hierarchy & Roadmap View", status: "Defined", priority: "Medium", owner: OWNERS[2], release: "Q2 2025", planEstimate: 60, acceptedEstimate: 0, storyCount: 15, completedStories: 0 },
+  { id: "FE-318", name: "Advanced Reporting Module", status: "Developing", priority: "High", owner: OWNERS[3], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Data & Reporting", preliminaryEstimate: "L", refinedEstimate: 8, refinedWorkItemCountEstimate: 2, rank: 1, createdAt: "Thursday, September 12, 2024 09:15:42", plannedStartDate: "Nov 1, 2024", plannedEndDate: "2025-01-31", marketReleaseDate: "2025-02-01", description: "Consolidated reporting capability for portfolio-level delivery, release health, and export workflows.", notes: "Keep Phase 5 reporting scope separate from generic Reports until Portfolio is closed.", successCriteria: "Leadership can inspect progress from linked Story/Defect items without manually typing percentage.", attachments: ["reporting-discovery-notes.pdf"] },
+  { id: "FE-311", name: "Enterprise Authentication Suite (SAML / OIDC)", status: "Done", priority: "High", owner: OWNERS[0], release: "Nexus Platform Q4 2024", releaseId: "REL-001", project: "NXP", team: "Identity & Access", preliminaryEstimate: "M", refinedEstimate: 5, refinedWorkItemCountEstimate: 1, rank: 2, createdAt: "Wednesday, July 3, 2024 14:22:10", plannedStartDate: "Jul 15, 2024", plannedEndDate: "2024-10-25", marketReleaseDate: "2024-11-01", description: "Enterprise authentication work grouped as one shippable portfolio capability.", notes: "Accepted scope stays visible for rollup regression checks.", successCriteria: "SSO onboarding work is traceable from Feature to child Story evidence.", attachments: ["saml-release-checklist.xlsx"] },
+  { id: "FE-322", name: "Mobile Application MVP - iOS & Android", status: "Idea Prioritization", priority: "Medium", owner: OWNERS[4], release: "Unscheduled", project: "MOB", team: "Mobile Experience", preliminaryEstimate: "XL", rank: 3, createdAt: "Wednesday, October 2, 2024 11:05:33", description: "Mobile MVP planning placeholder for a project with no active scoped Release yet.", notes: "Release remains Unscheduled until a Mobile release is created in Plan > Timeboxes.", successCriteria: "Mobile Feature is visible only in Mobile project context." },
+  { id: "FE-315", name: "Backlog Automation & Smart Prioritization Engine", status: "Developing", priority: "High", owner: OWNERS[1], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Core Platform", preliminaryEstimate: "M", rank: 4, createdAt: "Friday, September 20, 2024 16:40:05", plannedStartDate: "Dec 1, 2024", plannedEndDate: "2025-02-15", description: "Automation feature for backlog sorting, ranking and guided prioritization.", notes: "Use this row for Project Member read-only checks in Core Platform scope.", successCriteria: "Portfolio list and detail preserve project/team permissions." },
+  { id: "FE-308", name: "Cross-Project Portfolio Hierarchy & Roadmap View", status: "Problem Discovery", priority: "Medium", owner: OWNERS[2], release: "Nexus Platform Q2 2025", releaseId: "REL-003", project: "NXP", team: "Core Platform", preliminaryEstimate: "S", rank: 5, createdAt: "Thursday, October 10, 2024 10:30:00", description: "Discovery placeholder for future hierarchy and roadmap needs.", notes: "Theme/Initiative remains out of Phase 5 v1.", successCriteria: "Feature-level hierarchy stays single-level until BA reopens the decision." },
 ];
 
 export const NOTIFICATIONS: Notification[] = [
@@ -428,6 +479,29 @@ export const RELEASES_DATA: ReleaseItem[] = [
   { id: "REL-002", name: "Nexus Platform Q1 2025", version: "v3.5.0", status: "Planning", startDate: "Nov 1, 2024", releaseDate: "Feb 1, 2025", progress: 12, totalItems: 38, completedItems: 5, openDefects: 2, blockedItems: 0, owner: OWNERS[0], description: "Q1 2025 release including advanced reporting module, notification center, and markdown support.", projectKey: "NXP", team: "Core Platform" },
   { id: "REL-003", name: "Nexus Platform Q2 2025", version: "v4.0.0", status: "Planning", startDate: "Feb 1, 2025", releaseDate: "May 1, 2025", progress: 0, totalItems: 52, completedItems: 0, openDefects: 0, blockedItems: 0, owner: OWNERS[3], description: "Major v4.0 with mobile app, portfolio hierarchy, and redesigned reporting dashboards.", projectKey: "NXP", team: "Core Platform" },
   { id: "REL-004", name: "Nexus Platform v3.3", version: "v3.3.0", status: "Accepted", startDate: "Jul 1, 2024", releaseDate: "Sep 30, 2024", progress: 100, totalItems: 18, completedItems: 18, openDefects: 0, blockedItems: 0, owner: OWNERS[0], description: "Accepted on schedule. Included board view, CSV import, and SSO foundation.", projectKey: "NXP", team: "Core Platform" },
+];
+
+export const CAPACITY_PLANS_DATA: CapacityPlan[] = [
+  {
+    id: "CP-001",
+    name: "Nexus Platform Q1 2025 Capacity Plan",
+    projectKey: "NXP",
+    releaseId: "REL-002",
+    release: "Nexus Platform Q1 2025",
+    status: "Draft",
+    lastUpdated: "Jul 26, 2026 10:30 AM",
+    viewBy: "Points",
+    teams: [
+      { team: "Core Platform", capacity: 13 },
+      { team: "Identity & Access", capacity: 8 },
+      { team: "Data & Reporting", capacity: 10 },
+    ],
+    allocations: [
+      { id: "CPA-001", featureId: "FE-318", team: "Data & Reporting", value: 5, rank: 1 },
+      { id: "CPA-002", featureId: "FE-318", team: "Core Platform", value: 3, rank: 2 },
+      { id: "CPA-003", featureId: "FE-315", value: 5, rank: 3 },
+    ],
+  },
 ];
 
 export const MILESTONES_DATA: MilestoneItem[] = [

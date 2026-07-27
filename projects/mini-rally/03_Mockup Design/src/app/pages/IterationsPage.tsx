@@ -526,7 +526,7 @@ function IterationCreateDetailPage({ draft, releases, workItems, onUpdateMilesto
         {activeTab === "details" && <aside className="w-[340px] shrink-0 overflow-y-auto p-5 space-y-4 bg-white" style={{ borderLeft: "1px solid #d7dde7", scrollbarGutter: "stable" }}>
           {!isMilestone && <Field label="Project"><select defaultValue={draft.projectKey} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.map(project => <option key={project.key} value={project.key}>{project.key} / {project.name}</option>)}</select></Field>}
           {isMilestone && <Field label="Projects"><SelectionSummaryButton label="Projects" count={projectKeys.length} onClick={() => setSelectionModal("projects")} /></Field>}
-          {!isProjectLevel && <Field label="Team"><select defaultValue={draft.team} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.flatMap(project => project.teams).filter((team, index, teams) => teams.indexOf(team) === index).map(team => <option key={team}>{team}</option>)}</select></Field>}
+          {!isProjectLevel && <Field label="Team (optional)"><select defaultValue={draft.team || ""} className={fieldClass} style={fieldStyle}><option value="">Project backlog</option>{SCOPE_PROJECTS.flatMap(project => project.teams).filter((team, index, teams) => teams.indexOf(team) === index).map(team => <option key={team}>{team}</option>)}</select></Field>}
           {isMilestone && <Field label="Teams"><SelectionSummaryButton label="Teams" count={teamNames.length} onClick={() => setSelectionModal("teams")} /></Field>}
           {isMilestone && <Field label="Releases"><SelectionSummaryButton label="Releases" count={releaseIds.length} onClick={() => setSelectionModal("releases")} /></Field>}
           {isMilestone && <Field label="Owner"><select value={ownerName} onChange={event => setOwnerName(event.target.value)} className={fieldClass} style={fieldStyle}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select></Field>}
@@ -544,9 +544,9 @@ function IterationCreateDetailPage({ draft, releases, workItems, onUpdateMilesto
 function NewTimeboxModal({ initialType, releases, onClose, onCreate }: { initialType: NewTimeboxType; releases: ReleaseItem[]; onClose: () => void; onCreate: (draft: TimeboxDraft, openDetails: boolean) => void }) {
   const [type, setType] = useState<NewTimeboxType>(initialType);
   const [projectKey, setProjectKey] = useState(SCOPE_PROJECTS[0].key);
-  const [team, setTeam] = useState(SCOPE_PROJECTS[0].teams[0]);
+  const [team, setTeam] = useState("");
   const [projectKeys, setProjectKeys] = useState<string[]>([SCOPE_PROJECTS[0].key]);
-  const [teamNames, setTeamNames] = useState<string[]>([SCOPE_PROJECTS[0].teams[0]]);
+  const [teamNames, setTeamNames] = useState<string[]>([]);
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
@@ -563,7 +563,7 @@ function NewTimeboxModal({ initialType, releases, onClose, onCreate }: { initial
   function selectProject(nextProjectKey: string) {
     const nextProject = SCOPE_PROJECTS.find(project => project.key === nextProjectKey) || SCOPE_PROJECTS[0];
     setProjectKey(nextProject.key);
-    setTeam(nextProject.teams[0]);
+    setTeam("");
   }
 
   function toggleRelease(releaseId: string) {
@@ -611,7 +611,7 @@ function NewTimeboxModal({ initialType, releases, onClose, onCreate }: { initial
         <div className="flex items-center justify-between px-5 py-3.5 shrink-0" style={{ backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
           <div>
             <p className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>New Timebox</p>
-            <p className="text-[11px]" style={{ color: "#8c94a6" }}>{selectedProject.name}{isProjectLevel ? "" : ` / ${team}`}</p>
+            <p className="text-[11px]" style={{ color: "#8c94a6" }}>{selectedProject.name}{isProjectLevel ? "" : ` / ${team || "Project backlog"}`}</p>
           </div>
           <button onClick={onClose} className="p-1 rounded" style={{ color: "#8c94a6" }} onMouseEnter={event => { event.currentTarget.style.backgroundColor = "#edf0f4"; event.currentTarget.style.color = "#1a2234"; }} onMouseLeave={event => { event.currentTarget.style.backgroundColor = "transparent"; event.currentTarget.style.color = "#8c94a6"; }}><X size={15} /></button>
         </div>
@@ -626,7 +626,7 @@ function NewTimeboxModal({ initialType, releases, onClose, onCreate }: { initial
           </div>
           <div className="grid grid-cols-2 gap-4">
             {!isMilestone && <Field label="Project"><select aria-label="Project" value={projectKey} onChange={event => selectProject(event.target.value)} className={fieldClass} style={fieldStyle}>{SCOPE_PROJECTS.map(project => <option key={project.key} value={project.key}>{project.key} / {project.name}</option>)}</select></Field>}
-            {!isProjectLevel && <Field label="Team"><select aria-label="Team" value={team} onChange={event => setTeam(event.target.value)} className={fieldClass} style={fieldStyle}>{selectedProject.teams.map(projectTeam => <option key={projectTeam}>{projectTeam}</option>)}</select></Field>}
+            {!isProjectLevel && <Field label="Team (optional)"><select aria-label="Team" value={team} onChange={event => setTeam(event.target.value)} className={fieldClass} style={fieldStyle}><option value="">Project backlog</option>{selectedProject.teams.map(projectTeam => <option key={projectTeam}>{projectTeam}</option>)}</select></Field>}
             {isProjectLevel && <div />}
           </div>
           {isMilestone && (
@@ -847,7 +847,7 @@ export function IterationsPage({ role, readOnly = false, iterations, releases, m
       type: modalTypeFromList(timeboxType),
       projectKey: iteration.projectKey || "NXP",
       projectName: iteration.project,
-      team: iteration.team || "Core Platform",
+      team: iteration.team || "",
       name: iteration.name,
       theme: iteration.theme,
       startDate: iteration.startDate,
@@ -955,7 +955,7 @@ export function IterationsPage({ role, readOnly = false, iterations, releases, m
                     {editable ? (
                       <select aria-label={`${iteration.id} project`} value={iteration.projectKey || SCOPE_PROJECTS.find(project => project.name === iteration.project)?.key || "NXP"} onChange={event => {
                         const project = SCOPE_PROJECTS.find(item => item.key === event.target.value) || SCOPE_PROJECTS[0];
-                        updateTimeboxItem(iteration.id, { projectKey: project.key, project: project.name, team: project.teams[0] });
+                        updateTimeboxItem(iteration.id, { projectKey: project.key, project: project.name, team: "" });
                       }} className="w-full text-[11px] bg-transparent rounded-sm px-1 py-0.5 focus:outline-none focus:bg-white" style={{ color: "#5c6478", border: "1px solid transparent" }}>
                         {SCOPE_PROJECTS.map(project => <option key={project.key} value={project.key}>{project.name}</option>)}
                       </select>

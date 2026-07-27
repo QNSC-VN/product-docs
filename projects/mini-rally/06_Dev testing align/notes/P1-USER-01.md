@@ -37,7 +37,7 @@
 - SRS and the approved mockup define the target Edit User behavior.
 - Current Settings mockup still has a competing read-only detail surface.
 - DevInt opens read-only Member details and edits Role inline.
-- Decision: keep inline editing of a user's Workspace Role, Status and Teams directly in the User list (real Rally, matching the reconciled Settings design); use a modal only for create/invite, not for editing an existing user. Name is IdP-owned and Email is read-only.
+- Decision: Edit User must follow the approved mockup/SRS; reconcile the competing read-only and inline-only model.
 
 ### 4. Invite User flow
 

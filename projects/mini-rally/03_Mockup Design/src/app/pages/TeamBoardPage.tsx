@@ -18,7 +18,7 @@ import {
   SCOPE_PROJECTS,
   WORK_ITEMS,
 } from "../model";
-import { Avatar, DetailPanel, PriorityBadge, STATUS_CFG, TypeBadge, TYPE_CFG } from "../components/shared";
+import { Avatar, DetailPanel, PriorityBadge, STATUS_CFG, TypeBadge, TYPE_CFG, ScheduleStateBar } from "../components/shared";
 
 const BOARD_STATUSES: StatusType[] = ["Idea", "Defined", "In-Progress", "Completed", "Accepted", "Release"];
 const WIP_LIMITS: Partial<Record<StatusType, number>> = {
@@ -126,7 +126,7 @@ function BoardAddItemModal({
           <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Iteration</label><input readOnly value={`${iteration.name} · ${formatIterationRange(iteration)}`} className="w-full text-[12px] px-2.5 py-1.5 rounded bg-[#f7f8fa]" style={{ border: "1px solid #dde2ea", color: "#5c6478" }} /></div>
           <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Title <span style={{ color: "#dc2626" }}>*</span></label><input autoFocus value={title} onChange={event => setTitle(event.target.value)} placeholder="Enter a concise, descriptive title..." className="w-full text-[13px] px-3 py-2 rounded focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} /></div>
           <div className="grid grid-cols-3 gap-4">
-            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Schedule State</label><select value={status} onChange={event => setStatus(event.target.value as StatusType)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{BOARD_STATUSES.map(option => <option key={option}>{option}</option>)}</select></div>
+            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Schedule State</label><ScheduleStateBar value={status} onChange={next => setStatus(next)} /></div>
             <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Owner</label><select value={ownerName} onChange={event => setOwnerName(event.target.value)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select></div>
             <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Plan Estimate</label><input type="number" min={0} value={planEstimate} onChange={event => setPlanEstimate(Number(event.target.value))} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} /></div>
           </div>

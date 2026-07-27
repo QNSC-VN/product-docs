@@ -57,7 +57,7 @@
 |---|---|---|---|---|---:|---:|---|
 | P1-01 | DB & Contracts | Verify/add Phase 1 DB migration | `work_items` fields for notes/release_notes/time fields, indexes, FK validation | Phase 0 DB | 2.0h | 2.0h | `DONE` |
 | P1-02 | DB & Contracts | Work Item API DTO/contracts | List/detail/create/update DTO, validation, permission rules | P1-01 | 2.0h | 2.0h | `DONE` |
-| P1-03 | Contracts/mock defaults | Align status catalog and defaults | US/DE: Idea/Defined/In-Progress/Completed/Accepted/Release, default Idea and Schedule/Flow mirror; Task: Defined/In-Progress/Completed | P1-01 | 1.0h | 1.0h | `M1/M3/M5.1 CONFIRMED — SESSION-LEVEL SHARED MOCK STATE` |
+| P1-03 | Contracts/mock defaults | Align status catalog and defaults | US/DE: Idea/Defined/In-Progress/Completed/Accepted/Release, default Idea and Schedule/Flow mirror; Schedule State 6 boxes, Flow State dropdown; Task: Defined/In-Progress/Completed | P1-01 | 1.0h | 1.0h | `A3 CONFIRMED — SESSION-LEVEL SHARED MOCK STATE` |
 | P1-04 | Backlog | Backlog List API + FE integration | Server pagination/filter/sort/resize persistence optional | P1-02 | 2.0h | 2.0h | `DONE` |
 | P1-05 | Backlog | Backlog columns finalization | Priority kept for Defect only; Status column renamed Schedule State | BA decided | 0.5h | 0.5h | `DECIDED` |
 | P1-06 | Create | Quick Create Story/Defect | Modal create, required validation, key generation | P1-02 | 1.5h | 1.5h | `DONE` |
@@ -70,7 +70,7 @@
 | P1-13 | Task | Add Task modal | Name required, owner/estimate, create/create-with-details | P1-12 | 1.25h | 1.25h | `DONE` |
 | P1-14 | Task | Task Detail page | Details/Revision History tabs, left/right layout | P1-13 | 2.0h | 2.0h | `DONE` |
 | P1-15 | Task | Task parent/work product reassignment | Validate Work Product belongs to project/team scope | P1-14 | 1.0h | 1.0h | `DONE` |
-| P1-16 | Time | Estimate/To Do/Actual persistence | Field persistence + roll-up contract | P1-01, P1-12 | 1.5h | 1.5h | `DONE` |
+| P1-16 | Time | Estimate/To Do/Actual persistence | To Do/Actual editable; Estimate derived read-only = To Do + Actual; roll-up contract | P1-01, P1-12 | 1.5h | 1.5h | `A3 UPDATED` |
 | P1-17 | Time | Actual strategy decision | Actual nhập tay vào `actual_hours` trong Phase 1 | BA decided | 0.5h | 0.5h | `DECIDED` |
 | P1-18 | Content | Description/Notes/Release Notes rich text | Sanitized rich text persistence | P1-01, P1-08 | 2.0h | 2.0h | `DONE` |
 | P1-19 | Content | Attachments upload/list/delete | Metadata table + object storage contract | P1-08 | 2.0h | 2.0h | `DONE` |
@@ -130,7 +130,7 @@ P1-01 DB migration
 
 - [ ] Modal chỉ cho chọn Story/Defect.
 - [ ] Title/Name required.
-- [ ] Project/Team bắt buộc hợp lệ với user access.
+- [ ] Project bắt buộc; Team optional. Blank Team = Project backlog; selected Team phải hợp lệ với Project/user access.
 - [ ] Create sinh `item_key` atomically theo project.
 - [ ] Create with details mở detail của item vừa tạo.
 
@@ -167,7 +167,7 @@ P1-01 DB migration
 
 ### Time / Content / Attachments / Activity
 
-- [ ] Estimate/To Do/Actual persist đúng và không âm.
+- [ ] To Do/Actual persist đúng và không âm; Estimate read-only luôn bằng To Do + Actual.
 - [ ] Rich text được sanitize trước khi lưu/hiển thị.
 - [ ] Attachment upload lưu metadata và object storage key.
 - [ ] Mọi create/update/Schedule State/Flow State/Defect Priority/owner/time/attachment action ghi `activity_logs`.

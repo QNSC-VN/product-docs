@@ -25,22 +25,22 @@ export const NAV_ITEMS: { key: Page; label: string; icon: React.ReactNode; child
   { key: "backlog", label: "Plan", icon: <Calendar size={12} />, children: [{ key: "backlog", label: "Backlog", icon: <AlignJustify size={12} /> }, { key: "iterations", label: "Timeboxes", icon: <RotateCw size={12} /> }] },
   { key: "track", label: "Track", icon: <Activity size={12} />, children: [{ key: "track", label: "Iteration Status", icon: <Activity size={12} /> }, { key: "teamStatus", label: "Team status", icon: <ListChecks size={12} /> }] },
   { key: "quality", label: "Quality", icon: <CheckCircle size={12} />, children: [{ key: "quality", label: "Defect", icon: <AlertTriangle size={12} /> }] },
-  { key: "portfolio", label: "Portfolio", icon: <Package size={12} />, children: [{ key: "releasePlanning", label: "Release Planning (Phase 5)", icon: <Tag size={12} /> }] },
+  { key: "portfolio", label: "Portfolio", icon: <Package size={12} />, children: [{ key: "portfolio", label: "Portfolio Items", icon: <Package size={12} /> }, { key: "capacityPlanning", label: "Capacity Planning", icon: <Tag size={12} /> }] },
   { key: "reports", label: "Reports", icon: <BarChart2 size={12} /> },
 ];
 
 export function TopNav({
-  currentPage, onNavigate, currentRole, onRoleChange, unreadCount, currentProject, currentTeam, onScopeChange, onSignOut, onCreateProject,
+  currentPage, onNavigate, currentRole, onRoleChange, unreadCount, currentProject, currentTeam, onScopeChange, onSignOut,
 }: {
   currentPage: Page; onNavigate: (p: Page) => void;
   currentRole: Role; onRoleChange: (r: Role) => void; unreadCount: number;
   currentProject: ScopeProject; currentTeam: string;
   onScopeChange: (project: ScopeProject, team: string) => void;
   onSignOut: () => void;
-  onCreateProject: () => void;
 }) {
   const [wsOpen, setWsOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [openNavKey, setOpenNavKey] = useState<Page | null>(null);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set(["NXP"]));
   const roles: Role[] = ["Workspace Admin", "Project Admin", "Project Member"];
@@ -51,8 +51,8 @@ export function TopNav({
     : SCOPE_PROJECTS;
   const visibleNavItems = currentRole === "Project Member"
     ? NAV_ITEMS
-      .filter(item => ["home", "backlog", "track"].includes(item.key))
-      .map(item => item.children ? { ...item, children: item.children.filter(child => child.key === "track" || child.key === "backlog") } : item)
+      .filter(item => ["home", "backlog", "track", "portfolio"].includes(item.key))
+      .map(item => item.children ? { ...item, children: item.children.filter(child => child.key === "track" || child.key === "backlog" || child.key === "portfolio" || child.key === "capacityPlanning") } : item)
     : NAV_ITEMS;
   function toggleProject(key: string) {
     setExpandedProjects(prev => {
@@ -69,7 +69,7 @@ export function TopNav({
           <Layers size={13} className="text-white" />
         </div>
         <div className="relative">
-          <button onClick={() => { setWsOpen(o => !o); setUserOpen(false); }} className="flex items-center gap-1.5 text-white hover:opacity-90 text-left">
+          <button onClick={() => { setWsOpen(o => !o); setUserOpen(false); setSettingsOpen(false); }} className="flex items-center gap-1.5 text-white hover:opacity-90 text-left">
             <div className="leading-tight">
               <div className="text-[12px] font-semibold">ACME Space Inc.</div>
               <div className="text-[8px] font-normal truncate max-w-44" style={{ color: "rgba(255,255,255,0.55)" }}>{currentProject.key} · {currentTeam}</div>
@@ -80,7 +80,7 @@ export function TopNav({
             <div className="absolute left-0 top-full mt-1 w-80 bg-white rounded shadow-xl z-50 py-1.5 overflow-hidden" style={{ border: "1px solid #d9dee7" }}>
               <div className="px-3 py-2.5 flex items-center gap-2.5" style={{ borderBottom: "1px solid #e2e6eb", backgroundColor: "#f7f8fa" }}>
                 <div className="w-7 h-7 rounded flex items-center justify-center" style={{ backgroundColor: "#e5ebf4", color: "#1d3f73" }}><Layers size={14} /></div>
-                <div className="flex-1 min-w-0"><div className="text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Company / Workspace</div><div className="text-[12px] font-semibold truncate" style={{ color: "#1a2234" }}>ACME Space Inc.</div></div>
+                <div className="flex-1 min-w-0"><div className="text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Workspace</div><div className="text-[12px] font-semibold truncate" style={{ color: "#1a2234" }}>ACME Space Inc.</div></div>
                 <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-sm" style={{ color: "#1e6930", backgroundColor: "#eaf5ed" }}>Active</span>
               </div>
               <div className="px-3 pt-2 pb-1 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Projects & Teams</div>
@@ -110,9 +110,6 @@ export function TopNav({
                   );
                 })}
               </div>
-              <div className="border-t border-[#e2e6eb] mt-1 pt-1 px-1.5 flex items-center justify-end">
-                {currentRole !== "Project Member" && <button aria-label="Manage workspace projects" title="Manage workspace projects" onClick={() => { onNavigate("projects"); setWsOpen(false); }} className="flex items-center gap-1 px-2 py-1.5 text-[10px] rounded hover:bg-[#f4f6f9]" style={{ color: "#5c6478" }}><Settings size={11} /> Manage Projects</button>}
-              </div>
             </div>
           )}
         </div>
@@ -126,7 +123,7 @@ export function TopNav({
           <div key={label} className="relative">
             <div className="flex items-center rounded transition-colors" style={{ backgroundColor: active ? "rgba(255,255,255,0.16)" : "transparent" }}>
               <button onClick={() => { onNavigate(key); setOpenNavKey(null); }} className="flex items-center gap-1.5 pl-2.5 pr-1 py-1 text-[11px] font-medium" style={{ color: active ? "#ffffff" : "rgba(255,255,255,0.65)" }}>{icon}{label}</button>
-              <button aria-label={`Open ${label} menu`} onClick={() => { setOpenNavKey(current => current === key ? null : key); setWsOpen(false); setUserOpen(false); }} className="pr-2 py-1" style={{ color: active ? "#ffffff" : "rgba(255,255,255,0.55)" }}><ChevronDown size={9} /></button>
+              <button aria-label={`Open ${label} menu`} onClick={() => { setOpenNavKey(current => current === key ? null : key); setWsOpen(false); setUserOpen(false); setSettingsOpen(false); }} className="pr-2 py-1" style={{ color: active ? "#ffffff" : "rgba(255,255,255,0.55)" }}><ChevronDown size={9} /></button>
             </div>
             {open && (
               <div className="absolute left-0 top-full mt-1 w-44 bg-white rounded shadow-lg z-50 py-1" style={{ border: "1px solid #d9dee7" }}>
@@ -136,7 +133,7 @@ export function TopNav({
             )}
           </div>
         ) : (
-          <button key={key} onClick={() => { onNavigate(key); setOpenNavKey(null); }} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded transition-colors"
+          <button key={key} onClick={() => { onNavigate(key); setOpenNavKey(null); setSettingsOpen(false); }} className="flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-medium rounded transition-colors"
             style={{ backgroundColor: currentPage === key ? "rgba(255,255,255,0.16)" : "transparent", color: currentPage === key ? "#ffffff" : "rgba(255,255,255,0.65)" }}
             onMouseEnter={e => { if (currentPage !== key) { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "#fff"; } }}
             onMouseLeave={e => { if (currentPage !== key) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
@@ -156,13 +153,22 @@ export function TopNav({
         </button>
         <button aria-label="Help" title="Help" className="p-1.5 rounded" style={{ color: "rgba(255,255,255,0.65)" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}><HelpCircle size={14} /></button>
         {can.viewAdmin(currentRole) && (
-          <button aria-label="Workspace Settings" title="Workspace Settings" onClick={() => onNavigate("settings")} className="p-1.5 rounded" style={{ color: currentPage === "settings" ? "#fff" : "rgba(255,255,255,0.65)", backgroundColor: currentPage === "settings" ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { if (currentPage !== "settings") { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
-            <Settings size={14} />
-          </button>
+          <div className="relative">
+            <button aria-label="Open workspace settings menu" title="Workspace settings" onClick={() => { setSettingsOpen(open => !open); setWsOpen(false); setUserOpen(false); setOpenNavKey(null); }} className="p-1.5 rounded" style={{ color: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "#fff" : "rgba(255,255,255,0.65)", backgroundColor: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { if (currentPage !== "settings" && currentPage !== "projects" && !settingsOpen) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
+              <Settings size={14} />
+            </button>
+            {settingsOpen && (
+              <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded shadow-lg z-50 py-1" style={{ border: "1px solid #e2e6eb" }}>
+                <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Workspace</div>
+                <button onClick={() => { onNavigate("settings"); setSettingsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-left hover:bg-[#f4f6f9]" style={{ color: currentPage === "settings" ? "#1d3f73" : "#1a2234", backgroundColor: currentPage === "settings" ? "#edf2fb" : "transparent", fontWeight: currentPage === "settings" ? 600 : 400 }}><Globe size={12} /><span className="flex-1">Workspace Settings</span>{currentPage === "settings" && <Check size={11} />}</button>
+                <button aria-label="Project Management" onClick={() => { onNavigate("projects"); setSettingsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-left hover:bg-[#f4f6f9]" style={{ color: currentPage === "projects" ? "#1d3f73" : "#1a2234", backgroundColor: currentPage === "projects" ? "#edf2fb" : "transparent", fontWeight: currentPage === "projects" ? 600 : 400 }}><Package size={12} /><span className="flex-1">Project Management</span>{currentPage === "projects" && <Check size={11} />}</button>
+              </div>
+            )}
+          </div>
         )}
         <div className="w-px h-4 mx-1" style={{ backgroundColor: "rgba(255,255,255,0.2)" }} />
         <div className="relative">
-          <button onClick={() => { setUserOpen(o => !o); setWsOpen(false); }} className="flex items-center gap-2 px-2 py-1 rounded" style={{ backgroundColor: userOpen ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")} onMouseLeave={e => { if (!userOpen) e.currentTarget.style.backgroundColor = "transparent"; }}>
+          <button onClick={() => { setUserOpen(o => !o); setWsOpen(false); setSettingsOpen(false); }} className="flex items-center gap-2 px-2 py-1 rounded" style={{ backgroundColor: userOpen ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")} onMouseLeave={e => { if (!userOpen) e.currentTarget.style.backgroundColor = "transparent"; }}>
             <Avatar owner={OWNERS[0]} size="sm" />
             <div className="text-left hidden sm:block">
               <div className="text-[11px] font-medium text-white leading-none">Marcus Webb</div>
@@ -243,16 +249,17 @@ export function ContextBar({ currentPage, currentProject, currentTeam }: { curre
   if (currentPage === "settings" || currentPage === "notifications") return null;
   const crumbs: Record<Page, string[]> = {
     home: ["ACME Space Inc.", "Home"],
-    projects: ["ACME Space Inc.", "Manage Projects"],
+    projects: ["ACME Space Inc.", "Project Management"],
     backlog: [currentProject.name, "Plan", "Backlog"],
     iterations: [currentProject.name, "Plan", "Timeboxes"],
     track: [currentProject.name, "Track", "Iteration Status"],
     teamBoard: [currentProject.name, "Track", "Team board"],
     teamStatus: [currentProject.name, "Track", "Team status"],
     quality: [currentProject.name, "Quality", "Defects"],
-    portfolio: [currentProject.name, "Portfolio", "Initiatives"],
+    portfolio: [currentProject.name, "Portfolio", "Portfolio Items"],
+    capacityPlanning: [currentProject.name, "Portfolio", "Capacity Planning"],
     releasePlanning: [currentProject.name, "Portfolio", "Release Planning (Phase 5)"],
-    releases: [currentProject.name, "Releases"],
+    releases: [currentProject.name, "Plan", "Timeboxes", "Releases"],
     reports: [currentProject.name, "Reports"],
     notifications: [],
     settings: [],
@@ -272,7 +279,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam }: { curre
       <div className="flex-1" />
       {!["projects", "backlog", "iterations", "track", "teamBoard", "teamStatus"].includes(currentPage) && (
         <div className="flex items-center gap-4" style={{ borderLeft: "1px solid #e2e6eb", paddingLeft: "1rem" }}>
-          {["home", "projects"].includes(currentPage) && <CtxSelect label="Company" value="ACME Space Inc." />}
+          {["home", "projects"].includes(currentPage) && <CtxSelect label="Workspace" value="ACME Space Inc." />}
           {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} />}
           {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Release" value="Q4 2024" />}
           {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Iteration" value="Sprint 24.3" />}

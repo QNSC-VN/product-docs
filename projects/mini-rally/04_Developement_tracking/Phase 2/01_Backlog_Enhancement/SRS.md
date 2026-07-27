@@ -56,14 +56,14 @@ Workspace selector chọn Project/Team
 
 Nghiệp vụ chính:
 
-- Project/Team context được lấy từ workspace selector ở top navigation.
+- Project and optional Team context is read from the workspace selector in the top navigation.
 - Khi user chọn một Team thuộc Project nào, Backlog chỉ load Story/Defect thuộc đúng Project/Team đó.
-- Khi tạo Work Item từ Backlog, field Project và Team được auto-fill theo Project/Team context hiện tại.
+- Khi tạo Work Item từ Backlog, field Project được auto-fill theo context hiện tại; Team có thể để trống để item thuộc Project backlog.
 - Account hiện tại trong mockup là Workspace Admin, nên vẫn có quyền đổi Project/Team trong form tạo/chỉnh sửa nếu cần.
 - Một Story/Defect có thể chưa thuộc Iteration nào; UI hiển thị `Unscheduled`.
 - Gán Iteration không tạo bản sao Work Item và không xóa item khỏi Backlog.
 - Khi đổi Iteration, Work Item chuyển sang Iteration mới và sẽ không còn xuất hiện trong Iteration Status của Iteration cũ.
-- Iteration được chọn phải thuộc cùng Project/Team context với Work Item, trừ khi BA/PO sau này cho phép cross-team planning.
+- Iteration được chọn phải thuộc cùng Project và matching optional Team scope với Work Item, trừ khi BA/PO sau này cho phép cross-team planning.
 - Backlog vẫn là danh sách quản lý scope; Iteration Status là màn tracking các item đã được assign.
 
 ## 4. Functional Requirements
@@ -74,7 +74,7 @@ Nghiệp vụ chính:
 | P2-BL-FR-001A | Changing workspace selector Project/Team refreshes Backlog and only shows records in that Project/Team. |
 | P2-BL-FR-001B | Create Work Item defaults Project and Team from the current workspace selector context. |
 | P2-BL-FR-001C | Workspace Admin may override Project and Team during create/edit, but selected Team must be valid for selected Project. |
-| P2-BL-FR-001D | `All Teams` is allowed as a Phase 2 context; permission-specific create/edit restrictions are deferred. |
+| P2-BL-FR-001D | Team is optional. Blank Team means Project-level / Project backlog scope. `All Teams` is not required for Phase 0-4 Iteration Status. |
 | P2-BL-FR-002 | Backlog chỉ hiển thị Story và Defect; không hiển thị Task/Feature như backlog item độc lập. |
 | P2-BL-FR-003 | User có thể search theo `item_key` hoặc `title` bằng quick search `Search work...` ở toolbar. |
 | P2-BL-FR-004 | Filter gồm Type, Schedule State, Defect Priority, Owner, Release và Iteration. |
@@ -113,7 +113,7 @@ Nghiệp vụ chính:
 | Inline priority | Select trong Priority column | PATCH priority cho Defect |
 | Inline estimate | Number input trong Est column | PATCH story points/plan estimate |
 | Inline owner | Owner select | PATCH assignee |
-| Inline status | Schedule State select | PATCH Schedule/Flow atomically; không nhận Code Review, Testing hoặc Released |
+| Inline status | Schedule State six-box control and Flow State dropdown | PATCH Schedule/Flow atomically; không nhận Code Review, Testing hoặc Released |
 | Inline release | Release select | PATCH release |
 | Inline iteration | Iteration select | PATCH iteration assignment |
 | Bulk release | Selected bar release select | Bulk mutation |
@@ -251,7 +251,7 @@ Rules:
 
 - All items must belong to same tenant/project.
 - Each item must be Story or Defect in P2.1 scope.
-- Iteration must belong to the same Project/Team context as the work items.
+- Iteration must belong to the same Project and matching optional Team scope as the work items.
 - `iterationId = null` or explicit unassigned value moves selected items to `Unscheduled`.
 - Partial success is not allowed in P2.1; fail the whole request if any item is invalid.
 
@@ -316,10 +316,10 @@ Viewer role must render read-only controls and must be blocked by API if direct 
 ## 11. Acceptance Criteria
 
 1. Backlog P2.1 only displays Story and Defect.
-2. Backlog list respects the active workspace selector Project/Team context.
+2. Backlog list respects the active workspace selector Project and optional Team context.
 3. Changing workspace selector Project/Team refreshes Backlog records.
 4. Create Work Item auto-fills Project and Team from the active workspace selector context.
-5. Workspace Admin can override Project/Team in create/edit where enabled, but selected Team must belong to selected Project.
+5. Workspace Admin can override Project/Team in create/edit where enabled, but selected Team must belong to selected Project when supplied.
 6. Quick search `Search work...` remains visible in the toolbar and searches ID/title.
 7. Manage Filters allows selecting multiple columns and combines active filters after Apply.
 8. ID/Name/Est filters use text or number input; other supported fields use dropdown values.

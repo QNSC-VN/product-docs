@@ -20,11 +20,11 @@
 - Actual: two persisted Task rows exist and roll-up is 6h, but the tab remains `0 Tasks`.
 - Fix: derive tab count, table rows and roll-up from the same child Task collection and refresh after mutations.
 
-## DEV-013 — Create Task time contract (NOT A GAP — corrected)
+## DEV-013 / P0 — Create Task time contract
 
-- Corrected expectation: Estimate, To Do and Actuals are independent, user-owned values (real Rally); Estimate is a client-set planned value and is NOT derived from To Do + Actuals.
-- Actual: Create Task accepts an independent Estimate — this is the correct real-Rally model, not a defect.
-- Resolution: no fix required. The earlier "Estimate = To Do + Actuals" expectation was over-strict and has been withdrawn.
+- Expected: Estimate is read-only and equals `To Do + Actuals`.
+- Actual: Create Task accepts an independent Estimate and has no To Do/Actuals fields.
+- Fix: capture To Do/Actuals or initialize both to zero; calculate Estimate rather than accepting it as an independent input.
 
 ## DEV-014 / P0 — Missing inline edit
 

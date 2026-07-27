@@ -15,6 +15,16 @@
 
 Work Item Detail là nơi user xem/sửa dữ liệu nghiệp vụ của Story/Defect. UI gồm banner, tab Details/Tasks/Revision History, vùng nội dung trái và field sidebar phải.
 
+## 1.1 DevInt Audit Reconciliation - 2026-07-24
+
+BA confirmed the current Detail state display contract:
+
+- `Schedule State` is the six-box state control.
+- `Flow State` is a dropdown.
+- Both fields use the same six-value catalog and mirror in both directions.
+- Team is optional: blank Team means Project backlog; selected Team means Team backlog.
+- Tasks under the Work Item use only one Task State and do not expose Schedule/Flow State.
+
 ## 2. Tài liệu tham chiếu
 
 | Tài liệu | Phần tham chiếu | Mục đích |
@@ -40,6 +50,7 @@ Work Item Detail là nơi user xem/sửa dữ liệu nghiệp vụ của Story/D
 | WID-FR-010 | Project Admin outside managed Project chỉ có read-only access và không sửa được field. |
 | WID-FR-011 | Refresh/direct URL detail phải load đúng item. |
 | WID-FR-012 | Schedule State và Flow State dùng cùng catalog `Idea/Defined/In-Progress/Completed/Accepted/Release`; đổi một field phải phản ánh field còn lại trong MVP. |
+| WID-FR-012A | UI rendering: Schedule State uses the six-box control; Flow State uses a dropdown. |
 | WID-FR-013 | Rule Schedule/Flow áp dụng cho Story/Defect; child Task tiếp tục chỉ dùng `Defined/In-Progress/Completed`. |
 | WID-FR-014 | Work Item có zero/one Release và zero/many Milestones. Milestone selector luôn giữ visible các giá trị đã chọn; đổi Release không tự thêm/xóa Milestone. Nếu đã có Release, chỉ option thêm mới bị lọc theo Milestone liên kết Release đó. |
 | WID-FR-015 | Gán Work Item vào Iteration chỉ thay đổi membership; không tự chuyển Iteration sang Committed và không khóa scope. Lifecycle Iteration tham chiếu Phase 2. |
@@ -68,7 +79,7 @@ Work Item Detail là nơi user xem/sửa dữ liệu nghiệp vụ của Story/D
 | Release Notes | `releaseNotes` | `work_items.release_notes` | Technical writer content | Nullable; requires Phase 1 migration |
 | Owner | `assignee` | `work_items.assignee_id → users` | Responsible person | Nullable → Unassigned |
 | Project | `project` | `work_items.project_id → projects` | Scope | Required; changing project is advanced, may be disabled |
-| Team | `team` | `work_items.team_id → teams` | Team scope | Nullable; validate `project_teams` |
+| Team | `team` | `work_items.team_id → teams` | Team scope | Nullable; blank = Project backlog; if selected, validate `project_teams` |
 | Schedule State | `scheduleState` | `work_items.schedule_state` | Trạng thái lập lịch/độ chín nghiệp vụ | Required; enum `Idea/Defined/In-Progress/Completed/Accepted/Release`; default Idea; mirror Flow State trong MVP |
 | Flow State | `flowState` | `work_items.flow_state` | Trạng thái luồng thực thi | Required; cùng enum/default với Schedule State; mirror Schedule State trong MVP |
 | Priority | `priority` | `work_items.priority` | Mức ưu tiên Defect | Chỉ show/edit khi `type='defect'`; enum `Low/Normal/High/Urgent/None` |

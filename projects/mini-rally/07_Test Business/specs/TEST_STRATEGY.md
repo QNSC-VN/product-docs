@@ -27,7 +27,7 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 | Phase 3 scope | Phase 3 includes Team Status, Release Management, Milestones and Quality/Defect. |
 | Team Board scope | Team Board, board drag/drop, WIP limits and board transition rules are Future Backlog only. |
 | Iteration metrics | Tasks active counts non-Completed child Tasks; Totals derive Plan Estimate from US/DE and Task Estimate/To Do from their child Tasks. |
-| Release Progress scope | Release detail shows a progress/burndown chart (real Rally); only the Portfolio `Release Planning` surface is deferred to Phase 5. |
+| Release Progress scope | Release Progress is excluded from Phase 3 list/detail and deferred to Phase 5 `Portfolio > Release Planning`. |
 | Permission | UI hide/disable is UX only; backend must still enforce permission. |
 | Audit | Important mutations should create activity/audit events according to each module's scope. |
 
@@ -97,5 +97,5 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 - Phase 0: Workspace self-service CRUD/switching is not required for single-company MVP.
 - Phase 1: Feature/Epic/Initiative, Kanban board, sprint planning drag/drop, advanced timesheet and full admin audit screen are deferred.
 - Phase 2: Team Status, Release Management, Milestones and Quality/Defect are not required for Phase 2 acceptance.
-- Phase 3: Team Board, board drag/drop, WIP limits, board transition rules, dedicated carry-over workflow, saved Team Status views and Defect reopen are not required unless BA later re-prioritizes them. (Defect grid bulk Copy/Delete and the Iteration Status List/Board view toggle ARE in scope as real-Rally behavior.)
-- Phase 4: Portfolio Release Planning, Reports, Workflow Status configuration and Labels are not required. (Notification Preferences are now an active Phase 4 feature.)
+- Phase 3: Team Board, board drag/drop, WIP limits, board transition rules, dedicated carry-over workflow, saved Team Status views, executable bulk actions and Defect reopen are not required unless BA later re-prioritizes them.
+- Phase 4: Portfolio Release Planning/Progress, Reports, Workflow Status configuration, Labels and notification preferences are not required.

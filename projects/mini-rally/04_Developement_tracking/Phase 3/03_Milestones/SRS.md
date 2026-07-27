@@ -34,7 +34,7 @@ User opens Plan > Timeboxes
 | ID | Requirement |
 |---|---|
 | P3-MS-FR-001 | User can open `Plan > Timeboxes` and select `Milestones`. |
-| P3-MS-FR-002 | Milestone dashboard leads with an ID column (generated per-project display key `MS-<n>`, shown with the milestone type glyph like US/DE), followed by Name, Target Start Date, Target End Date and Status. _(Amended 2026-07-22: ID column added for cross-grid consistency.)_ |
+| P3-MS-FR-002 | Milestone dashboard shows only Name, Target Start Date, Target End Date and Status. |
 | P3-MS-FR-003 | User can create a Milestone. |
 | P3-MS-FR-004 | User can open Milestone detail. |
 | P3-MS-FR-005 | Milestone detail shows Description and Notes rich text areas on the left, with metadata on the right. |
