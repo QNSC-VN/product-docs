@@ -40,7 +40,7 @@ Release Management is Project-level, not Team-level. A Release may still display
 | P3-REL-DC-015 | Release has an Artifacts view that shows assigned US/DE work items using the Backlog table presentation | Decided |
 | P3-REL-DC-016 | Release detail includes a `Release Notes` rich text area for readiness notes gathered from assigned US/DE notes | Decided |
 | P3-REL-DC-017 | Reassigning a US/DE from one Release to another replaces the old Release assignment and refreshes old/new Release artifact views | Decided |
-| P3-REL-DC-018 | Release Progress/Tracking is not Phase 3.2 scope; it belongs to `Portfolio > Release Planning` Future Backlog | Decided |
+| P3-REL-DC-018 | Release Progress + Burndown are shown on the Release detail (real Rally parity). | Decided |
 
 ## 3. Business Flow
 
@@ -107,7 +107,7 @@ Backlog / Work Item Detail or Release detail assigns Story/Defect items to a Rel
 | P3-REL-FR-034 | Release detail includes a `Release Notes` rich text area separate from Theme and Notes. |
 | P3-REL-FR-035 | Release readiness is user-managed from assigned US/DE release notes and the Release Notes field; system does not calculate readiness in Phase 3.2. |
 | P3-REL-FR-036 | After Release reassignment, the moved item disappears from the previous Release Artifacts view after refresh/refetch. |
-| P3-REL-FR-037 | Phase 3 Release list/detail must not add a Release Progress column/widget; Progress is deferred to Phase 5 `Portfolio > Release Planning`. |
+| P3-REL-FR-037 | Release detail shows Progress (task roll-up) + a Burndown chart (real Rally parity). |
 | P3-REL-FR-038 | After Release reassignment, old and new Release counters/roll-ups are recalculated and the user sees success or error feedback. |
 
 ## 5. Screen Mapping With Mockup
@@ -290,7 +290,7 @@ Rules:
 - UI must show a toast or equivalent feedback for successful reassignment and validation failure.
 - Reassignment must not alter Iteration or Milestone assignment.
 - Release readiness is not system-calculated from artifacts in Phase 3.2.
-- Release progress percentage, zero-state, formula and recalculation are not system-calculated/displayed in Phase 3.2.
+- Release progress percentage + burndown are system-calculated and displayed on the Release detail.
 
 ## 8. Permissions
 

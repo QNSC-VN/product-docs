@@ -5,7 +5,7 @@ Date: 2026-07-20
 ## Confirmed before suspension
 
 - `DEV-012`: Task tab count must equal the number of persisted child Tasks.
-- `DEV-013`: Task Estimate follows the confirmed business contract `Estimate = To Do + Actuals` and is not independently editable.
+- `DEV-013`: Task Estimate, To Do and Actuals are independent, user-owned values (real Rally); Estimate is client-set and NOT derived from To Do + Actuals. (Corrected: the earlier "Estimate = To Do + Actuals" contract was over-strict; the DevInt behavior of accepting an independent Estimate is the correct real-Rally model.)
 - `DEV-014`: Task Dashboard must support inline editing for the confirmed editable fields.
 
 ## Suspension reason

@@ -33,7 +33,8 @@
 ## Task and propagation
 
 - Task State uses `Defined`, `In-Progress`, `Completed`; default is `Defined`.
-- A Task inherits Project, Team, Iteration and Release/Milestone context through its parent Story/Defect.
+- A Task defaults to its parent Story/Defect's Project, Team, Iteration and Release/Milestone context, but a Task may hold its own Iteration independent of the parent within the same Project/Team (real Rally).
+- Task Estimate, To Do and Actuals are independent, user-owned values (real Rally); Estimate is a client-set planned value and is NOT derived from To Do + Actuals.
 - Task Dashboard supports inline edit. Task count and Task Active count all persisted child Tasks in scope.
 - When all child Tasks are Completed, the parent auto-changes to Completed.
 - Reopening any child Task auto-changes the parent to In-Progress.

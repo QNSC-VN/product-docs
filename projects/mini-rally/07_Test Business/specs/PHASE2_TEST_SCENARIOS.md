@@ -79,7 +79,7 @@ Important scope rules:
 | P2-IS-009 | P0 | List source of truth | Assign Work Item from Backlog to Iteration; open Iteration Status | Same item appears; no duplicate execution-only copy is created | Pass (M5.2 runtime: US-4822 appeared once) |
 | P2-IS-010 | P0 | List only selected Iteration | Select Iteration A then B | List contains only items whose `iterationId` matches selected Iteration | Pass (M5.2 runtime: Sprint M5.2 scoped list) |
 | P2-IS-011 | P1 | Required columns | Inspect list | Columns include checkbox, rank, ID, Type, Name, Schedule State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner | Not Run |
-| P2-IS-012 | P1 | No per-row Defects column | Inspect list | Per-row Defects column is not displayed | Not Run |
+| P2-IS-012 | P1 | Per-row Defects column | Inspect list | Iteration Status shows a per-row Defects column with the linked defect count (real Rally) | Not Run |
 | P2-IS-013 | P1 | Quick search and Manage Filters | Search/filter list | Behavior matches Backlog Enhancement patterns | Not Run |
 | P2-IS-014 | P1 | Sort/resize/pagination | Use grid controls | Sort, resize and pagination work | Not Run |
 | P2-IS-015 | P0 | Inline edit supported fields | Edit Name, Schedule State, Iteration, Plan Est, Owner | Changes persist with validation and permission enforcement | Not Run |
@@ -91,11 +91,11 @@ Important scope rules:
 | P2-IS-021 | P0 | Create with details from Add Item | Use Create with details | Full Work Item Detail opens using Backlog detail flow | Not Run |
 | P2-IS-022 | P1 | Empty/no iteration states | Open context with no Iterations or empty Iteration | Clear empty state and CTA/link to Timeboxes when permitted | Not Run |
 | P2-IS-023 | P1 | Out-of-scope Project Admin read-only | Open Iteration Status as Project Admin outside managed Project | Inline edit and Add Item hidden/disabled; API rejects mutation | Not Run |
-| P2-IS-024 | P0 | Child Task inherits Iteration | Assign or move a parent Story/Defect to another Iteration | All child Tasks contribute to the new Iteration metrics without an independent Task iteration assignment | Not Run |
+| P2-IS-024 | P0 | Child Task Iteration | Assign or move a parent Story/Defect to another Iteration | Child Tasks follow the parent Iteration by default, but each Task may also hold its own valid Iteration within the same Project/Team (real Rally); metrics count each Task under its effective Iteration | Not Run |
 | P2-IS-025 | P0 | No standalone Task rows | Open Iteration Status for an Iteration with child Tasks | List contains only Story/Defect rows; child Tasks affect metrics and totals but are not rendered as rows | Pass (mockup: 5 US/DE rows, no Task row) |
 | P2-IS-026 | P0 | Totals row | Inspect the line immediately under the table title/header | Totals show sums for scoped US/DE Plan Estimate, child Task Estimate and child Task To Do | Pass (M2 baseline: 21 / 34 / 14; M4 live To Do recalculation observed) |
 | P2-IS-027 | P0 | Shared status values | Change Schedule/Flow State in Backlog, Detail or Iteration Status | The same mirrored value appears on every surface; Iteration Status does not locally normalize legacy values | Pass (mockup M3: US-4821 Backlog -> Track/Detail; DE-1142 Quality -> Backlog) |
-| P2-IS-028 | P0 | List-only MVP guard | Inspect Iteration Status view controls | No active Board toggle/view is required; Iteration Status Board remains Future Backlog | Pass (mockup 2026-07-18) |
+| P2-IS-028 | P0 | List/Board view toggle | Inspect Iteration Status view controls | Iteration Status provides a List/Board view toggle reading the same scoped items (real Rally); board drag/drop and WIP limits remain Future Backlog | Not Run |
 
 ## Phase 2 smoke path
 

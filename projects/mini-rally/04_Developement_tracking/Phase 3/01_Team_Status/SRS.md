@@ -129,7 +129,7 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-003 | Page uses the same Iteration selector pattern as Iteration Status: previous button, combined Iteration name/date selector, next button. |
 | P3-TS-FR-004 | Iteration selector reads options from Timeboxes/Iterations. |
 | P3-TS-FR-005 | Changing Iteration refreshes the grouped table data and totals. |
-| P3-TS-FR-006 | Page does not show the Team Status search input. |
+| P3-TS-FR-006 | Page shows a local search input over the task list (real Rally parity). |
 | P3-TS-FR-007 | Page does not show a KPI strip above the table. |
 | P3-TS-FR-008 | Main content is a dense resizable table aligned with the Iteration Status table template. |
 | P3-TS-FR-009 | Header typography, row height and font size must match the approved Iteration Status dense table style. |
@@ -173,7 +173,7 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | Navigation | `Track > Team status` | Opens Team Status route/page |
 | Breadcrumb | `Nexus Platform 2025 > Track > Team status` | Uses current Project name from workspace context |
 | Iteration selector | Label `Iteration`, previous/next buttons, combined name/date dropdown | Reuse Iteration Status selector component/pattern |
-| Search input | Removed | No Team Status-specific quick search in P3.1 |
+| Search input | Present | Local quick search over the task list (real Rally parity) |
 | KPI strip | Removed | No KPI cards above table in P3.1 |
 | Table header | Dense header with sort icon and resize handle | Same visual template as Iteration Status |
 | Totals row | Capacity, Estimate, ToDo, Actuals totals | Calculated from filtered groups |
@@ -452,7 +452,7 @@ If the production RBAC model does not yet support field-level permissions, enfor
 3. Iteration selector uses the same visual/control pattern as Iteration Status.
 4. Iteration selector displays Iteration name and date range in one control.
 5. Previous/next iteration buttons update the selected Iteration.
-6. Team Status does not show a local search input.
+6. Team Status shows a local search input over the task list (real Rally parity).
 7. Team Status does not show a KPI strip above the table.
 8. Table columns are exactly Rank, ID, Task Name, Work Product, Release, State, Capacity, Estimate, ToDo, Actuals, Owner.
 9. Table header, row height and font size match the Iteration Status dense table template.

@@ -6,16 +6,16 @@ Phase 0 validates the base platform: authentication, app shell, fixed Company co
 
 | ID | Priority | Scenario | Steps | Expected result | Status |
 |---|---|---|---|---|---|
-| P0-AUTH-001 | P0 | Login with active admin | Open `/login`; enter valid Workspace Admin credentials; submit | User lands on Home or last valid protected route; session is created; app shell visible | Not Run |
-| P0-AUTH-002 | P0 | Invalid password does not expose account existence | Enter existing email with wrong password | Generic error only; no message proving whether account exists | Not Run |
-| P0-AUTH-003 | P0 | Email normalization | Login with uppercase email and leading/trailing spaces | Login succeeds for valid account after trim/lowercase normalization | Not Run |
+| P0-AUTH-001 | P0 | Login with active admin | Open `/login`; click `Sign in with Microsoft`; complete Microsoft SSO as a Workspace Admin | User lands on Home or last valid protected route; session is created; app shell visible | Not Run |
+| P0-AUTH-002 | P0 | SSO failure handling | Cancel or fail the Microsoft SSO challenge | Generic sign-in error only; no session created; no account-existence disclosure | Not Run |
+| P0-AUTH-003 | P0 | SSO identity mapping | Sign in with a Microsoft account whose email claim differs only in case/whitespace | User maps to the same provisioned account via normalized claim | Not Run |
 | P0-AUTH-004 | P0 | Refresh protected route keeps session | Login; open `/projects`; refresh browser | User remains on `/projects`; no redirect to login | Not Run |
 | P0-AUTH-005 | P0 | Logout revokes current session | Login; logout from user menu; access `/projects` directly | User returns to login; protected route requires login | Not Run |
 | P0-AUTH-006 | P1 | Return URL after anonymous protected access | Logout; open `/projects`; login successfully | System redirects back to original protected URL if return URL is safe | Not Run |
 | P0-AUTH-007 | P1 | Suspended/inactive user cannot access | Login or refresh session with suspended/inactive account | Access rejected; no valid protected session | Not Run |
-| P0-AUTH-008 | P1 | Forgot password neutral response | Submit forgot password for existing and non-existing email | Same neutral response for both cases | Not Run |
-| P0-AUTH-009 | P1 | Reset token one-time and expiry | Use reset token once; retry; test expired token | First valid use works; reused/expired token is rejected | Not Run |
-| P0-AUTH-010 | P1 | No sensitive auth data in client logs | Login/logout and inspect console/network-visible app logs | No raw password, raw token, password hash or session hash is logged | Not Run |
+| P0-AUTH-008 | P1 | No local password recovery UI | Inspect the login screen | Only `Sign in with Microsoft` is offered; no forgot/reset password UI (password recovery is handled by Microsoft) | Not Run |
+| P0-AUTH-009 | P1 | Session expiry and refresh | Let the server session expire, then access a protected route | Expired session redirects to login; a valid session refreshes silently | Not Run |
+| P0-AUTH-010 | P1 | No sensitive auth data in client logs | Login/logout and inspect console/network-visible app logs | No raw SSO token, id_token, access_token or session identifier is logged | Not Run |
 
 ## P0-SHELL - App Shell and Navigation
 

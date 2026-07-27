@@ -10,9 +10,9 @@ Phase 1 validates the core work management slice: Manage Projects, Settings Team
 | P1-MANAGE-002 | P0 | Settings Teams columns | Open top-right Settings gear; choose Teams | Columns are Key, Team, Project, Status, Lead, Updated and permitted Actions; no Members/Capacity/Velocity columns | Pass (runtime smoke 2026-07-19) |
 | P1-MANAGE-003 | P0 | Create Team happy path | Create Team with Project, lead, name, key, description, status | Team is created under selected Project and available for context/backlog flows | Not Run |
 | P1-MANAGE-004 | P0 | Create Team validation | Submit missing required name/key/project or duplicate key | Validation blocks save with clear errors | Not Run |
-| P1-MANAGE-005 | P1 | Edit Team | Update Team Info fields | Changes persist and updated timestamp changes | Not Run |
-| P1-MANAGE-006 | P1 | Team Members tab | Open Create/Edit Team modal Members tab; add/remove/search member | Searchable member selector works; membership persists | Not Run |
-| P1-MANAGE-007 | P1 | No capacity/velocity fields in Create Team | Inspect Create/Edit Team modal | Capacity and Velocity are not present in Phase 1 team create/edit | Not Run |
+| P1-MANAGE-005 | P1 | Edit Team inline | Edit Team Info fields inline in the Teams list (create uses a modal; editing is inline, real Rally) | Changes persist and updated timestamp changes | Not Run |
+| P1-MANAGE-006 | P1 | Team Members management | Open the Team members panel; add/remove/search member | Searchable member selector works; membership persists | Not Run |
+| P1-MANAGE-007 | P1 | No capacity/velocity fields | Inspect the Create Team modal and Team edit surface | Capacity and Velocity are not present in Phase 1 team create/edit | Not Run |
 | P1-MANAGE-008 | P0 | Invite User with role and team membership | Open Users tab; invite user with role/team | User invitation/member record is created; project access derives from Team, not direct project assignment | Not Run |
 | P1-MANAGE-009 | P1 | Deactivate/reactivate user | Deactivate user; verify access; reactivate | Deactivated user loses access; reactivated user can access again per role | Not Run |
 | P1-MANAGE-010 | P1 | Permission guard on manage mutations | Attempt create/edit/deactivate as Project Admin outside managed Project | UI hides/disables action and backend rejects direct mutation | Not Run |
@@ -74,7 +74,7 @@ Phase 1 validates the core work management slice: Manage Projects, Settings Team
 | P1-TASK-009A | P0 | Task Dashboard inline edit | Edit Name, State, Owner, To Do, Actuals and Estimate inline | Values update the same Task record without opening Task Detail | Pass (M4 runtime) |
 | P1-TASK-009B | P0 | All Tasks complete parent | Complete the final non-Completed child Task | Parent Story/Defect Schedule State and Flow State automatically move to `Completed` | Pass (M4 runtime: US-4821) |
 | P1-TASK-010 | P0 | Reopen Task auto-reverses completed parent | Complete all Tasks, then reopen one Task | Task metrics recalculate and parent US/DE automatically moves from `Completed` to `In-Progress` | Pass (M4 rerun: TA-482106 reopened; US-4821 Completed -> In-Progress) |
-| P1-TASK-011 | P1 | Task inherits parent Iteration | Move parent US/DE to another Iteration | The Task is counted in the parent’s new Iteration and has no independent Iteration selector | Pass (M4/M5.2 runtime) |
+| P1-TASK-011 | P1 | Task Iteration default and override | Move parent US/DE to another Iteration; open a child Task | The Task defaults to the parent's Iteration but exposes its own Iteration selector limited to the same Project/Team scope (real Rally); metrics count the Task under its effective Iteration | Not Run |
 
 ## P1-TIME-CONTENT - Time, Content, Attachments
 

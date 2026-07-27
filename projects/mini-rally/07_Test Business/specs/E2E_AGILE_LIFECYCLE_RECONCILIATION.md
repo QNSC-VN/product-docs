@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This is the canonical BA/UAT flow proving that Phase 0-4 screens operate as one Agile management chain with shared Work Item identity and shared status values. Release Progress is explicitly excluded and belongs to Phase 5 `Portfolio > Release Planning`.
+This is the canonical BA/UAT flow proving that Phase 0-4 screens operate as one Agile management chain with shared Work Item identity and shared status values. Release detail shows a progress/burndown chart (real Rally); only the Portfolio `Release Planning` surface belongs to Phase 5.
 
 ## Baseline data
 
@@ -22,7 +22,7 @@ This is the canonical BA/UAT flow proving that Phase 0-4 screens operate as one 
 | 3 | Create Story and Defect in Backlog | Schedule State and Flow State both default to `Idea`; same IDs open in Work Item Detail |
 | 4 | Assign zero/one Release and zero/many Milestones to each Work Item | Release and Milestone relations persist independently; related add options follow the selected Release without removing existing Milestones |
 | 5 | Assign both Work Items to the Iteration, then commit sprint scope | Assignment leaves the Iteration in `Planning`; an authorized user manually changes it to `Committed`. Backlog retains the same items and scope remains editable. |
-| 6 | Create child Tasks from Work Item Detail | Tasks inherit parent Iteration; no independent Task assignment and no standalone Task row in Backlog or Iteration Status |
+| 6 | Create child Tasks from Work Item Detail | Tasks default to the parent Iteration but may each hold their own valid Iteration within the same Project/Team (real Rally); no standalone Task row appears in Backlog or Iteration Status |
 | 7 | Edit Task state/time in Task Dashboard or Task Detail | Same Task ID/state/Estimate/To Do is reflected in Work Item Tasks and Team Status; Iteration Tasks active and Totals recalculate |
 | 8 | Complete some but not all Tasks | Parent US/DE remains user-controlled and is not auto-completed |
 | 9 | Complete all child Tasks of one parent | Parent Schedule/Flow State auto-mirrors to `Completed`; authorized user may still change it manually |
@@ -47,7 +47,7 @@ This is the canonical BA/UAT flow proving that Phase 0-4 screens operate as one 
 3. Child Task State uses only `Defined`, `In-Progress`, `Completed`.
 4. Defect State stays independent: `Submitted`, `Open`, `Fixed`, `Closed`, `Closed Declined`.
 5. Automatic parent/Iteration updates never lock authorized manual status changes or prevent adding US/DE during a `Committed` Iteration; assignment does not auto-commit and auto-accept never auto-reverses.
-6. Phase 3 Release list/detail contains no Release Progress column, percentage or widget.
+6. Release detail shows a progress/burndown chart (real Rally); only the Portfolio `Release Planning` surface is excluded from Phase 3.
 
 ## Mockup execution evidence - 2026-07-19
 

@@ -21,7 +21,7 @@
 ## Confirmed gaps
 
 - `DEV-004`: DevInt exposes active top-level `Releases`; Phase 3 Release Management belongs under `Plan > Timeboxes`.
-- `DEV-005`: the list exposes `Progress`; Release Tracking belongs to Future Phase 5 at `Portfolio > Release Planning`.
+- `DEV-005`: Release progress/burndown is valid real-Rally behavior and is kept (shown on Release detail); only the Portfolio `Release Planning` surface belongs to Future Phase 5. (Corrected: progress is not deferred; only its Portfolio placement is Phase 5.)
 
 ## Evidence
 

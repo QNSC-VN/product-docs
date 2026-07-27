@@ -53,7 +53,7 @@ When an older SRS conflicts with a later BA confirmation, the E2E test follows t
 - `Team Alpha` is selectable but is not linked to Project `NXP`; this is retained as a deferred Team-data finding.
 - BA confirmed adding `Type` and `Project` to Iteration quick create; this remains a Dev UI change.
 - `E2E-02`: two controlled Releases were created once and persisted with the correct status catalog.
-- BA confirmed Release Management must move under Timeboxes and Release Progress belongs to Phase 5.
+- BA confirmed Release Management placement under Timeboxes (a nav decision); Release progress/burndown is retained as valid real-Rally behavior on Release detail, and only the Portfolio `Release Planning` surface belongs to Phase 5.
 - `E2E-03`: standalone Milestone creation passed, but two-Release linkage and derived dates are blocked because the picker shows no Releases.
 - BA confirmed the Milestone integration gap and the Release multi-select / derived-date fix direction.
 - `E2E-04`: Backlog Story creation is blocked. `No team` returns a generic unexpected error; `Team Alpha` is not linked to `NXP`; exact-title search confirms no record was created.
@@ -68,6 +68,6 @@ When an older SRS conflicts with a later BA confirmation, the E2E test follows t
 - BA confirmed the missing Milestone control as a Dev change.
 - `E2E-07`: `TA-8` and `TA-9` were created once under US-12, defaulted Defined, inherited NXP/no-Team context, persisted after reload, and did not appear in Backlog.
 - Task count is inconsistent: the table has two rows and roll-up Estimate is 6h, but the tab still displays `0 Tasks`.
-- Create Task exposes editable Estimate without To Do/Actuals, and Task rows do not expose the confirmed inline editing controls.
-- BA confirmed all three Task gaps: count must equal the persisted child Task total, time fields must follow the defined `Estimate = To Do + Actuals` contract, and Task Dashboard must support inline editing.
+- Task rows did not expose the confirmed inline editing controls. (Create Task exposing an editable Estimate is correct real-Rally behavior, not a gap.)
+- BA confirmed the Task gaps: count must equal the persisted child Task total, and Task Dashboard must support inline editing. The time model is corrected to real Rally — Estimate, To Do and Actuals are independent, user-owned values; Estimate is NOT derived from To Do + Actuals.
 - `E2E-08` is paused before execution because DevInt was turned off. Resume from Task time/status propagation using existing `TA-8` and `TA-9`; do not recreate the controlled Tasks.
