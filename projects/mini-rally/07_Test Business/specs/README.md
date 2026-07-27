@@ -30,7 +30,7 @@ Login
 -> Apply Notifications / RBAC / Settings / Audit governance
 ```
 
-`Team Board`, `Iteration Status Board` and `Portfolio > Release Planning` are intentionally preserved in Future Backlog only. Release Progress is not required for the Phase 0-4 Agile management MVP test pass.
+The standalone `Team Board` and `Portfolio > Release Planning` are intentionally preserved in Future Backlog only. The Iteration Status List/Board view toggle and the Release detail progress/burndown chart ARE in scope as real-Rally behavior; only advanced board mechanics (drag/drop, WIP) and the Portfolio Release Planning surface are deferred.
 
 ## Files in this folder
 
@@ -63,5 +63,5 @@ Login
 - Future/deferred scope should be marked `N/A` or `Deferred`, not failed.
 - If production does not allow self-service Workspace create/switch because the MVP is single-company, that is an expected Phase 0 result.
 - For Phase 2, `All Teams` is a valid context; permission-specific restrictions are deferred to the permissions/governance phase.
-- For Phase 3, `Team Board` is Future Backlog; missing board implementation is not a Phase 3 failure.
-- Release Progress is Phase 5 `Portfolio > Release Planning`; its absence from Phase 3 is expected.
+- For Phase 3, the standalone `Team Board` is Future Backlog; missing standalone board implementation is not a Phase 3 failure.
+- Release detail progress/burndown is in scope (real Rally); only the Portfolio `Release Planning` surface is Phase 5.

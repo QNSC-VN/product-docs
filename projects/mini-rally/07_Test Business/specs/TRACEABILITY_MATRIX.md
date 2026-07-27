@@ -6,7 +6,7 @@ This matrix links business scope to test coverage and source documents.
 
 | Module | Source | Key business requirement | Test coverage | Out-of-scope / note |
 |---|---|---|---|---|
-| Authentication | `Phase 0/02_Authentication/SRS.md` | Login, session, logout, return URL, neutral auth errors | `P0-AUTH-*`, `E2E-001` | Forgot/reset may be deferred in short Phase 0 delivery but remains documented. |
+| Authentication | `Phase 0/02_Authentication/SRS.md` | Microsoft SSO login, session, logout, return URL, safe auth errors | `P0-AUTH-*`, `E2E-001` | Internal product: Microsoft SSO is the only sign-in; no local password / forgot / reset UI. |
 | App Shell | `Phase 0/01_App_Shell/SRS.md` | Protected layout, route metadata, deep link, 403/404/error states | `P0-SHELL-*`, `E2E-008` | Permission-specific nav depends on role data. |
 | Company Context | `Phase 0/03_Workspace/SRS.md` | Fixed Company, no Workspace create/switch, Project/Team tree | `P0-COMPANY-*`, `P0-SHELL-004`, `E2E-001` | Workspace CRUD/switch is `N/A` for single-company MVP. |
 | Project Management | `Phase 0/04_Project/SRS.md` | Project list/create/edit/archive/restore, key validation, owner/member rules | `P0-PRJ-*`, `E2E-001` | Project overview and project member screen are deferred unless separately scoped. |
@@ -31,26 +31,26 @@ This matrix links business scope to test coverage and source documents.
 | Global Project/Team Context | `Phase 2/PHASE2_DEVELOPMENT_TRACKING.md`, `PHASE2_MOCKUP_CHECKLIST.md` | Backlog, Timeboxes and Iteration Status all respect selected Project/Team | `P2-CTX-*`, `E2E-008` | `All Teams` is allowed; permission-specific restrictions deferred. |
 | Backlog Enhancement | `Phase 2/01_Backlog_Enhancement/SRS.md` | Search, Manage Filters, inline edit, bulk assignment, rank reorder, Iteration field | `P2-BL-*`, `E2E-006` | Saved views can follow after filter/list contract stabilizes. |
 | Timeboxes / Iterations | `Phase 2/02_Iterations/SRS.md` | Create/list/detail Iterations, Project/Team defaulting, assignment options | `P2-IT-*`, `E2E-006` | Release/Milestone options hidden/deferred to Phase 3. |
-| Iteration Status | `Phase 2/03_Iteration_Status/SRS.md` | Selector, shared US/DE list, active child Task metric, Plan/Task/To Do Totals, Add Item, detail route | `P2-IS-*`, `E2E-006`, `E2E-007`, lifecycle reconciliation | Team Status is Phase 3; Iteration Status Board is Future Backlog. |
+| Iteration Status | `Phase 2/03_Iteration_Status/SRS.md` | Selector, shared US/DE list, active child Task metric, Plan/Task/To Do Totals, Add Item, detail route | `P2-IS-*`, `E2E-006`, `E2E-007`, lifecycle reconciliation | Team Status is Phase 3; Iteration Status offers a List/Board view toggle (advanced board mechanics remain Future Backlog). |
 
 ## Phase 3 traceability
 
 | Module | Source | Key business requirement | Test coverage | Out-of-scope / note |
 |---|---|---|---|---|
 | Team Status | `Phase 3/01_Team_Status/SRS.md` | Member-grouped task dashboard, capacity/task inline edit, parent Story/Defect roll-up | `P3-TS-*`, `E2E-011`, `E2E-012` | Team Board, board drag/drop and WIP limits are Future Backlog. |
-| Release Management | `Phase 3/02_Release_Management/SRS.md` | Release dashboard/detail, zero/one Release per Story/Defect, artifacts, user-managed readiness | `P3-REL-*`, `E2E-013` | Release Progress is Phase 5 `Portfolio > Release Planning`, not Phase 3 list/detail. |
+| Release Management | `Phase 3/02_Release_Management/SRS.md` | Release dashboard/detail, zero/one Release per Story/Defect, artifacts, user-managed readiness, detail progress/burndown | `P3-REL-*`, `E2E-013` | Release detail shows a progress/burndown chart (real Rally); only Portfolio Release Planning is Phase 5. |
 | Milestones | `Phase 3/03_Milestones/SRS.md` | Multi-Project/Team Milestones, independent many-to-many Release links, manual dates without Release/derived dates with Release, zero/many Work Item Milestones and Story/Defect artifacts | `P3-MS-*`, `E2E-014` | No readiness checklist or artifact upload/link objects in Phase 3.3. |
-| Quality / Defect | `Phase 3/04_Quality_Defect/SRS.md` | Quality Defect dashboard, shared Backlog Defect source, create/edit/detail, state flow, Fixed In Build | `P3-QA-*`, `E2E-015` | Delete, reopen and executable bulk actions are deferred/future. |
+| Quality / Defect | `Phase 3/04_Quality_Defect/SRS.md` | Quality Defect dashboard, shared Backlog Defect source, create/edit/detail, state flow, Fixed In Build, grid bulk Copy/Delete | `P3-QA-*`, `E2E-015` | Bulk Copy/Delete are available (real Rally); Defect reopen remains deferred/future. |
 | Future Team Board guard | `Future_Backlog/01_Team_Board.md` | Team Board is preserved only as optional future backlog | `P3-TS-015`, `E2E-010`, `E2E-016` | Missing Team Board implementation must not fail Phase 3. |
-| Future Iteration Status Board guard | `Future_Backlog/03_Iteration_Status_Board.md` | Iteration Status remains List-only in Phase 0-4 | `P2-IS-028`, `E2E-016` | No Board toggle/drag/drop requirement. |
-| Future Release Planning guard | `Future_Backlog/02_Release_Planning.md` | Portfolio Release Planning/Progress is Phase 5 direction only | `P3-REL-016`, `E2E-016` | No Release Progress in Phase 3 Timeboxes Release list/detail. |
+| Iteration Status view toggle | `Future_Backlog/03_Iteration_Status_Board.md` | Iteration Status provides a List/Board view toggle (real Rally) | `P2-IS-028`, `E2E-016` | Board drag/drop and WIP limits remain Future Backlog; the view toggle itself is in scope. |
+| Future Release Planning guard | `Future_Backlog/02_Release_Planning.md` | Portfolio Release Planning is Phase 5 direction only | `P3-REL-016`, `E2E-016` | Release detail progress/burndown is in scope; only the Portfolio Release Planning surface is Phase 5. |
 
 ## Phase 4 traceability
 
 | Module | Source | Key business requirement | Test coverage | Out-of-scope / note |
 |---|---|---|---|---|
-| Notifications | `Phase 4/01_Notifications/SRS.md` | Assignment/mention notifications, filters, read state and safe Work Item routing | `P4-NOT-*` | Notification preferences are deferred. |
-| Roles & Permissions | `Phase 4/02_Roles_Permissions/SRS.md` | WA/PA/PM roles, screen/action E/R/D/H matrix, managed-project and team scope | `P4-RBAC-*` | Phase 5 Portfolio/Reports permissions excluded. |
+| Notifications | `Phase 4/01_Notifications/SRS.md` | Assignment/mention notifications, filters, read state and safe Work Item routing | `P4-NOT-*` | Notification preferences are an active feature (per-user in-app/email matrix). |
+| Roles & Permissions | `Phase 4/02_Roles_Permissions/SRS.md` | WA/PA/PM roles, screen/action Manage/View/No-access matrix (PA/PM editable, WA locked), managed-project and team scope | `P4-RBAC-*` | Phase 5 Portfolio/Reports permissions excluded. |
 | Settings & Audit | `Phase 4/03_Settings_Audit/SRS.md` | Workspace/User settings, single Project Settings entry, confirmation and administrative audit | `P4-SET-*` | Workflow Status configuration and Labels are deferred. |
 
 ## Cross-phase critical chains

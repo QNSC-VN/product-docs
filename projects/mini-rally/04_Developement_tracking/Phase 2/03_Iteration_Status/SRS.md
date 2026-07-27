@@ -116,7 +116,7 @@ Nghiệp vụ chính:
 | P2-IS-FR-017 | Iteration Status list displays only Story/Defect items assigned to the selected Iteration. Child Tasks are not independent rows. |
 | P2-IS-FR-017A | Iteration Status list is sourced from Backlog/work_items where `iterationId` equals the selected Iteration. |
 | P2-IS-FR-018 | List columns are: selection checkbox, rank, ID, Type, Name, Schedule State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner. |
-| P2-IS-FR-019 | The list must not include a per-row `Defects` column. |
+| P2-IS-FR-019 | The list includes a per-row `Defects` indicator column (real Rally parity). |
 | P2-IS-FR-020 | Quick search `Filter items...` remains outside Manage Filters. |
 | P2-IS-FR-021 | User can open Show/Hide filter banner. |
 | P2-IS-FR-022 | User can use Manage Filters to select multiple columns and combine filters. |
@@ -168,7 +168,7 @@ Nghiệp vụ chính:
 | Show filter | Filter banner toggle | Same behavior pattern as Backlog |
 | Manage filters | Multi-column filter chooser | Same behavior pattern as Backlog |
 | Add Item | Button beside filter controls | Opens Add Item to Iteration modal |
-| List / Board toggle | List only in Phase 0-4 | Board view/toggle is Future Backlog and must not appear as active scope |
+| List / Board toggle | List + Board views with a toggle | Board view is provided alongside List (real Rally parity) |
 | Work item list | Dense editable table | Assigned Story/Defect items for selected Iteration, including Iteration column and Totals row |
 | Row click | Work item row | Opens full Work Item Detail page |
 | Work Item Detail right panel | Shared Backlog detail panel | Shows Iteration field and allows same assignment behavior |
@@ -472,7 +472,7 @@ Detailed role matrix for PO/PM/Developer/Tester/Viewer is deferred. API must not
 - [ ] Inline edit works for Name, Schedule State, Plan Est and Owner.
 - [ ] Inline edit works for Iteration and moves the item to the selected target Iteration after refresh/re-query.
 - [ ] Schedule State options are exactly Idea, Defined, In-Progress, Completed, Accepted, Release.
-- [ ] Iteration Status displays List only; Board view/toggle remains Future Backlog.
+- [ ] Iteration Status provides a List / Board view toggle (real Rally parity).
 - [ ] Row click opens full Work Item Detail.
 - [ ] Work Item Detail right panel shows Iteration field.
 - [ ] Add Item button is beside filter controls.

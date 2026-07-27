@@ -147,7 +147,7 @@ The Teams list must not contain `Members`, `Capacity`, `Velocity`, or `Actions` 
 
 Create/Edit Team must not include capacity or velocity fields in Phase 1.
 
-Create/Edit Team modal uses fixed-size modal tabs:
+Create Team uses a single modal form (no tabs); editing a team's fields, lead, projects and members happens **inline** in the Teams list (real Rally parity). The create form captures:
 
 1. `Team Info`: Project, Team Lead, Team Name, Team Key, Description, Status.
 2. `Members`: searchable vertical list of workspace users; selected users become Team members.
@@ -213,7 +213,7 @@ Invited users can appear in the list, but the current mockup does not provide a 
 | Status | Yes | `Active`, `Invited`, `Deactive` |
 | Team membership | No | Multi-select active teams; project access is derived from selected teams |
 
-Invite/Edit User modal uses fixed-size modal tabs:
+Invite User uses a single modal form; editing a user's Role / Status / Teams happens **inline** in the User list (real Rally parity). The invite form captures:
 
 1. `Info`: Full name, Email, Workspace role, Status.
 2. `Teams`: searchable list of active teams.
@@ -407,8 +407,8 @@ Workspace Admin has all permissions in current mockup. More granular permission 
 1. Workspace menu `Manage Projects` opens Project management with the `Projects` view only; the top-right Settings gear contains `Teams` and `User Management` as workspace administration sections.
 2. `Settings > Teams` shows only columns: Key, Team, Project, Status, Lead, Updated.
 3. `Settings > Teams` does not show Members, Capacity or Velocity columns; its Actions area is limited to permitted administration actions.
-4. `Create Team` modal includes Team Info and Members tabs.
-5. `Team Info` tab includes Project, Team lead, Team name, Team key, Description, Status.
+4. `Create Team` is a single modal form (no tabs) capturing Project(s), Lead, Name, Key, Description, Status; members/projects edited inline afterwards.
+5. The Create Team form includes Project(s), Team lead, Team name, Team key, Description, Status.
 6. `Members` tab includes searchable user list for selecting team members.
 7. `Create Team` modal does not include capacity or velocity fields.
 8. Creating a team links it to the selected project.
@@ -447,4 +447,4 @@ MNG-T09 E2E smoke: Manage -> Teams -> Create Team -> Backlog team selector
 | P1-DC-014 | User status uses `Active`, `Invited`, `Deactive` | Replace old `Suspended` language in User management |
 | P1-DC-015 | Team status uses `Active`, `Deactive` | Replace old Team `Archived` language; deactive team remains for history but is excluded from active selectors |
 | P1-DC-016 | Teams list has no Actions column | Click Team row to open edit modal |
-| P1-DC-017 | Team modal has `Team Info` and `Members` tabs | Members tab provides searchable member selection |
+| P1-DC-017 | No modal tabs — team fields/lead/projects/members are edited inline (chips) in the Teams list; Create is a single modal form | Real Rally parity |

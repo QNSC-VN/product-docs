@@ -142,8 +142,23 @@ Ran a code-verification pass on the 18 previously-unverified gaps. Result: **7 F
 
 **E2E consolidation (DONE 2026-07-26)** — added `golden-journey.e2e.ts` (one coherent UI flow: create iteration → story into it → surfaces on Iteration Status + Backlog with iteration name → schedule-state transition persists → Release detail); removed a dead skipping test; renamed the redundant `ba-retest-flow` Vitest spec → `core-business-rules` and dropped its 4 duplicate rules (owned by the richer flow specs). Verified: Playwright 14/14 + core-business-rules 9/9 pass on a freshly-seeded QNSC DB.
 
-**REMAINING worklist**
-- **Docs-only reconciliation** (no code): **AUTH-001** (rewrite Phase-0 Auth SRS to Entra SSO reality), **WID-003** (SoT §2.3 = zero-or-one Release; reconcile BA's multi-Release ask), **WS-002** (workspace-name-editable now BA-approved — update SRS).
-- **CREATE-005** — retest post-create visibility under an active filter (was BLOCKED at audit time; create now works).
-- **TIME-001** (optional) — defensive total re-derive; deferred (write-path already derives; seed now correct).
-- **USER-004** — 9 roles vs SoT 3; deferred to **Phase-4** Roles & Permissions.
+## Final close-out (2026-07-26)
+
+**Task-time model corrected — PR #161 (supersedes DEV-013 / DOC-002 / DEV-015 / TIME-001).**
+The BA rule "Estimate = To Do + Actual (read-only, derived)" was verified WRONG against live Rally and **the BA agreed**. Real Rally model, now implemented:
+- **Estimate** = independent, user-editable planned hours (never derived; unchanged on completion).
+- **To Do** = remaining hours; **defaults to Estimate on create**, **auto-zeroes when the task is Completed**; reopening does not restore it.
+- **Actuals** = independent manual input.
+- Roll-ups sum each column independently (Estimate roll-up = Σ estimate).
+So DEV-013 (derive), DOC-002 (derive doc), DEV-015 (To Do NOT zeroed) are all reversed; TIME-001 is moot (no derive to defend). Backend + FE + seed + unit/e2e all updated; verified unit 100/100, e2e 33/33.
+
+**CREATE-005 — CLOSED (retested 2026-07-26).** Post-create visibility under an active filter works: `team-preparation-flow` e2e 7/7 (Backlog filtered by team returns the created item; another team's item does not leak). The gap only existed because create itself was blocked at audit time.
+
+**Docs-only reconciliations — decisions recorded (our code is correct/approved; update the BA SRS):**
+- **AUTH-001** — Login is **Microsoft Entra SSO** (BFF Auth-Code + PKCE → session cookie), not local email+password. SSO is the approved org model; dev-login (email-only) is local-dev only. → Update the Phase-0 Auth SRS to SSO.
+- **WID-003** — A Story/Defect has **zero-or-one Release** (single-select) + zero-or-many **Milestones** (multi), per SoT §2.3. BA's "multiple Releases" ask declined. → Reconcile the report.
+- **WS-002** — Workspace **name is editable** (Settings › `updateWorkspace`); now **BA-approved**. → Update the SRS to state it's editable.
+
+**Deferred (intentional):** **USER-004** — 9 roles (5 system + 4 preset functional) vs SoT §6's 3 technical roles → **Phase-4** Roles & Permissions.
+
+**Audit status: CLOSED.** All 62 gaps resolved, reconciled (BA-wrong/doc), accepted, or intentionally deferred to Phase-4 (USER-004). No open code work remains from this audit.

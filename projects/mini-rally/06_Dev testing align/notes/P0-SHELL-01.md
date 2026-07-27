@@ -14,7 +14,7 @@
 - Plan contains Backlog and Timeboxes.
 - Iterations, Releases and Milestones are types inside `Plan > Timeboxes`.
 - Track contains Iteration Status and Team Status.
-- Team Board and Iteration Status Board are Future Backlog and must not appear as current functionality.
+- The standalone Team Board and a separate Iteration Status Board destination are Future Backlog; the in-page Iteration Status List/Board view toggle is in scope (real Rally).
 - Quality contains Defects.
 - Top-level Releases is removed.
 - Portfolio is a dropdown containing `Release Planning`; Release Planning is a Phase 5 placeholder and is not a Phase 0–4 Release management source.

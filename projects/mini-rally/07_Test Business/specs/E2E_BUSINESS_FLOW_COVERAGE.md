@@ -376,7 +376,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 - User Story is optional.
 - Fixed In Build is optional manual text.
 - Valid state transitions work.
-- Delete is unavailable/rejected; reopen from Closed/Closed Declined is deferred unless BA later confirms rules.
+- Defect grid exposes bulk Copy and Delete (real Rally); a Defect's own hard-delete stays backend-guarded. Reopen from Closed/Closed Declined remains deferred unless BA later confirms rules.
 
 ## E2E-016 - Future Backlog scope guard
 
@@ -397,7 +397,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 ### Expected result
 
 - Team Board is not required for Phase 3 acceptance.
-- Iteration Status uses List only; Board toggle, drag/drop, WIP limits and transition rules are not current MVP requirements.
-- Phase 3 Release list/detail has no Release Progress column, percentage or widget.
+- Iteration Status provides a List/Board view toggle (real Rally); only board drag/drop, WIP limits and transition rules remain Future Backlog.
+- Release detail shows a progress/burndown chart (real Rally); only the Portfolio `Release Planning` surface is excluded from Phase 3.
 - Portfolio contains `Release Planning` as Phase 5 direction only; it is not a second Release create/edit source in Phase 0-4.
 - Deferred notes preserve direction without creating a current development obligation.
