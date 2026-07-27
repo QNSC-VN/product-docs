@@ -6,9 +6,19 @@
 |---|---|
 | Module ID | `P0-PROJECT` |
 | Trạng thái | Draft for Development |
-| Phạm vi | Project CRUD, membership, role, settings, selector, Team CRUD và Project–Team mapping |
+| Phạm vi | Project list/create/edit/archive/restore, project context selector and linked Team display |
 | Phụ thuộc | Auth, Workspace, App Shell, RBAC primitives |
 | Không bao gồm | Work Item CRUD implementation, Sprint/Release CRUD chi tiết |
+
+## 0.1 DevInt Audit Reconciliation - 2026-07-24
+
+BA confirmed the Phase 0 Project baseline for current audit/handoff:
+
+- Project Create/Edit fields are: Project Name, Project Key, Owner, Project Start Date, Teams and Description.
+- Project Key is required, unique, immutable after create, 2-10 chars, uppercase alphanumeric.
+- Start Date means **Project Start Date**.
+- Linked Teams are displayed/selected only when Team data/code is available; if Team data is missing, mark the test **Not Tested**, not failed.
+- Team create/edit/member administration is handled under Settings/Team scope, not as a Phase 0 Project CRUD requirement.
 
 ## 1. Mục tiêu và khái niệm
 

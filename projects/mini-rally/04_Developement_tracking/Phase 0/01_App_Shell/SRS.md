@@ -43,6 +43,8 @@ Nếu SRS này mâu thuẫn với prompt cũ, dùng quyết định reconciliati
 
 ## 3. Actor
 
+> A2 reconciliation: Phase 0-4 role terminology follows the Phase 4 RBAC baseline: Workspace Admin, Project Admin and Project Member. Older PO/BA/Developer/QA/Viewer labels are workflow personas only and must not be used as the permission model.
+
 - Authenticated User: tất cả role.
 - Workspace Admin: thấy workspace-level Settings.
 - Project Manager: thấy project-level Settings.
@@ -56,15 +58,21 @@ Thứ tự navigation chuẩn:
 ```text
 Home
 Plan
-  └── Backlog
-Iteration Status
+  ├── Backlog
+  └── Timeboxes
+      ├── Iterations
+      ├── Releases
+      └── Milestones
+Track
+  ├── Iteration Status
+  └── Team Status
 Quality
 Portfolio
-Releases
+  └── Release Planning (Phase 5 / Future Backlog / Coming Soon)
 Reports
 ```
 
-`Portfolio` có thể bị ẩn bằng feature flag trong MVP. `Settings` và `Notifications` là global actions, không nằm trong main navigation.
+No top-level `Releases` navigation is active. Release Management belongs under `Plan > Timeboxes`; `Portfolio > Release Planning` is a Phase 5/Future Backlog entry point and must not become a second Release create/edit source in Phase 0-4. `Settings` và `Notifications` là global actions, không nằm trong main navigation.
 
 ## 5. Route Specification
 
@@ -72,9 +80,9 @@ Reports
 
 ```text
 /login
-/forgot-password
-/reset-password/:token
 ```
+
+`/forgot-password` and `/reset-password/:token` are Future Backlog under the Microsoft SSO baseline.
 
 ### 5.2 Authenticated routes
 
@@ -107,9 +115,9 @@ Reports
 | ID | Requirement |
 |---|---|
 | SHELL-FR-001 | Render TopNav sau khi session hợp lệ. |
-| SHELL-FR-002 | Hiển thị Company/Workspace cố định từ deployment/session context; single-company MVP không có workspace switch. |
+| SHELL-FR-002 | Hiển thị Workspace cố định từ deployment/session context; single-workspace MVP không có workspace switch. |
 | SHELL-FR-003 | Hiển thị project context trên các project routes. |
-| SHELL-FR-003A | Context selector hiển thị hierarchy `Company/Workspace → Project → Team`; một Team có thể xuất hiện dưới nhiều Project. |
+| SHELL-FR-003A | Context selector hiển thị hierarchy `Workspace → Project → Team`; một Team có thể xuất hiện dưới nhiều Project. |
 | SHELL-FR-004 | Reserved cho multi-tenant phase sau; không áp dụng UI single-company MVP. |
 | SHELL-FR-005 | Khi đổi project, invalidate/refetch toàn bộ project-scoped query. |
 | SHELL-FR-006 | Active navigation phải phản ánh URL hiện tại. |
@@ -128,7 +136,7 @@ Reports
 ```ts
 type AppContext = {
   currentUser: UserSummary;
-  company: WorkspaceSummary;
+  workspace: WorkspaceSummary;
   project: ProjectSummary | null;
   team: TeamSummary | null;
   permissions: string[];
@@ -149,7 +157,7 @@ Nguồn sự thật:
 | Shell area | Mockup component | Yêu cầu production |
 |---|---|---|
 | Top navigation | `TopNav` | Chuyển từ `currentPage` state sang URL router |
-| Company hierarchy dropdown | `TopNav` trong `components/layout.tsx` | Company cố định → accessible Projects → Teams |
+| Workspace hierarchy dropdown | `TopNav` trong `components/layout.tsx` | Workspace cố định → accessible Projects → Teams |
 | Main menu | `NAV_ITEMS` trong `components/layout.tsx` | Home → Plan (Backlog, Timeboxes) → Track (Iteration Status List-only) → Quality → Portfolio (Release Planning Future Backlog) → Reports; không có top-level Releases/Team Board |
 | Context bar | `ContextBar`, `CtxSelect` | Selector thật; sync URL/query |
 | User menu | `TopNav` user dropdown | Bỏ demo role switch trong production |

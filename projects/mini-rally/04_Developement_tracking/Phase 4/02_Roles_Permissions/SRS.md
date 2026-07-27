@@ -27,20 +27,31 @@ BA decision: Phase 4 uses three access roles only. `workspace_admin` is the comp
 | PA | Project Admin | `project_admin` | Manage assigned projects; view all other projects without mutation access |
 | PM | Project Member | `project_member` | Work only inside the assigned project |
 
-Legend for role capability states (the Roles & Permissions matrix):
+Legend for mockup action states:
 
 | State | Meaning |
 |---|---|
-| Manage | Role can perform the action (create / edit / delete / manage). |
-| View | Role can see/read only; no mutation. |
-| No access | Role cannot see or perform the action (also guarded server-side). |
+| E | Enabled action |
+| R | Read-only access |
+| D | Visible but disabled action |
+| H | Hidden or denied |
 
-Capability-matrix model:
+Action state behavior:
 
-- Three canonical workspace roles ship — `workspace_admin`, `project_admin`, `project_member` — plus optional workspace-authored **custom roles**.
-- The Roles & Permissions matrix is a capability view **derived from each role's permission codes**, so it can never drift from enforcement. A row resolves to **Manage** when the role holds the action/manage code, **View** when it holds only the view code (or the read is open to all members), else **No access**.
-- Editability: `workspace_admin` is **locked** (system owner); `project_admin`, `project_member` and custom roles are **editable** by a Workspace Admin.
-- Direct URL/API access is always guarded server-side, independent of what the matrix shows (a hidden cell is not a security control by itself).
+| State | Business behavior | Example usage |
+|---|---|---|
+| E - Enabled | User can see and perform the action normally | Project Member can create US/DE; Project Admin can edit assigned project settings; Workspace Admin can edit the role matrix |
+| R - Read-only | User can see the screen/data but cannot mutate it | Project Admin can inspect another project, but all create/edit/delete actions in that project are unavailable |
+| D - Disabled | User can see that an action exists, but the control is disabled in the current role/context | A viewer may see a create/edit control disabled when the product wants to show capability availability without allowing interaction |
+| H - Hidden | User does not see the screen/action/menu; direct access must be blocked by access-denied or not-found behavior | Non-admin users do not see Roles & Permissions; Project Member does not see Delete Project or user-removal actions |
+
+Action state selection rules:
+
+- `View` permissions usually resolve to `E` for editable users or `R` for read-only users.
+- `Create`, `Edit` and `Delete` actions must not be represented as `R`; use `E`, `D` or `H`.
+- Use `D` only when the UI should intentionally reveal that the action exists but is unavailable in the current role/context.
+- Use `H` for sensitive administrative, destructive or security-related actions such as role matrix changes, user removal and project deletion.
+- Direct URL/API access must still be guarded even when the UI state is `H`; hidden UI is not a security control by itself.
 
 Permission-code granularity:
 
@@ -48,20 +59,20 @@ Permission-code granularity:
 - Create, Edit, Delete, Archive, Restore and status-change actions must not share a generic `*:manage` permission.
 - Workspace Admin can change one action without implicitly changing another action for the same module.
 - Permission codes use the pattern `{surface}:{action}`, for example `iterations:create`, `iterations:edit` and `iterations:delete`.
-- The row-level permission code is the business source of truth; the matrix's Manage / View / No-access state is derived from it per role.
+- The row-level permission code and its E/R/D/H role states are the business source of truth for the matrix.
 
 System baseline permissions:
 
-- Auth session actions are fixed at **Manage** for all roles.
-- Basic App Shell navigation, context switching and global work-item search are fixed at **Manage**; returned data still follows project/team access.
-- Personal profile view/edit is fixed at **Manage** for the signed-in user.
-- Assignment/mention notification view, read-state update and route-to-target behavior are fixed at **Manage**; the notification target still requires current project/item access.
+- Auth session actions are fixed at `E` for all roles.
+- Basic App Shell navigation, context switching and global work-item search are fixed at `E`; returned data still follows project/team access.
+- Personal profile view/edit is fixed at `E` for the signed-in user.
+- Assignment/mention notification view, read-state update and route-to-target behavior are fixed at `E`; the notification target still requires current project/item access.
 - Notification Preferences is not exposed in Phase 4; assignment and mention notifications use the fixed business behavior from P4.1.
 - System baseline rows display a lock and never become dropdowns in matrix Edit mode.
 
 Governance override decision:
 
-- User, Team, Project lifecycle, Workspace Settings, Role Matrix and Audit actions default to **No access** for Project Admin and Project Member.
+- User, Team, Project lifecycle, Workspace Settings, Role Matrix and Audit actions default to `H` for Project Admin and Project Member.
 - These governance rows are not system-locked.
 - Workspace Admin may override PA/PM states through the matrix when the company needs an exception.
 - The small-company MVP accepts the edge case that an override can broaden a role beyond its default business baseline.
@@ -75,9 +86,9 @@ Matrix edit rule:
 | Editable roles | `project_admin`, `project_member` |
 | Locked role | `workspace_admin` column is locked as the system-owner baseline |
 | Edit entry | Workspace Admin clicks `Edit` to unlock editable role cells |
-| Editable values | Grant/revoke the row's permission code per role (matrix shows the derived Manage / View / No access) |
+| Editable values | `E`, `R`, `D`, `H` per screen/action/role cell |
 | Action independence | Each row uses a separate permission code; changing one row does not change another row |
-| System-locked rows | Auth, App Shell, Personal and Notifications remain fixed at **Manage** for all roles |
+| System-locked rows | Auth, App Shell, Personal and Notifications remain fixed at `E` for all roles |
 | Governance rows | Default WA-only, but WA may override PA/PM states through the matrix |
 | Save behavior | Workspace Admin clicks `Save`; matrix returns to locked display mode after save |
 

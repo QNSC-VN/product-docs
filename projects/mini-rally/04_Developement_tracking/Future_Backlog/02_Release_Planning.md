@@ -2,13 +2,15 @@
 
 ## Status
 
-**DEFERRED TO PHASE 5 — BA confirmation required when Phase 5 starts.**
+**DEFERRED BY BA DECISION 2026-07-26 - historical stub only.**
+
+> **2026-07-26 disposition:** Release Planning is not active in the Phase 5 MVP. Capacity Planning is promoted to P5.2 and handles single-Release planning, Team selection, Feature add-to-plan, split allocation and Publish variants; Release Tracking follows as P5.3. Older progress %, zero-state and formula content on this page belongs to Release Tracking traceability only. Active planning continues only in `../Phase 5/PHASE5_DEVELOPMENT_TRACKING.md`. This file remains a traceability record and is not an active specification.
 
 ## Navigation direction
 
 - Remove `Releases` from top-level navigation.
 - `Portfolio` opens a dropdown menu.
-- Dropdown contains `Release Planning`.
+- Dropdown contains `Capacity Planning` while Release Planning remains deferred.
 - Phase 3 Release management remains at `Plan > Timeboxes > Releases`.
 - Release Planning must not become a second Release create/edit source without a new Phase 5 decision.
 
@@ -36,10 +38,21 @@ These inputs were accepted during Phase 0-4 reconciliation but must be reviewed 
 - Do not add a Release Progress widget to the Phase 3 Release Detail.
 - Phase 3 keeps Release artifacts, Accepted total and task roll-up requirements already documented.
 
-## Questions for Phase 5
+## 2026-07-26 deferred Release Planning backlog
 
-1. Should progress use completed Plan Estimate or completed item count?
-2. If some items have estimates and others have zero, how are unestimated items represented?
-3. What exact zero-state is shown for an empty Release?
-4. Does reaching 100% trigger any Release status suggestion or automation?
-5. Which filters, charts and historical snapshots belong to Release Planning?
+Future Release Planning may be reopened only after BA confirms a separate problem statement. Candidate scope:
+
+- Unassigned Feature backlog by Project.
+- Assign/move/unassign Features across Releases without creating a second Release registry.
+- Release planning board or list separate from Capacity Planning.
+- Validation against Release state and Project scope.
+
+## Governance disposition
+
+`P5-GOV v1` confirmed:
+
+1. Release and Feature progress use completed Plan Estimate, not completed item count.
+2. Zero-estimate items are shown separately and are not included in the progress denominator.
+3. An empty or wholly unestimated Release shows 0% plus an explicit no-estimated-scope state.
+4. Reaching 100% does not automatically change Release state.
+5. P5.3 MVP contains KPI and Feature-list tracking; burnup/trend stays deferred until trustworthy historical snapshots exist.

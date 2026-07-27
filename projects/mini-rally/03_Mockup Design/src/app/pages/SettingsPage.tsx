@@ -395,11 +395,11 @@ export function SettingsPage({ role, projectReadOnly = false }: { role: Role; pr
     ),
     workspace: (
       <div className="space-y-5 max-w-2xl">
-        {fieldRow("Company Name", "ACME Space Inc.", "w-40", !canManageWorkspaceSettings)}
+        {fieldRow("Workspace Name", "ACME Space Inc.", "w-40", !canManageWorkspaceSettings)}
         {fieldRow("Workspace Slug", "acme-space", "w-40", true)}
         <div className="flex items-center gap-4">
-          <label className="w-40 text-[11px] font-semibold shrink-0" style={{ color: "#5c6478" }}>Company Scope</label>
-          <span className="text-[12px] px-3 py-1.5 rounded" style={{ color: "#1a2234", backgroundColor: "#f4f6f9", border: "1px solid #dde2ea" }}>Single company workspace</span>
+          <label className="w-40 text-[11px] font-semibold shrink-0" style={{ color: "#5c6478" }}>Workspace Scope</label>
+          <span className="text-[12px] px-3 py-1.5 rounded" style={{ color: "#1a2234", backgroundColor: "#f4f6f9", border: "1px solid #dde2ea" }}>Fixed Workspace</span>
         </div>
         <div className="flex items-center gap-4">
           <label className="w-40 text-[11px] font-semibold shrink-0" style={{ color: "#5c6478" }}>Workspace Admin</label>

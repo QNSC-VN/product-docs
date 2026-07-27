@@ -183,8 +183,8 @@ Current observed/planned behavior:
 - Top-right gear Settings sidebar does not show Project Settings, Workflow Status or Labels.
 - Project Settings has one entry point only: `Manage Projects > Projects`.
 - Only Workspace Admin can access Workspace Settings.
-- Workspace Settings shows Company Name, Workspace Slug, Company Scope and Workspace Admin.
-- Workspace Slug, Company Scope and Workspace Admin are read-only.
+- Workspace Settings shows Workspace Name, Workspace Slug, Workspace Scope and Workspace Admin.
+- Workspace Slug, Workspace Scope and Workspace Admin are read-only.
 - Workspace Admin is assigned by internal/dev setup and displayed in Workspace Settings.
 - Save Changes is available only to Workspace Admin.
 - Saving Workspace Settings must create an audit event.
@@ -198,7 +198,7 @@ Current observed/planned behavior:
 | Area | Requirement | Mockup status | Mockup source | Notes |
 |---|---|---:|---|---|
 | Workspace Settings access | Company-level settings are WA-only | Done | `SettingsPage.tsx` | PA/PM cannot open workspace admin sections |
-| Company identity | Show editable Company Name | Done | `SettingsPage.tsx` | Uses single-company language |
+| Workspace identity | Show editable Workspace Name | Done | `SettingsPage.tsx` | Uses single-workspace language |
 | Workspace slug | Show system slug as read-only | Done | `SettingsPage.tsx` | Slug is reference only |
 | Company scope | Show single-company workspace scope | Done | `SettingsPage.tsx` | Confirms no workspace-member role needed |
 | Workspace Admin | Display primary admin assigned by internal/dev setup | Done | `SettingsPage.tsx` | View-only; no admin dropdown in Workspace Settings |
@@ -224,7 +224,7 @@ Current observed/planned behavior:
 - [x] Workspace Settings is scoped to a single company/workspace.
 - [x] Workspace Settings is Workspace Admin only.
 - [x] Workspace Slug is read-only.
-- [x] Company Scope is read-only.
+- [x] Workspace Scope is read-only.
 - [x] Workspace Admin is view-only and assigned outside the mockup by internal/dev setup.
 - [x] Save Changes is visible only to Workspace Admin.
 - [x] SRS records that saving Workspace Settings creates an audit event.

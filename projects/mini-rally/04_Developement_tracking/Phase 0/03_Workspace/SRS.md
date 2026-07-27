@@ -1,25 +1,38 @@
-# SRS — Phase 0.3 Company Context & Membership
+# SRS — Phase 0.3 Workspace Context & Membership
 
 ## 0. Document Control
 
 | Thuộc tính | Giá trị |
 |---|---|
-| Module ID | `P0-COMPANY` |
+| Module ID | `P0-WORKSPACE` |
 | Trạng thái | Approved Scope — Single-company MVP |
-| Phạm vi | Fixed company context, membership, invitation, company role và settings tối thiểu |
+| Phạm vi | Fixed Workspace context, membership, invitation, Workspace role và settings tối thiểu |
 | Không bao gồm | Workspace List/Create/Edit/Archive/Switch UI, multi-tenant self-service |
 | Phụ thuộc | Authentication, App Shell, RBAC primitives |
+
+## 0.1 DevInt Audit Reconciliation - 2026-07-24
+
+BA confirmed the user-facing term is **Workspace**. Older `Company` wording in this file is legacy terminology and must not drive UI labels, mockup copy, test names or dev handoff wording for Phase 0-4.
+
+Authoritative current-scope rules:
+
+- Single-workspace MVP: one fixed Workspace, no Workspace create/switch/archive UI.
+- App Shell hierarchy is `Workspace → Project → Team`.
+- Workspace Admin can edit the Workspace display name.
+- Save Workspace name must validate input, show feedback and create an administrative audit event.
+- Environment/sample-data mismatch is not a business gap; business confirmation uses the Workspace concept, not the literal sample name.
+- Schema/API/infra naming is out of scope for this BA alignment pass.
 
 ## 1. Quyết định sản phẩm
 
 Web hiện phục vụ một Công ty cố định: `ACME Space Inc.`. Trong data model, Công ty vẫn được biểu diễn bởi một row `workspaces` để làm tenant/data boundary, nhưng user không tạo, xóa hoặc chuyển Workspace trong UI MVP.
 
 ```text
-ACME Space Inc. (fixed Company/Workspace)
+ACME Space Inc. (fixed Workspace)
 ├── Projects
 ├── Teams
 ├── Members
-└── Company Settings
+└── Workspace Settings
 ```
 
 Các yêu cầu Workspace CRUD/multi-workspace trong tài liệu hoặc prompt cũ được xem là future scope và không được đưa vào Phase 0 hiện tại.
@@ -74,7 +87,7 @@ workspace.setting.manage
 
 ## 5. Core Flows
 
-### 5.1 Load Company Context
+### 5.1 Load Workspace Context
 
 ```text
 Login
@@ -102,8 +115,8 @@ Login
 
 | Screen/area | Mockup hiện tại | Production requirement |
 |---|---|---|
-| Company root selector | `TopNav` hierarchy dropdown | ✅ Fixed company visual; load project/team tree từ API |
-| Company Settings | `SettingsPage` → Workspace Settings | 🟡 Đổi label thành Company Settings, save/validation thật |
+| Workspace root selector | `TopNav` hierarchy dropdown | ✅ Fixed Workspace visual; load project/team tree từ API |
+| Workspace Settings | `SettingsPage` → Workspace Settings | 🟡 Use Workspace labels, real save/validation and audit event |
 | User Management | `SettingsPage` → User Management | 🟡 Table có sẵn; cần invite/status/action modals thật |
 | Invite lifecycle | Chưa có | Pending/expired/resend/cancel/accept states |
 | Sole Admin error | Chưa có | Blocking message/confirmation |

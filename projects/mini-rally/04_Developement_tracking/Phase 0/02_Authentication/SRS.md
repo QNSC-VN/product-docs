@@ -10,6 +10,21 @@
 | Phụ thuộc | User database, email provider, App Shell |
 | Không bao gồm | Workspace invitation workflow chi tiết, custom SSO/OAuth enterprise |
 
+## 0.1 DevInt Audit Reconciliation - 2026-07-24
+
+BA confirmed the Phase 0-4 authentication baseline is **Microsoft SSO-first**.
+This section supersedes older local email/password, forgot password, reset password and change-password wording in this SRS for the current delivery scope.
+
+Authoritative current-scope rules:
+
+- Login primary action is `Continue with Microsoft`.
+- Microsoft validates the organizational account; Mini Rally only creates/refreshes/revokes the app session after the SSO callback succeeds.
+- Mini Rally must resolve the fixed Workspace, current user, effective roles/permissions and safe return URL from the authenticated session.
+- Inactive/suspended users must be denied even if Microsoft authentication succeeds.
+- Logout revokes the Mini Rally app session and returns the user to the public login page.
+- Local email/password login, forgot password, reset password, change password and demo credentials are **Future Backlog** unless BA explicitly reopens local-auth scope.
+- Negative testing must use controlled SSO denial/inactive-account cases; do not test wrong password with a real user account.
+
 ## 1. Mục tiêu
 
 Auth trả lời “người dùng là ai?” và tạo session an toàn. Authorization trả lời “người dùng được làm gì?” và thuộc SRS Workspace/Project/RBAC; không trộn hai khái niệm.
@@ -37,6 +52,18 @@ Auth trả lời “người dùng là ai?” và tạo session an toàn. Author
 
 ## 4. Functional Requirements
 
+> A2 reconciliation: for Phase 0-4 delivery, apply `AUTH-SSO-*` as the active requirement set. The older `AUTH-FR-*` password requirements below are retained only as historical/Future Backlog notes until BA reopens local authentication.
+
+| ID | Requirement |
+|---|---|
+| AUTH-SSO-001 | Login screen exposes Microsoft SSO as the primary/current-scope sign-in action. |
+| AUTH-SSO-002 | Successful Microsoft callback creates a secure Mini Rally application session. |
+| AUTH-SSO-003 | Session resolution returns current user, fixed Workspace, effective roles/permissions and safe return URL handling. |
+| AUTH-SSO-004 | Refreshing a protected route keeps the session when valid and redirects to login when invalid/expired. |
+| AUTH-SSO-005 | Logout revokes the current app session before returning to login. |
+| AUTH-SSO-006 | Inactive/suspended users are denied access even when identity-provider authentication succeeds. |
+| AUTH-SSO-007 | Local password, forgot/reset password, change-password and demo credentials are not part of Phase 0-4 current scope. |
+
 | ID | Requirement |
 |---|---|
 | AUTH-FR-001 | Login bằng email + password. |
@@ -55,6 +82,8 @@ Auth trả lời “người dùng là ai?” và tạo session an toàn. Author
 | AUTH-FR-014 | Rate-limit login/forgot/reset endpoints. |
 
 ## 5. User Flows
+
+> A2 current flow: `/login` → `Continue with Microsoft` → Microsoft SSO → callback → Mini Rally session → resolve fixed Workspace/project context → Home or safe return URL. The local password and reset flows below are historical/Future Backlog notes.
 
 ### 5.1 Login
 
@@ -97,12 +126,14 @@ Profile & Account
 
 ## 6. Screen Mapping với Mockup
 
+> A2 current mapping: `LoginPage` is the Microsoft SSO entry screen. It must not show local email/password, forgot/reset password, remember-me, show-password or demo credential fields in the current Phase 0-4 baseline. Those older rows below are superseded and treated as Future Backlog/local-auth history.
+
 | Screen | Mockup hiện tại | Development requirement |
 |---|---|---|
-| Login — Workspace Admin | `LoginPage` | ✅ Có form email/password, show password, remember me, loading, invalid credential, demo Admin và public layout |
-| Forgot Password | Chưa có | Thiết kế mới |
-| Reset Password | Chưa có | Thiết kế mới |
-| Profile & Account | `SettingsPage` Personal/Profile | Tách thành route/profile form thật |
+| Login — Microsoft SSO | `LoginPage` | Current scope: one Microsoft SSO action, redirect/callback/session guard; no local password fields |
+| Forgot Password | Future Backlog | Local-auth scope deferred under Microsoft SSO baseline |
+| Reset Password | Future Backlog | Local-auth scope deferred under Microsoft SSO baseline |
+| Profile & Account | `SettingsPage` Personal/Profile | Profile may remain; change-password is Future Backlog under Microsoft SSO baseline |
 | User menu | `TopNav` | Profile, Settings, Logout; bỏ demo switch role |
 | Session expired | Chưa có | Modal/toast + redirect login |
 
@@ -110,11 +141,12 @@ Auth pages không dùng authenticated TopNav. Chúng dùng minimal public layout
 
 ### 6.1 Mockup-only behavior
 
-- Demo account: `admin@acme.com`; password hiển thị trong mockup chỉ để test local và **không được đưa vào production seed/config**.
-- Mockup validate credential bằng local state và delay giả lập; production phải gọi `POST /api/v1/auth/login`.
+> A2 current mockup behavior: the prototype simulates the Microsoft redirect/callback with one button so BA can keep testing navigation. Production must use the SSO-backed session API. Demo credentials and local password validation are no longer the active mockup contract.
+
+- Mockup simulates Microsoft SSO redirect/callback locally; production must use the real identity-provider callback and SSO-backed session API.
 - Login thành công hiện set role `Workspace Admin` và mở Home; production phải lấy user/role/effective permissions từ session API.
 - Sign out hiện trả về Login bằng local state; production phải revoke session phía server trước khi clear client state.
-- `Forgot password?`, Privacy và Support hiện mới là extension point, chưa có route/action.
+- Privacy và Support hiện mới là extension point, chưa có route/action. Forgot/reset/change-password are Future Backlog under the SSO baseline.
 
 ## 7. Database Design
 

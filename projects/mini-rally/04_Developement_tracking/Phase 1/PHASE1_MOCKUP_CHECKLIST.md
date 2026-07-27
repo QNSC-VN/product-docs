@@ -37,8 +37,8 @@ Không nằm trong Phase 1:
 | Backlog | Project dropdown trên title | ✅ | `BacklogPage.tsx` | Có selector project/team trong create/context |
 | Backlog | Team dropdown kế project | ✅ | `BacklogPage.tsx` | Theo mockup hiện tại |
 | Backlog | Bỏ Feature và Task khỏi create/filter | ✅ | `BacklogPage.tsx` | Chỉ Story/Defect |
-| Backlog | Cột Priority/Schedule State/Release | ✅ | `BacklogPage.tsx` | Schedule State dùng Idea/Defined/In-Progress/Completed/Accepted/Release; legacy values đã loại khỏi mock data |
-| Create Work Item | Quick create modal | ✅ | `BacklogPage.tsx` | Type, Project, Team, Title, Owner, Plan Estimate |
+| Backlog | Cột Priority/Schedule State/Flow State/Release | ✅ | `BacklogPage.tsx` | Schedule State = 6 ô; Flow State = dropdown; cùng catalog Idea/Defined/In-Progress/Completed/Accepted/Release và mirror hai chiều |
+| Create Work Item | Quick create modal | ✅ | `BacklogPage.tsx` | Type, Project, Team optional, Title, Owner, Plan Estimate |
 | Create Work Item | Buttons Cancel/Create/Create with details | ✅ | `BacklogPage.tsx` | Create with details đang là mock action |
 | Create Work Item | Full create-with-details flow | 🟡 | `BacklogPage.tsx`, `WorkItemDetailPage.tsx` | Chưa có screen create-detail riêng; production có thể create rồi redirect detail |
 | Work Item Detail | Header Story/ID/Name | ✅ | `WorkItemDetailPage.tsx` | Có collapse icon và back |
@@ -48,15 +48,15 @@ Không nằm trong Phase 1:
 | Work Item Detail | Attachments | ✅ | `WorkItemDetailPage.tsx` | Drag/click area |
 | Work Item Detail | Notes | ✅ | `WorkItemDetailPage.tsx` | Rich editor |
 | Work Item Detail | Release Notes | ✅ | `WorkItemDetailPage.tsx` | Rich editor cho technical writer content |
-| Work Item Detail | Sidebar Owner/Project/Team/Schedule State/Flow State/Priority/Plan Estimate/Release/Iteration | ✅ | `Priority` chỉ show khi item type là Defect; options Low/Normal/High/Urgent/None |
+| Work Item Detail | Sidebar Owner/Project/Team/Schedule State/Flow State/Priority/Plan Estimate/Release/Milestones/Iteration | ✅ | Schedule State = 6 ô; Flow State = dropdown; Team optional; Priority chỉ show khi item type là Defect |
 | Task List | Task tab full width, bỏ sidebar phải | ✅ | `WorkItemDetailPage.tsx` | Khi click Tasks, content chiếm full details area |
 | Task List | Columns Rank, ID, Name, State, Owner, Project, Teams, To Do, Actuals, Estimate | ✅ | `WorkItemDetailPage.tsx` | Có totals row |
-| Task Create | Add Task modal | ✅ | `WorkItemDetailPage.tsx` | Name required, Estimate, Owner |
+| Task Create | Add Task modal | ✅ | `WorkItemDetailPage.tsx` | Name required, To Do, Actual, Owner; Estimate derived/read-only |
 | Task Create | Buttons Cancel/Create/Create with details | ✅ | `WorkItemDetailPage.tsx` | Đúng yêu cầu |
 | Task Detail | Click Task ID mở detail page | ✅ | `WorkItemDetailPage.tsx` | Có Back to task list |
 | Task Detail | Banner riêng cho Task Detail | ✅ | `WorkItemDetailPage.tsx` | Chỉ Details + Revision History, bỏ Tasks tab |
 | Task Detail | Left content Description/Notes/Attachments | ✅ | `WorkItemDetailPage.tsx` | Dùng rich editor và attachment block |
-| Task Detail | Right fields State/Owner/Project/Team/Work Product/Estimate/To Do/Actual | ✅ | `WorkItemDetailPage.tsx` | State chỉ Defined/In-Progress/Completed |
+| Task Detail | Right fields Task State/Owner/Project/Team/Work Product/Estimate/To Do/Actual | ✅ | Task State chỉ Defined/In-Progress/Completed; Estimate = To Do + Actual |
 | Activity Log | Work Item Revision History | ✅ | `WorkItemDetailPage.tsx` | Basic activity log table |
 | Activity Log | Task Revision History | ✅ | `WorkItemDetailPage.tsx` | Basic activity log theo task |
 | Manage | Workspace menu mở Manage page | ✅ | `ProjectsPage.tsx`, `layout.tsx` | Breadcrumb hiển thị `ACME Space Inc. > Manage` |
@@ -78,7 +78,7 @@ Không nằm trong Phase 1:
 | Schedule State / Flow State | `work_items.schedule_state`, `work_items.flow_state` | ✅ M1/M3/M5.1 confirmed | Cùng 6 options; Detail mirror hai chiều; create default Idea; shared Work Item state reflects cross-screen for the current mockup session. Refresh/API persistence remains DevInt scope. |
 | Owner | `work_items.assignee_id` | ✅ | Join `users` |
 | Plan Estimate | `work_items.story_point` | ✅ | Mapping tên UI `Plan Estimate` → DB `story_point` |
-| Task Estimate | DB design đã bổ sung `estimate_hours` | ✅ | Production migration cần implement |
+| Task Estimate | `estimate_hours` nếu lưu/cache | ✅ | Derived/read-only: Estimate = To Do + Actual |
 | To Do | DB design đã bổ sung `todo_hours` | ✅ | Production migration cần implement |
 | Actual | DB design đã bổ sung `actual_hours` | ✅ | Phase 1 chốt nhập tay |
 | Description | `work_items.description` | ✅ | Rich text/HTML hoặc markdown sanitize |
@@ -96,7 +96,8 @@ Không nằm trong Phase 1:
 | P1-DC-002 | Phase 1 timebox = 2 working days = 16 hours | Tracking dùng 1 day = 8 hours |
 | P1-DC-003 | `Notes` là text/rich-text field riêng | Không dùng comment thread thay thế Notes trong Phase 1 |
 | P1-DC-004 | `Actual` nhập tay | Lưu vào `work_items.actual_hours`; phase sau mới cân nhắc aggregate từ time entries |
-| P1-DC-005 | Work Item sidebar dùng `Schedule State` và `Flow State` | `Status` sidebar đổi thành `Flow State`; options: Idea/Defined/In-Progress/Completed/Accepted/Release |
+| P1-DC-004A | Task Estimate derived/read-only | `Estimate = To Do + Actual`; Completed không tự zero To Do |
+| P1-DC-005 | Work Item sidebar dùng `Schedule State` và `Flow State` | Schedule State = 6 ô; Flow State = dropdown; options: Idea/Defined/In-Progress/Completed/Accepted/Release |
 | P1-DC-006 | Schedule State và Flow State mirror hai chiều trong MVP | Default cả hai là Idea; child Task không dùng catalog này |
 | P1-DC-006 | Defect Detail sidebar hiển thị `Priority` | Chỉ show với Defect; options: Low/Normal/High/Urgent/None |
 | P1-DC-008 | Manage là entry point cho Projects/Teams/Users | Workspace dropdown `Manage` mở màn Manage |

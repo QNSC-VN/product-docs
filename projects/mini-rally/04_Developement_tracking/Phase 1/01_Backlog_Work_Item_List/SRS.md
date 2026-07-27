@@ -17,6 +17,17 @@ Backlog là màn hình trung tâm để user nhìn toàn bộ Story/Defect của
 
 Phase 1 Backlog không dùng để gán sprint hay theo dõi sprint. Sprint/Iteration thuộc phase khác.
 
+## 1.1 DevInt Audit Reconciliation - 2026-07-24
+
+BA confirmed the current Work Item state display contract:
+
+- Backlog must expose both `Schedule State` and `Flow State` for Story/Defect.
+- `Schedule State` is the six-box state control.
+- `Flow State` is a dropdown.
+- Both fields use exactly `Idea / Defined / In-Progress / Completed / Accepted / Release`.
+- Changing either field mirrors the other field in the MVP.
+- Team is optional for a Work Item: blank Team means the item belongs to the Project backlog; selected Team means it belongs to that Team backlog within the Project.
+
 ## 2. Tài liệu tham chiếu
 
 | Tài liệu | Phần tham chiếu | Mục đích |
@@ -45,7 +56,7 @@ Phase 1 Backlog không dùng để gán sprint hay theo dõi sprint. Sprint/Iter
 | BL-FR-003 | User chỉ thấy item thuộc project/team họ có quyền xem. |
 | BL-FR-004 | Search theo `item_key` hoặc `title`. |
 | BL-FR-005 | Filter Type gồm All/Story/Defect. |
-| BL-FR-006 | Backlog hiển thị `Schedule State`; Priority chỉ áp dụng cho Defect. |
+| BL-FR-006 | Backlog hiển thị `Schedule State` dạng 6 ô và `Flow State` dạng dropdown; Priority chỉ áp dụng cho Defect. |
 | BL-FR-007 | Pagination server-side, rows per page 10/25/50/100. |
 | BL-FR-008 | Click ID hoặc row mở full Work Item Detail. |
 | BL-FR-009 | List có column resize ở FE; width có thể lưu local preference, không bắt buộc lưu DB. |
@@ -53,7 +64,7 @@ Phase 1 Backlog không dùng để gán sprint hay theo dõi sprint. Sprint/Iter
 | BL-FR-011 | Loading/error/retry state không làm mất App Shell. |
 | BL-FR-012 | Soft-deleted item không hiển thị. |
 | BL-FR-013 | Schedule State của Story/Defect dùng đúng `Idea/Defined/In-Progress/Completed/Accepted/Release`; không hiển thị legacy `Code Review/Testing`. |
-| BL-FR-014 | Trong MVP, đổi Schedule State phải đồng thời cập nhật Flow State về cùng giá trị. |
+| BL-FR-014 | Trong MVP, đổi Schedule State hoặc Flow State phải đồng thời cập nhật field còn lại về cùng giá trị. |
 
 ## 5. Screen Mapping với Mockup
 
@@ -64,7 +75,7 @@ Phase 1 Backlog không dùng để gán sprint hay theo dõi sprint. Sprint/Iter
 | Project/team selector | Top/context/create controls | Lấy từ App Context/API, không hard-code |
 | Search box | Search input | Debounce query, server-side |
 | Type filter | Select All/Story/Defect | Map `work_items.type` |
-| Schedule State/Priority/Release filters | Select controls hiện có | Priority filter chỉ áp dụng Defect; Schedule State map `work_items.schedule_state` |
+| Schedule State/Flow State/Priority/Release filters | Select controls hiện có | Priority filter chỉ áp dụng Defect; Schedule/Flow map shared Work Item status value trong MVP |
 | Table header | Resizable headers | Resize UI-only hoặc user preference |
 | Rows | `WORK_ITEMS` mock data | Replace bằng API result |
 | Footer pagination | Rows per page + prev/next | Server pagination |
@@ -81,9 +92,10 @@ Phase 1 Backlog không dùng để gán sprint hay theo dõi sprint. Sprint/Iter
 | Estimate | `planEstimate` | `work_items.story_point` | Estimate cấp Story/Defect bằng point | Nullable → hiển thị `—` hoặc 0 theo rule |
 | Owner avatar | `owner` | `work_items.assignee_id → users` | Người phụ trách | Nullable → Unassigned |
 | Schedule State | `scheduleState` | `work_items.schedule_state` | Trạng thái lập lịch/độ chín nghiệp vụ | Required default `Idea`; enum Idea/Defined/In-Progress/Completed/Accepted/Release; mirror Flow State trong MVP |
+| Flow State | `flowState` | `work_items.flow_state` | Trạng thái luồng thực thi | Required default `Idea`; same enum; mirror Schedule State trong MVP |
 | Release | `release` | `work_items.release_id → releases` | Release target nếu giữ cột | Nullable → `Unscheduled` |
 | Project | `project` | `work_items.project_id → projects` | Context/filter/security | Không cần hiển thị nếu đang ở project |
-| Team | `team` | `work_items.team_id → teams` | Team chịu trách nhiệm | Nullable nếu All Teams |
+| Team | `team` | `work_items.team_id → teams` | Team chịu trách nhiệm | Nullable; blank means Project backlog, selected Team means Team backlog |
 | Updated at | `updatedAt` | `work_items.updated_at` | Sort/cache invalidation | Không nhất thiết hiển thị |
 
 ## 7. Query Contract

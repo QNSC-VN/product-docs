@@ -1,0 +1,48 @@
+{
+  "runId": "mini-rally-figma-foundations-2026-07-21",
+  "phase": "P1",
+  "step": "P1.review-ready",
+  "fileKey": "ttpggMpbPwggOZl6umowzC",
+  "entities": {
+    "collections": {
+      "Primitives": "VariableCollectionId:7:2",
+      "Color": "VariableCollectionId:7:3",
+      "Spacing": "VariableCollectionId:7:4",
+      "Radius": "VariableCollectionId:7:5",
+      "Typography": "VariableCollectionId:7:6"
+    },
+    "pages": {
+      "00 Cover & Release Notes": "0:1",
+      "01 Getting Started": "7:85",
+      "02 Foundations": "7:86",
+      "Getting Started": "7:93",
+      "Foundations Overview": "9:2"
+    },
+    "variables": {
+      "primitives": "22 variables",
+      "semantic_color": "20 variables",
+      "spacing": "12 variables",
+      "radius": "7 variables",
+      "typography": "8 variables"
+    },
+    "styles": {
+      "text": "6 styles",
+      "effect": "2 styles"
+    }
+  },
+  "completedSteps": [
+    "P1.a-discovery",
+    "P1.d-token-collections",
+    "P1.b-page-skeleton",
+    "P1.c-design-rules",
+    "P1.d-token-variables",
+    "P1.e-code-syntax-and-scopes",
+    "P1.f-text-and-effect-styles",
+    "P1.g-foundation-documentation",
+    "P1.h-validation",
+    "P1.i-review-package"
+  ],
+  "pendingValidations": [
+    "user-review"
+  ]
+}

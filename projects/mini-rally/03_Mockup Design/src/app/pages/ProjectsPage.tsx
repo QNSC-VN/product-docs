@@ -397,7 +397,7 @@ function UserModal({ user, teams, existingEmails, onClose, onSave }: { user: Use
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0" style={{ backgroundColor: "rgba(15,23,42,0.34)" }} onClick={onClose} />
       <form onSubmit={submit} className="relative w-full max-w-[680px] h-[600px] bg-white rounded-md shadow-2xl overflow-hidden flex flex-col" style={{ border: "1px solid #d4d8de" }}>
-        <ModalHeader title={editing ? "Edit User" : "Invite User"} subtitle="Manage Projects / Users" onClose={onClose} />
+        <ModalHeader title={editing ? "Edit User" : "Invite User"} subtitle="Project Management / Users" onClose={onClose} />
         <div className="p-5 space-y-4 flex-1 overflow-y-auto">
           {error && <ErrorMessage text={error} />}
           <div className="flex items-center gap-1 p-1 rounded" style={{ backgroundColor: "#edf0f4" }}>
@@ -631,7 +631,7 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
       <style>{`.form-input{width:100%;padding:0.5rem 0.75rem;border:1px solid #d9dee7;border-radius:4px;font-size:12px;color:#1a2234;outline:none}.form-input:focus{border-color:rgba(29,63,115,.45);box-shadow:0 0 0 2px rgba(29,63,115,.08)}`}</style>
       <div className="px-4 py-3 flex items-center gap-4 shrink-0" style={{ borderBottom: "1px solid #e2e6eb" }}>
         <div>
-          <h2 className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>Manage Projects</h2>
+          <h2 className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>Project Management</h2>
           <p className="text-[10px] mt-0.5" style={{ color: "#8c94a6" }}>Projects under ACME Space Inc.</p>
         </div>
         <Tabs activeTab={activeTab} onChange={setActiveTab} />

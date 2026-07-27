@@ -15,6 +15,16 @@
 
 Cho phép user tạo nhanh Story/Defect trong project/team đang chọn. Task không được tạo từ Backlog; Task chỉ tạo trong tab Tasks của Work Item Detail.
 
+## 1.1 DevInt Audit Reconciliation - 2026-07-24
+
+BA confirmed Work Item create team policy:
+
+- Project is required and defaults to the current Project context.
+- Team is optional.
+- If Team is blank, the Work Item belongs to the Project backlog.
+- If Team is selected, the Work Item belongs to that Team backlog and the Team must be linked to the selected Project.
+- Quick create must show field-level validation instead of generic unexpected errors.
+
 ## 2. Tài liệu tham chiếu
 
 | Tài liệu | Phần tham chiếu | Mục đích |
@@ -31,7 +41,7 @@ Cho phép user tạo nhanh Story/Defect trong project/team đang chọn. Task kh
 | WIC-FR-002 | Type chỉ gồm Story và Defect. |
 | WIC-FR-003 | Field `Title/Name` là required. |
 | WIC-FR-004 | Project required, default current project. |
-| WIC-FR-005 | Team required/optional theo policy; default current team nếu có. |
+| WIC-FR-005 | Team optional; default blank/Project backlog unless current Team context is explicitly selected and valid for the Project. |
 | WIC-FR-006 | Owner nullable; default current user hoặc Unassigned theo config. |
 | WIC-FR-007 | Plan Estimate nullable, không âm. |
 | WIC-FR-008 | `Create` tạo item và quay lại Backlog/list refresh. |
@@ -48,7 +58,7 @@ Cho phép user tạo nhanh Story/Defect trong project/team đang chọn. Task kh
 | Modal title | `New Work Item` | Hiển thị context project/team |
 | Type buttons | Story/Defect | Map enum `work_items.type` |
 | Project select | Project dropdown | Lấy project user có quyền |
-| Team select | Team dropdown | Lọc theo project selected |
+| Team select | Team dropdown | Optional; blank = Project backlog; selected options filter by selected Project |
 | Title | Input placeholder | Required |
 | Owner | Dropdown | User list theo project/team membership |
 | Plan Estimate | Number input | Map story points |
@@ -63,7 +73,7 @@ Cho phép user tạo nhanh Story/Defect trong project/team đang chọn. Task kh
 | Type | `type` | `work_items.type` | Story/Defect | Required; only `story`,`defect` |
 | Project | `projectId` | `work_items.project_id` | Scope item | Required; user must access |
 | Workspace | Server-derived | `work_items.workspace_id` | Tenant isolation/query | Derived from session/project |
-| Team | `teamId` | `work_items.team_id` | Team owner | Nullable or required by policy; must exist in `project_teams` active |
+| Team | `teamId` | `work_items.team_id` | Team owner | Nullable; null = Project backlog; if provided, must exist in active `project_teams` for selected Project |
 | Title/Name | `title` | `work_items.title` | Item name | Required, trim, max 500 |
 | Owner | `assigneeId` | `work_items.assignee_id` | Responsible user | Nullable; user must belong to project/team policy |
 | Plan Estimate | `planEstimate` | `work_items.story_point` | Story point estimate | Nullable; decimal >= 0 |
@@ -132,6 +142,8 @@ Response:
 5. `item_key` unique và tăng đúng trong project khi concurrent create.
 6. Create with details mở detail item vừa tạo.
 7. Activity log có `work_item.created`.
+8. Creating without Team succeeds and places the item in the Project backlog.
+9. Creating with a Team validates that Team belongs to the selected Project.
 
 ## 10. Implementation Breakdown
 
