@@ -1,7 +1,7 @@
 ﻿import { useState } from "react";
 import { TopNav, ContextBar } from "./components/layout";
 import { useEffect } from "react";
-import { type CapacityPlan, type Feature, type IterationItem, type MilestoneItem, type NewCapacityPlanInput, type NewFeatureInput, type NewIterationInput, type NewMilestoneInput, type NewReleaseInput, type NewTaskInput, type NewWorkItemInput, type Page, type ReleaseItem, type Role, type ScopeProject, type TaskItem, type WorkItem, CAPACITY_PLANS_DATA, FEATURES, ITERATIONS_DATA, MILESTONES_DATA, NOTIFICATIONS, OWNERS, RELEASES_DATA, ROLE_SCOPE, SCOPE_PROJECTS, TASKS_DATA, WORK_ITEMS } from "./model";
+import { type CapacityPlan, type Epic, type Feature, type IterationItem, type MilestoneItem, type NewCapacityPlanInput, type NewEpicInput, type NewFeatureInput, type NewIterationInput, type NewMilestoneInput, type NewReleaseInput, type NewTaskInput, type NewWorkItemInput, type Page, type ReleaseItem, type Role, type ScopeProject, type TaskItem, type WorkItem, toDateInputValue, CAPACITY_PLANS_DATA, EPICS, FEATURES, ITERATIONS_DATA, MILESTONES_DATA, NOTIFICATIONS, OWNERS, RELEASES_DATA, ROLE_SCOPE, SCOPE_PROJECTS, TASKS_DATA, WORK_ITEMS } from "./model";
 import { HomePage } from "./pages/HomePage";
 import { TrackPage } from "./pages/IterationStatusPage";
 import { TeamBoardPage } from "./pages/TeamBoardPage";
@@ -14,7 +14,7 @@ import { CapacityPlanningPage } from "./pages/CapacityPlanningPage";
 import { ReleasesPage } from "./pages/ReleasesPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
-import { SettingsPage } from "./pages/SettingsPage";
+import { SettingsPage, type RoleActionRow, PROD_ROLE_ACTION_MATRIX } from "./pages/SettingsPage";
 import { WorkItemDetailPage } from "./pages/WorkItemDetailPage";
 import { LoginPage } from "./pages/LoginPage";
 import { ProjectsPage } from "./pages/ProjectsPage";
@@ -35,6 +35,7 @@ export default function App() {
   const [currentRole, setCurrentRole] = useState<Role>("Workspace Admin");
   const [currentProject, setCurrentProject] = useState<ScopeProject>(SCOPE_PROJECTS[0]);
   const [currentTeam, setCurrentTeam] = useState("All Teams");
+  const [portfolioTypeFilter, setPortfolioTypeFilter] = useState<"Epic" | "Feature">("Epic");
   const [workItems, setWorkItems] = useState<WorkItem[]>(() => WORK_ITEMS.map(item => {
     const releaseId = item.releaseId || ({ "Q4 2024": "REL-001", "Q1 2025": "REL-002", "Q2 2025": "REL-003" } as Record<string, string>)[item.release];
     const releaseName = RELEASES_DATA.find(release => release.id === releaseId)?.name;
@@ -44,8 +45,14 @@ export default function App() {
   const [iterations, setIterations] = useState<IterationItem[]>(ITERATIONS_DATA);
   const [releases, setReleases] = useState<ReleaseItem[]>(RELEASES_DATA);
   const [milestones, setMilestones] = useState<MilestoneItem[]>(MILESTONES_DATA);
+  const [epics, setEpics] = useState<Epic[]>(EPICS);
   const [features, setFeatures] = useState<Feature[]>(FEATURES);
   const [capacityPlans, setCapacityPlans] = useState<CapacityPlan[]>(CAPACITY_PLANS_DATA);
+  // Saved role permission matrix. Owned here rather than inside SettingsPage so
+  // that saving it in Settings > Workspace actually changes what other screens
+  // allow - Capacity Planning reads the temporary capacity_planning:manage
+  // Full/View row from it.
+  const [permissionMatrix, setPermissionMatrix] = useState<RoleActionRow[]>(PROD_ROLE_ACTION_MATRIX);
   const [activeItem, setActiveItem] = useState<WorkItem | null>(null);
   const [showFullDetail, setShowFullDetail] = useState(false);
   const [fullDetailItem, setFullDetailItem] = useState<WorkItem | null>(null);
@@ -176,6 +183,7 @@ export default function App() {
       setWorkItems(previous => previous.map(syncReleaseLabel));
       setActiveItem(previous => previous ? syncReleaseLabel(previous) : previous);
       setFullDetailItem(previous => previous ? syncReleaseLabel(previous) : previous);
+      setEpics(previous => previous.map(epic => epic.releaseId === id ? { ...epic, release: patch.name as string } : epic));
       setFeatures(previous => previous.map(feature => feature.releaseId === id ? { ...feature, release: patch.name as string } : feature));
     }
   }
@@ -203,6 +211,31 @@ export default function App() {
   function updateFeature(id: string, patch: Partial<Feature>) {
     setFeatures(previous => previous.map(feature => feature.id === id ? { ...feature, ...patch } : feature));
   }
+  function updateEpic(id: string, patch: Partial<Epic>) {
+    setEpics(previous => previous.map(epic => epic.id === id ? { ...epic, ...patch } : epic));
+  }
+  function createEpic(input: NewEpicInput): Epic {
+    const nextNumber = Math.max(100, ...epics.map(epic => Number(epic.id.split("-")[1]) || 0)) + 1;
+    const item: Epic = {
+      id: `EP-${nextNumber}`,
+      name: input.name,
+      status: input.state,
+      priority: "Medium",
+      owner: input.owner,
+      release: input.release || "Unscheduled",
+      releaseId: input.releaseId,
+      project: input.project,
+      preliminaryEstimate: input.preliminaryEstimate,
+      milestoneIds: [],
+      createdAt: formatAuditTimestamp(new Date()),
+      description: "",
+      notes: "",
+      successCriteria: "",
+      attachments: [],
+    };
+    setEpics(previous => [...previous, item]);
+    return item;
+  }
   function createFeature(input: NewFeatureInput): Feature {
     const nextNumber = Math.max(0, ...features.map(feature => Number(feature.id.split("-")[1]) || 0)) + 1;
     const item: Feature = {
@@ -215,6 +248,7 @@ export default function App() {
       releaseId: input.releaseId,
       project: input.project,
       team: input.team,
+      epicId: input.epicId,
       preliminaryEstimate: input.preliminaryEstimate,
       milestoneIds: [],
       createdAt: formatAuditTimestamp(new Date()),
@@ -260,7 +294,9 @@ export default function App() {
           release: plan.release,
           releaseId: plan.releaseId,
           plannedStartDate: release?.startDate || feature.plannedStartDate,
-          plannedEndDate: release?.releaseDate || feature.plannedEndDate,
+          // Planned Start Date is a free-text field, so the Release's human-readable
+          // date carries over as-is. Planned End Date is a date input and needs ISO.
+          plannedEndDate: toDateInputValue(release?.releaseDate) || feature.plannedEndDate,
         };
       }));
     }
@@ -396,13 +432,13 @@ export default function App() {
       case "teamBoard": return <TeamBoardPage role={currentRole} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
       case "teamStatus": return <TeamStatusPage role={currentRole} readOnly={projectReadOnly} items={workItems} tasks={tasks} onUpdateTask={updateTask} onOpenFull={openFullDetail} />;
       case "quality": return <QualityPage role={currentRole} readOnly={projectReadOnly} projectKey={currentProject.key} items={workItems} onUpdateItem={updateWorkItem} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
-      case "portfolio": return <PortfolioPage role={currentRole} project={currentProject} team={currentTeam} releases={releases} features={features} workItems={workItems} tasks={tasks} milestones={milestones} onCreateFeature={createFeature} onUpdateFeature={updateFeature} onUpdateItem={updateWorkItem} onCreateItem={createWorkItem} onOpenFull={openFullDetail} />;
-      case "capacityPlanning": return <CapacityPlanningPage role={currentRole} project={currentProject} releases={releases} features={features} workItems={workItems} capacityPlans={capacityPlans} onCreateCapacityPlan={createCapacityPlan} onUpdateCapacityPlan={updateCapacityPlan} onPublishCapacityPlan={publishCapacityPlan} />;
+      case "portfolio": return <PortfolioPage role={currentRole} project={currentProject} team={currentTeam} portfolioTypeFilter={portfolioTypeFilter} releases={releases} epics={epics} features={features} workItems={workItems} tasks={tasks} milestones={milestones} onCreateEpic={createEpic} onUpdateEpic={updateEpic} onCreateFeature={createFeature} onUpdateFeature={updateFeature} onUpdateItem={updateWorkItem} onCreateItem={createWorkItem} onOpenFull={openFullDetail} />;
+      case "capacityPlanning": return <CapacityPlanningPage role={currentRole} project={currentProject} releases={releases} features={features} workItems={workItems} capacityPlans={capacityPlans} permissionMatrix={permissionMatrix} onCreateCapacityPlan={createCapacityPlan} onUpdateCapacityPlan={updateCapacityPlan} onPublishCapacityPlan={publishCapacityPlan} />;
       case "releasePlanning": return <ReleasePlanningPlaceholder />;
       case "releases": return <ReleasesPage role={currentRole} readOnly={projectReadOnly} />;
       case "reports": return <ReportsPage role={currentRole} readOnly={projectReadOnly} />;
       case "notifications": return <NotificationsPage onOpenWorkItem={openNotificationWorkItem} />;
-      case "settings": return <SettingsPage role={currentRole} projectReadOnly={projectReadOnly} />;
+      case "settings": return <SettingsPage role={currentRole} projectReadOnly={projectReadOnly} permissionMatrix={permissionMatrix} onSavePermissionMatrix={setPermissionMatrix} />;
     }
   }
 
@@ -411,7 +447,7 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", backgroundColor: "#f0f2f5" }}>
       <TopNav currentPage={currentPage} onNavigate={navigateTo} currentRole={currentRole} onRoleChange={changeRole} unreadCount={unreadCount} currentProject={currentProject} currentTeam={currentTeam} onScopeChange={changeScope} onSignOut={signOut} />
-      <ContextBar currentPage={currentPage} currentProject={currentProject} currentTeam={currentTeam} />
+      <ContextBar currentPage={currentPage} currentProject={currentProject} currentTeam={currentTeam} portfolioTypeFilter={portfolioTypeFilter} onPortfolioTypeFilterChange={setPortfolioTypeFilter} />
       <div className="flex flex-1 overflow-hidden">
         {accessState
           ? <AccessStatePage variant={accessState} onBack={() => { setAccessState(null); setCurrentPage("backlog"); }} />

@@ -17,14 +17,26 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type PortfolioState, type EstimateSize, type MilestoneItem, type TaskItem, type NewWorkItemInput, type Owner, type WorkItem, type Notification, type Feature, type NewFeatureInput, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
+import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type PortfolioState, type EstimateSize, type MilestoneItem, type TaskItem, type NewWorkItemInput, type Owner, type WorkItem, type Epic, type Feature, type NewEpicInput, type NewFeatureInput, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, PRELIMINARY_ESTIMATE_POINT_FALLBACK, PRELIMINARY_ESTIMATE_COUNT_FALLBACK, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 import { releaseStatusCfg, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, ScheduleStateBar, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
-import { SavedViewsDrop } from "../components/layout";
 import { Field, RichTextEditor, TaskStateBadge, fieldClass, fieldStyle } from "./WorkItemDetailPage";
 import { ResizableBacklogHeader, type BacklogColumnKey } from "./BacklogPage";
 
 export type PortfolioColumnKey = "rank" | "type" | "id" | "name" | "release" | "state" | "percentDoneByStoryPlanEstimate" | "percentDoneByStoryCount" | "project" | "team" | "owner";
 type PortfolioSort = { column: PortfolioColumnKey; direction: "asc" | "desc" };
+const PORTFOLIO_COLUMN_DEFS: Array<{ key: PortfolioColumnKey; label: string; align?: "left" | "center" | "right" }> = [
+  { key: "rank", label: "Rank", align: "right" },
+  { key: "type", label: "Type" },
+  { key: "id", label: "ID" },
+  { key: "name", label: "Name" },
+  { key: "release", label: "Release" },
+  { key: "state", label: "State" },
+  { key: "percentDoneByStoryPlanEstimate", label: "Percent Done By Story Plan Estimate" },
+  { key: "percentDoneByStoryCount", label: "Percent Done By Story Count" },
+  { key: "project", label: "Project" },
+  { key: "team", label: "Team" },
+  { key: "owner", label: "Owner" },
+];
 
 function getPortfolioSortTooltip(column: PortfolioColumnKey, direction: "asc" | "desc") {
   if (column === "percentDoneByStoryPlanEstimate" || column === "percentDoneByStoryCount") return direction === "desc" ? "Highest to lowest" : "Lowest to highest";
@@ -87,6 +99,16 @@ function PortfolioStateBadge({ state }: { state: PortfolioState }) {
   );
 }
 
+function PortfolioItemTypeBadge({ type }: { type: "Epic" | "Feature" }) {
+  if (type === "Feature") return <TypeBadge type="Feature" />;
+  return (
+    <span className="inline-flex items-center gap-1 px-1.5 py-px text-[10px] font-semibold rounded-sm whitespace-nowrap" style={{ backgroundColor: "#f5f3ff", color: "#6d28d9", border: "1px solid #d8b4fe" }}>
+      <Layers size={11} />
+      Epic
+    </span>
+  );
+}
+
 function FeatureProgressMeter({ label, pct, numerator, denominator, unit }: { label: string; pct: number; numerator: number; denominator: number; unit: string }) {
   return (
     <div className="space-y-1">
@@ -121,8 +143,6 @@ function FeatureListProgressCell({ pct, numerator, denominator }: { pct: number;
 
 const PORTFOLIO_STATES: PortfolioState[] = ["No Entry", "Intake", "Idea Prioritization", "Problem Discovery", "Solution Discovery", "Feature Prioritization", "Developing", "Accepted", "Measuring", "Done", "Cancelled"];
 const ESTIMATE_SIZES: EstimateSize[] = ["No Entry", "XS", "S", "M", "L", "XL"];
-const PRELIMINARY_ESTIMATE_POINT_FALLBACK: Record<EstimateSize, number> = { "No Entry": 0, XS: 1, S: 3, M: 5, L: 8, XL: 13 };
-const PRELIMINARY_ESTIMATE_COUNT_FALLBACK: Record<EstimateSize, number> = { "No Entry": 0, XS: 1, S: 2, M: 3, L: 5, XL: 8 };
 
 function getFeatureTopDownPointEstimate(feature: Feature) {
   return feature.refinedEstimate ?? PRELIMINARY_ESTIMATE_POINT_FALLBACK[feature.preliminaryEstimate];
@@ -130,6 +150,14 @@ function getFeatureTopDownPointEstimate(feature: Feature) {
 
 function getFeatureTopDownCountEstimate(feature: Feature) {
   return feature.refinedWorkItemCountEstimate ?? PRELIMINARY_ESTIMATE_COUNT_FALLBACK[feature.preliminaryEstimate];
+}
+
+function getEpicTopDownPointEstimate(epic: Epic) {
+  return epic.refinedEstimate ?? PRELIMINARY_ESTIMATE_POINT_FALLBACK[epic.preliminaryEstimate];
+}
+
+function getEpicTopDownCountEstimate(epic: Epic) {
+  return epic.refinedWorkItemCountEstimate ?? PRELIMINARY_ESTIMATE_COUNT_FALLBACK[epic.preliminaryEstimate];
 }
 
 function parseOptionalNonNegativeNumber(value: string) {
@@ -216,7 +244,7 @@ function compareChildSortValues(a: string | number, b: string | number) {
   return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: "base" });
 }
 
-function NewFeatureModal({ role, currentProject, currentTeam, releases, onClose, onCreate, onCreateWithDetails }: { role: Role; currentProject: ScopeProject; currentTeam: string; releases: ReleaseItem[]; onClose: () => void; onCreate: (input: NewFeatureInput) => Feature; onCreateWithDetails: (input: NewFeatureInput) => void }) {
+function NewFeatureModal({ role, currentProject, currentTeam, releases, epics = [], defaultEpicId, onClose, onCreate, onCreateWithDetails }: { role: Role; currentProject: ScopeProject; currentTeam: string; releases: ReleaseItem[]; epics?: Epic[]; defaultEpicId?: string; onClose: () => void; onCreate: (input: NewFeatureInput) => Feature; onCreateWithDetails: (input: NewFeatureInput) => void }) {
   const [name, setName] = useState("");
   const allowedProjects = getRoleScopedProjects(role, currentProject);
   const initialProject = allowedProjects.find(project => project.key === currentProject.key) || allowedProjects[0] || currentProject;
@@ -224,21 +252,24 @@ function NewFeatureModal({ role, currentProject, currentTeam, releases, onClose,
   const [team, setTeam] = useState(currentTeam !== "All Teams" && initialProject.teams.includes(currentTeam) ? currentTeam : initialProject.teams[0]);
   const [ownerName, setOwnerName] = useState(OWNERS[0].name);
   const [release, setRelease] = useState("Unscheduled");
+  const [epicId, setEpicId] = useState(defaultEpicId || "");
   const [state, setState] = useState<PortfolioState>("No Entry");
   const [preliminaryEstimate, setPreliminaryEstimate] = useState<EstimateSize>("No Entry");
   const selectedProject = allowedProjects.find(project => project.key === projectKey) || initialProject;
   const releaseOptions = getProjectReleaseOptions(releases, selectedProject.key);
+  const epicOptions = epics.filter(epic => epic.project === selectedProject.key && !epic.archivedAt);
   const canCreate = name.trim().length > 0;
   function selectProject(nextProjectKey: string) {
     const nextProject = allowedProjects.find(project => project.key === nextProjectKey) || initialProject;
     setProjectKey(nextProject.key);
     setTeam(nextProject.teams[0]);
+    setEpicId("");
     setRelease("Unscheduled");
   }
   function buildInput(): NewFeatureInput {
     const owner = OWNERS.find(candidate => candidate.name === ownerName) || OWNERS[0];
     const releasePatch = getReleasePatch(releases, projectKey, release);
-    return { name: name.trim(), project: projectKey, team, owner, release: releasePatch.release, releaseId: releasePatch.releaseId, state, preliminaryEstimate };
+    return { name: name.trim(), project: projectKey, team, epicId: epicId || undefined, owner, release: releasePatch.release, releaseId: releasePatch.releaseId, state, preliminaryEstimate };
   }
   function submit() {
     if (!canCreate) return;
@@ -263,6 +294,7 @@ function NewFeatureModal({ role, currentProject, currentTeam, releases, onClose,
             <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Project</label><select aria-label="New Feature project" value={projectKey} onChange={event => selectProject(event.target.value)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{allowedProjects.map(project => <option key={project.key} value={project.key}>{project.key} · {project.name}</option>)}</select></div>
             <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Team</label><select aria-label="New Feature team" value={team} onChange={event => setTeam(event.target.value)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{selectedProject.teams.map(projectTeam => <option key={projectTeam}>{projectTeam}</option>)}</select></div>
           </div>
+          <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Epic</label><select aria-label="New Feature Epic" value={epicId} onChange={event => setEpicId(event.target.value)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}><option value="">Unassigned</option>{epicOptions.map(epic => <option key={epic.id} value={epic.id}>{epic.id} · {epic.name}</option>)}</select></div>
           <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Name <span style={{ color: "#dc2626" }}>*</span></label>
             <input autoFocus type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Enter a concise, descriptive name..." className="w-full text-[13px] px-3 py-2 rounded focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} onFocus={e => (e.currentTarget.style.borderColor = "rgba(29,63,115,0.4)")} onBlur={e => (e.currentTarget.style.borderColor = "#dde2ea")} />
           </div>
@@ -288,9 +320,68 @@ function NewFeatureModal({ role, currentProject, currentTeam, releases, onClose,
   );
 }
 
-function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, role, readOnly, releases, milestones, features, tasks, onBack, onUpdateFeature, onArchiveFeature, onUpdateItem, onCreateItem, onOpenFull }: {
+function NewEpicModal({ role, currentProject, onClose, onCreate, onCreateWithDetails }: { role: Role; currentProject: ScopeProject; onClose: () => void; onCreate: (input: NewEpicInput) => Epic; onCreateWithDetails: (input: NewEpicInput) => void }) {
+  const [name, setName] = useState("");
+  const allowedProjects = getRoleScopedProjects(role, currentProject);
+  const initialProject = allowedProjects.find(project => project.key === currentProject.key) || allowedProjects[0] || currentProject;
+  const [projectKey, setProjectKey] = useState(initialProject.key);
+  const [ownerName, setOwnerName] = useState(OWNERS[0].name);
+  const [state, setState] = useState<PortfolioState>("No Entry");
+  const [preliminaryEstimate, setPreliminaryEstimate] = useState<EstimateSize>("No Entry");
+  const canCreate = name.trim().length > 0;
+  function selectProject(nextProjectKey: string) {
+    const nextProject = allowedProjects.find(project => project.key === nextProjectKey) || initialProject;
+    setProjectKey(nextProject.key);
+  }
+  function buildInput(): NewEpicInput {
+    const owner = OWNERS.find(candidate => candidate.name === ownerName) || OWNERS[0];
+    return { name: name.trim(), project: projectKey, owner, release: "Unscheduled", releaseId: undefined, state, preliminaryEstimate };
+  }
+  function submit() {
+    if (!canCreate) return;
+    onCreate(buildInput());
+    onClose();
+  }
+  function submitWithDetails() {
+    if (!canCreate) return;
+    onCreateWithDetails(buildInput());
+    onClose();
+  }
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      <div className="absolute inset-0" style={{ backgroundColor: "rgba(0,0,0,0.28)" }} onClick={onClose} />
+      <div className="relative bg-white rounded shadow-2xl flex flex-col overflow-hidden" style={{ width: 480, maxHeight: "85vh", border: "1px solid #d4d8de" }}>
+        <div className="flex items-center justify-between px-5 py-3.5 shrink-0" style={{ backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
+          <div><p className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>New Epic</p><p className="text-[11px]" style={{ color: "#8c94a6" }}>Portfolio Items</p></div>
+          <button onClick={onClose} className="p-1 rounded" style={{ color: "#8c94a6" }}><X size={15} /></button>
+        </div>
+        <div className="overflow-y-auto flex-1 p-5 space-y-4">
+          <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Project</label><select aria-label="New Epic project" value={projectKey} onChange={event => selectProject(event.target.value)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{allowedProjects.map(project => <option key={project.key} value={project.key}>{project.key} · {project.name}</option>)}</select></div>
+          <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Name <span style={{ color: "#dc2626" }}>*</span></label><input autoFocus type="text" value={name} onChange={e => setName(e.target.value)} placeholder="Enter Epic name..." className="w-full text-[13px] px-3 py-2 rounded focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }} /></div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>State</label><select aria-label="New Epic state" value={state} onChange={event => setState(event.target.value as PortfolioState)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{PORTFOLIO_STATES.map(s => <option key={s}>{s}</option>)}</select></div>
+            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Preliminary Estimate</label><select aria-label="New Epic preliminary estimate" value={preliminaryEstimate} onChange={event => setPreliminaryEstimate(event.target.value as EstimateSize)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{ESTIMATE_SIZES.map(s => <option key={s}>{s}</option>)}</select></div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className="block text-[10px] font-semibold uppercase tracking-widest mb-1.5" style={{ color: "#5c6478" }}>Owner</label><select aria-label="New Epic owner" value={ownerName} onChange={event => setOwnerName(event.target.value)} className="w-full text-[12px] px-2.5 py-1.5 rounded focus:outline-none bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{OWNERS.map(o => <option key={o.name}>{o.name}</option>)}</select></div>
+          </div>
+          <p className="text-[11px]" style={{ color: "#8c94a6" }}>Epic is Project-level and groups Features. Its four progress bars roll up leaf Story/Defect through child Features.</p>
+        </div>
+        <div className="flex items-center justify-end px-5 py-3 shrink-0" style={{ borderTop: "1px solid #e2e6eb", backgroundColor: "#f7f8fa" }}>
+          <div className="flex gap-2">
+            <button onClick={onClose} className="px-3.5 py-1.5 text-[12px] font-medium rounded" style={{ border: "1px solid #dde2ea", color: "#5c6478" }}>Cancel</button>
+            <button disabled={!canCreate} onClick={submitWithDetails} className="px-4 py-1.5 text-[12px] font-semibold rounded disabled:opacity-45" style={{ border: "1px solid #9fb5d5", color: "#1d3f73", backgroundColor: "#f5f8fc" }}>Create with details</button>
+            <button disabled={!canCreate} onClick={submit} className="px-4 py-1.5 text-[12px] font-semibold text-white rounded disabled:opacity-45" style={{ backgroundColor: "#1d3f73" }}>Create Epic</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, role, readOnly, releases, milestones, epics, features, tasks, onBack, onUpdateFeature, onArchiveFeature, onUpdateItem, onCreateItem, onOpenFull }: {
   feature: Feature; childItems: WorkItem[]; totalEstimate: number; doneEstimate: number;
-  role: Role; readOnly: boolean; releases: ReleaseItem[]; milestones: MilestoneItem[]; features: Feature[]; tasks: TaskItem[]; onBack: () => void;
+  role: Role; readOnly: boolean; releases: ReleaseItem[]; milestones: MilestoneItem[]; epics: Epic[]; features: Feature[]; tasks: TaskItem[]; onBack: () => void;
   onUpdateFeature: (patch: Partial<Feature>) => void;
   onArchiveFeature: () => void;
   onUpdateItem: (id: string, patch: Partial<WorkItem>) => void;
@@ -306,6 +397,7 @@ function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, r
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
   const selectedMilestoneIds = feature.milestoneIds || [];
   const milestoneOptions = milestones.filter(m => selectedMilestoneIds.includes(m.id) || m.projectKeys.includes(feature.project || ""));
+  const epicOptions = epics.filter(epic => epic.project === feature.project && !epic.archivedAt);
   const editableProjectOptions = role === "Workspace Admin"
     ? SCOPE_PROJECTS
     : SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
@@ -443,7 +535,7 @@ function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, r
   function changeProject(projectKey: string) {
     const nextProject = SCOPE_PROJECTS.find(candidate => candidate.key === projectKey) || SCOPE_PROJECTS[0];
     const releasePatch = getReleasePatch(releases, nextProject.key, feature.release);
-    onUpdateFeature({ project: nextProject.key, team: nextProject.teams[0], ...releasePatch });
+    onUpdateFeature({ project: nextProject.key, team: nextProject.teams[0], epicId: undefined, ...releasePatch });
   }
   function archiveFeature() {
     setShowActions(false);
@@ -714,6 +806,7 @@ function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, r
         <aside className="w-[340px] shrink-0 overflow-y-scroll p-5 space-y-4 bg-white" style={{ borderLeft: "1px solid #d7dde7", scrollbarGutter: "stable" }}>
           <Field label="Owner"><select disabled={!editable} aria-label="Feature owner" className={fieldClass} style={fieldStyle} value={feature.owner.name} onChange={e => { const o = OWNERS.find(c => c.name === e.target.value); if (o) onUpdateFeature({ owner: o }); }}>{OWNERS.map(o => <option key={o.name}>{o.name}</option>)}</select></Field>
           <Field label="Project"><select disabled={!editable} aria-label="Feature project" className={fieldClass} style={fieldStyle} value={feature.project || SCOPE_PROJECTS[0].key} onChange={e => changeProject(e.target.value)}>{editableProjectOptions.map(p => <option key={p.key} value={p.key}>{p.key} · {p.name}</option>)}</select></Field>
+          <Field label="Epic"><select disabled={!editable} aria-label="Feature Epic" className={fieldClass} style={fieldStyle} value={feature.epicId || ""} onChange={e => onUpdateFeature({ epicId: e.target.value || undefined })}><option value="">Unassigned</option>{epicOptions.map(epic => <option key={epic.id} value={epic.id}>{epic.id} · {epic.name}</option>)}</select></Field>
           <section className="space-y-3">
             <FeatureProgressMeter label="Percent Done By Story Plan Estimate" pct={pctByStoryPlanEstimate} numerator={doneEstimate} denominator={totalEstimate} unit="points" />
             <FeatureProgressMeter label="Percent Done By Story Count" pct={pctByStoryCount} numerator={acceptedStoryCount} denominator={totalStoryCount} unit="stories" />
@@ -721,8 +814,6 @@ function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, r
             <FeatureProgressMeter label="Estimated Progress by Story Count" pct={pctEstimatedByFeatureCount} numerator={acceptedStoryCount} denominator={topDownCountEstimate} unit="stories" />
           </section>
           <Field label="Preliminary Estimate"><select disabled={!editable} aria-label="Feature preliminary estimate" className={fieldClass} style={fieldStyle} value={feature.preliminaryEstimate} onChange={e => onUpdateFeature({ preliminaryEstimate: e.target.value as EstimateSize })}>{ESTIMATE_SIZES.map(size => <option key={size}>{size}</option>)}</select></Field>
-          <Field label="Refined Estimate"><input type="number" min={0} disabled={!editable} aria-label="Feature refined estimate" className={fieldClass} style={fieldStyle} value={feature.refinedEstimate ?? ""} placeholder={`${PRELIMINARY_ESTIMATE_POINT_FALLBACK[feature.preliminaryEstimate]} pts fallback`} onChange={e => onUpdateFeature({ refinedEstimate: parseOptionalNonNegativeNumber(e.target.value) })} /></Field>
-          <Field label="Refined Work Item Count Estimate"><input type="number" min={0} disabled={!editable} aria-label="Feature refined work item count estimate" className={fieldClass} style={fieldStyle} value={feature.refinedWorkItemCountEstimate ?? ""} placeholder={`${PRELIMINARY_ESTIMATE_COUNT_FALLBACK[feature.preliminaryEstimate]} stories fallback`} onChange={e => onUpdateFeature({ refinedWorkItemCountEstimate: parseOptionalNonNegativeNumber(e.target.value) })} /></Field>
           <Field label="State"><select disabled={!editable} aria-label="Feature state" className={fieldClass} style={fieldStyle} value={feature.status} onChange={e => onUpdateFeature({ status: e.target.value as PortfolioState })}>{PORTFOLIO_STATES.map(s => <option key={s}>{s}</option>)}</select></Field>
           <Field label="Release"><select disabled={!editable} aria-label="Feature release" className={fieldClass} style={fieldStyle} value={scopedReleaseOptions.includes(feature.release) ? feature.release : "Unscheduled"} onChange={e => onUpdateFeature(getReleasePatch(releases, feature.project || "", e.target.value))}>{scopedReleaseOptions.map(option => <option key={option}>{option}</option>)}</select></Field>
           <Field label="Milestone">
@@ -739,6 +830,8 @@ function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, r
             </details>
           </Field>
           <Field label="Creation Date"><input readOnly disabled className={fieldClass} style={{ ...fieldStyle, backgroundColor: "#f8fafc" }} value={feature.createdAt} /></Field>
+          <Field label="Refined Estimate"><input type="number" min={0} disabled={!editable} aria-label="Feature refined estimate" className={fieldClass} style={fieldStyle} value={feature.refinedEstimate ?? ""} placeholder={`${PRELIMINARY_ESTIMATE_POINT_FALLBACK[feature.preliminaryEstimate]} pts fallback`} onChange={e => onUpdateFeature({ refinedEstimate: parseOptionalNonNegativeNumber(e.target.value) })} /></Field>
+          <Field label="Refined Work Item Count Estimate"><input type="number" min={0} disabled={!editable} aria-label="Feature refined work item count estimate" className={fieldClass} style={fieldStyle} value={feature.refinedWorkItemCountEstimate ?? ""} placeholder={`${PRELIMINARY_ESTIMATE_COUNT_FALLBACK[feature.preliminaryEstimate]} stories fallback`} onChange={e => onUpdateFeature({ refinedWorkItemCountEstimate: parseOptionalNonNegativeNumber(e.target.value) })} /></Field>
           <Field label="Planned Start Date"><input disabled={!editable} placeholder="e.g. Nov 1, 2024" className={fieldClass} style={fieldStyle} value={feature.plannedStartDate || ""} onChange={e => onUpdateFeature({ plannedStartDate: e.target.value })} /></Field>
           <Field label="Planned End Date"><input type="date" disabled={!editable} className={fieldClass} style={fieldStyle} value={feature.plannedEndDate || ""} onChange={e => onUpdateFeature({ plannedEndDate: e.target.value })} /></Field>
           <Field label="Market Release Date"><input type="date" disabled={!editable} className={fieldClass} style={fieldStyle} value={feature.marketReleaseDate || ""} onChange={e => onUpdateFeature({ marketReleaseDate: e.target.value })} /></Field>
@@ -765,30 +858,267 @@ function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, r
   );
 }
 
-export function PortfolioPage({ role, project, team, releases, features, workItems, tasks, milestones, onCreateFeature, onUpdateFeature, onUpdateItem, onCreateItem, onOpenFull }: {
-  role: Role; project: ScopeProject; team: string; releases: ReleaseItem[]; features: Feature[]; workItems: WorkItem[]; tasks: TaskItem[]; milestones: MilestoneItem[];
+function EpicDetailView({ epic, childFeatures, leafItems, role, readOnly, releases, milestones, features, tasks, onBack, onUpdateEpic, onArchiveEpic, onUpdateFeature, onCreateFeature, onOpenFeature }: {
+  epic: Epic; childFeatures: Feature[]; leafItems: WorkItem[];
+  role: Role; readOnly: boolean; releases: ReleaseItem[]; milestones: MilestoneItem[]; features: Feature[]; tasks: TaskItem[];
+  onBack: () => void;
+  onUpdateEpic: (patch: Partial<Epic>) => void;
+  onArchiveEpic: () => void;
+  onUpdateFeature: (id: string, patch: Partial<Feature>) => void;
+  onCreateFeature: (input: NewFeatureInput) => Feature;
+  onOpenFeature: (id: string) => void;
+}) {
+  const editable = !readOnly && canManageFeatureInProject(role, epic.project);
+  const [activeTab, setActiveTab] = useState<"details" | "children">("details");
+  const [showActions, setShowActions] = useState(false);
+  const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
+  const [showAddFeatureModal, setShowAddFeatureModal] = useState(false);
+  const [acceptedChildrenMode, setAcceptedChildrenMode] = useState<"Points" | "Count">("Points");
+  const [expandedFeatureIds, setExpandedFeatureIds] = useState<Set<string>>(new Set());
+  const selectedMilestoneIds = epic.milestoneIds || [];
+  const milestoneOptions = milestones.filter(m => selectedMilestoneIds.includes(m.id) || m.projectKeys.includes(epic.project || ""));
+  const editableProjectOptions = role === "Workspace Admin"
+    ? SCOPE_PROJECTS
+    : SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
+  const acceptedLeaf = leafItems.filter(item => item.status === "Accepted" || item.status === "Release");
+  const totalEstimate = leafItems.reduce((sum, item) => sum + item.planEstimate, 0);
+  const doneEstimate = acceptedLeaf.reduce((sum, item) => sum + item.planEstimate, 0);
+  const acceptedStoryCount = acceptedLeaf.length;
+  const totalStoryCount = leafItems.length;
+  const pctByStoryPlanEstimate = totalEstimate <= 0 ? 0 : Math.round((doneEstimate / totalEstimate) * 100);
+  const pctByStoryCount = totalStoryCount <= 0 ? 0 : Math.round((acceptedStoryCount / totalStoryCount) * 100);
+  const topDownPointEstimate = getEpicTopDownPointEstimate(epic);
+  const topDownCountEstimate = getEpicTopDownCountEstimate(epic);
+  const pctEstimatedByEpicPoints = topDownPointEstimate <= 0 ? 0 : Math.round((doneEstimate / topDownPointEstimate) * 100);
+  const pctEstimatedByEpicCount = topDownCountEstimate <= 0 ? 0 : Math.round((acceptedStoryCount / topDownCountEstimate) * 100);
+  const acceptedChildrenSummary = acceptedChildrenMode === "Points"
+    ? { pct: pctByStoryPlanEstimate, numerator: doneEstimate, denominator: totalEstimate, unit: "points" }
+    : { pct: pctByStoryCount, numerator: acceptedStoryCount, denominator: totalStoryCount, unit: "stories" };
+  const activeChildFeatures = childFeatures.filter(feature => !feature.archivedAt);
+
+  function changeProject(projectKey: string) {
+    const nextProject = SCOPE_PROJECTS.find(candidate => candidate.key === projectKey) || SCOPE_PROJECTS[0];
+    onUpdateEpic({ project: nextProject.key });
+  }
+  function toggleMilestone(milestoneId: string) {
+    const next = selectedMilestoneIds.includes(milestoneId) ? selectedMilestoneIds.filter(id => id !== milestoneId) : [...selectedMilestoneIds, milestoneId];
+    onUpdateEpic({ milestoneIds: next });
+  }
+  function archiveEpic() {
+    setShowActions(false);
+    setShowArchiveConfirm(true);
+  }
+
+  return (
+    <div className="flex flex-col flex-1 overflow-hidden bg-white">
+      <div className="shrink-0 text-white" style={{ backgroundColor: "#173f78" }}>
+        <div className="h-12 px-4 flex items-center gap-3" style={{ borderBottom: "1px solid rgba(255,255,255,.18)" }}>
+          <button aria-label="Back to Portfolio Items" onClick={onBack} className="p-1.5 rounded hover:bg-white/10"><ChevronLeft size={18} /></button>
+          <PortfolioItemTypeBadge type="Epic" />
+          <span className="font-mono text-[13px] font-semibold text-white">{epic.id}</span>
+          <span className="h-5 w-px bg-white/25" />
+          <h1 className="text-[15px] font-semibold truncate">{epic.name}</h1>
+          <div className="flex-1" />
+          {epic.archivedAt && <span className="rounded-sm px-2 py-1 text-[11px] font-semibold" style={{ color: "#f8fafc", backgroundColor: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.2)" }}>Archived</span>}
+          <div className="relative">
+            <button aria-label="More Epic actions" onClick={() => setShowActions(previous => !previous)} className="p-1.5 rounded hover:bg-white/10"><MoreHorizontal size={17} /></button>
+            {showActions && (
+              <div className="absolute right-0 top-full mt-1 w-40 rounded bg-white py-1 shadow-xl z-30" style={{ border: "1px solid #cbd5e1" }}>
+                <button disabled={!editable || activeChildFeatures.length > 0} title={activeChildFeatures.length > 0 ? "Archive blocked while active child Features exist" : "Archive Epic"} onClick={archiveEpic} className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] disabled:opacity-45 hover:bg-[#f8fafc]" style={{ color: "#b45309" }}><Archive size={13} />Archive</button>
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="h-16 px-5 flex items-stretch gap-2">
+          <button onClick={() => setActiveTab("details")} className="w-28 flex flex-col items-center justify-center gap-1 text-[11px] font-medium" style={{ backgroundColor: activeTab === "details" ? "#2f6fc5" : "transparent", color: activeTab === "details" ? "white" : "#d7e4f7" }}><span className="h-5 flex items-center justify-center"><FileText size={18} /></span><span>Details</span></button>
+          <button onClick={() => setActiveTab("children")} className="w-28 flex flex-col items-center justify-center gap-1 text-[11px] font-medium" style={{ backgroundColor: activeTab === "children" ? "#2f6fc5" : "transparent", color: activeTab === "children" ? "white" : "#d7e4f7" }}><span className="h-5 flex items-center justify-center gap-1.5"><ListChecks size={19} /><span className="text-[10px] font-semibold tabular-nums">{childFeatures.length}</span></span><span>Children</span></button>
+        </div>
+      </div>
+
+      <div className="flex flex-1 min-h-0 gap-2" style={{ backgroundColor: "#e7ebf0" }}>
+        <main className="flex-1 overflow-y-scroll p-6" style={{ backgroundColor: "#f3f5f8", scrollbarGutter: "stable" }}>
+          {activeTab === "details" ? (
+            <div className="w-full space-y-5">
+              <h2 className="text-[20px] font-semibold" style={{ color: "#273449" }}>Details</h2>
+              <section className="bg-white rounded px-4 py-3" style={{ border: "1px solid #dde2ea" }}>
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="text-[11px] font-semibold uppercase tracking-widest" style={{ color: "#5c6478" }}>Total Accepted Children</p>
+                  <div className="inline-flex rounded-sm overflow-hidden" style={{ border: "1px solid #bdd0ef" }}>
+                    {(["Points", "Count"] as const).map(mode => (
+                      <button key={mode} type="button" onClick={() => setAcceptedChildrenMode(mode)} className="px-3 py-1 text-[11px] font-semibold" style={{ color: acceptedChildrenMode === mode ? "#fff" : "#2558a6", backgroundColor: acceptedChildrenMode === mode ? "#2f6fd6" : "#fff" }}>{mode}</button>
+                    ))}
+                  </div>
+                </div>
+                <FeatureProgressMeter label={acceptedChildrenMode === "Points" ? "Accepted Leaf Story Plan Estimate" : "Accepted Leaf Story Count"} pct={acceptedChildrenSummary.pct} numerator={acceptedChildrenSummary.numerator} denominator={acceptedChildrenSummary.denominator} unit={acceptedChildrenSummary.unit} />
+              </section>
+              <RichTextEditor title="Description" initialValue={epic.description || ""} minHeight={220} readOnly={!editable} onChange={value => onUpdateEpic({ description: value })} />
+              <section className="bg-white rounded overflow-hidden" style={{ border: "1px solid #dde2ea" }}>
+                <div className="px-4 py-2 text-[11px] font-semibold" style={{ color: "#475569", backgroundColor: "#f8fafc", borderBottom: "1px solid #dde2ea" }}>Attachments</div>
+                {(epic.attachments || []).map(attachment => (
+                  <div key={attachment} className="mx-3 mt-2 flex items-center gap-2 rounded px-3 py-2 text-[12px]" style={{ color: "#334155", backgroundColor: "#f8fafc", border: "1px solid #edf0f4" }}>
+                    <Paperclip size={13} style={{ color: "#64748b" }} />
+                    <span className="flex-1 truncate">{attachment}</span>
+                    {editable && <button aria-label={`Remove ${attachment}`} onClick={() => onUpdateEpic({ attachments: (epic.attachments || []).filter(item => item !== attachment) })} className="p-1 rounded hover:bg-[#edf0f4]" style={{ color: "#8c94a6" }}><X size={12} /></button>}
+                  </div>
+                ))}
+                {editable && <button onClick={() => onUpdateEpic({ attachments: [...(epic.attachments || []), `epic-attachment-${(epic.attachments || []).length + 1}.pdf`] })} className="m-3 flex items-center gap-1.5 px-3 py-2 text-[12px] rounded text-left" style={{ width: "calc(100% - 24px)", color: "#2563c5", border: "1px solid #b9c9df", backgroundColor: "#fbfdff" }}><Plus size={15} />Add attachment metadata</button>}
+              </section>
+              <RichTextEditor title="Notes" initialValue={epic.notes || ""} minHeight={180} readOnly={!editable} onChange={value => onUpdateEpic({ notes: value })} />
+              <RichTextEditor title="What Success Looks Like" initialValue={epic.successCriteria || ""} minHeight={180} readOnly={!editable} onChange={value => onUpdateEpic({ successCriteria: value })} />
+            </div>
+          ) : (
+            <div className="w-full space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>Children</h2>
+                  <p className="text-[10px]" style={{ color: "#8c94a6" }}>Features grouped under this Epic. Leaf Story/Defect rollups flow through these Features.</p>
+                </div>
+                {editable && <button onClick={() => setShowAddFeatureModal(true)} className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }}><Plus size={12} />Add Feature</button>}
+              </div>
+              <div className="bg-white rounded overflow-hidden" style={{ border: "1px solid #dde2ea" }}>
+                <div className="grid h-8 items-center gap-2 px-3 text-[11px] font-semibold uppercase" style={{ gridTemplateColumns: "36px 74px minmax(260px,1fr) 130px 130px 90px 90px 90px 132px", color: "#475569", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
+                  <span className="text-right">Rank</span><span>ID</span><span>Name</span><span>Team</span><span>State</span><span className="text-right">Complete</span><span className="text-right">Rollup</span><span className="text-right">Estimated</span><span>Owner</span>
+                </div>
+                {childFeatures.length === 0 ? <EmptyState message="No Feature linked to this Epic yet" /> : childFeatures.sort((a, b) => (a.rank || 99) - (b.rank || 99)).map((feature, idx) => {
+                  const featureLeaf = leafItems.filter(item => item.featureId === feature.id);
+                  const accepted = featureLeaf.filter(item => item.status === "Accepted" || item.status === "Release");
+                  const complete = accepted.reduce((sum, item) => sum + item.planEstimate, 0);
+                  const rollup = featureLeaf.reduce((sum, item) => sum + item.planEstimate, 0);
+                  const estimated = getFeatureTopDownPointEstimate(feature);
+                  const expanded = expandedFeatureIds.has(feature.id);
+                  return (
+                    <div key={feature.id}>
+                      <div className="grid min-h-9 items-center gap-2 px-3 text-[12px] hover:bg-[#f7f8fa] cursor-pointer" style={{ gridTemplateColumns: "36px 74px minmax(260px,1fr) 130px 130px 90px 90px 90px 132px", color: "#334155", borderBottom: "1px solid #edf0f4" }} onClick={() => onOpenFeature(feature.id)}>
+                        <span className="text-right font-mono tabular-nums">{idx + 1}</span>
+                        <span className="font-mono font-semibold" style={{ color: "#2558a6" }}>{feature.id}</span>
+                        <span className="flex items-center gap-1.5 min-w-0"><button aria-label={`${expanded ? "Collapse" : "Expand"} ${feature.id}`} onClick={event => { event.stopPropagation(); setExpandedFeatureIds(previous => { const next = new Set(previous); next.has(feature.id) ? next.delete(feature.id) : next.add(feature.id); return next; }); }} className="p-0.5 rounded" style={{ color: "#8c94a6" }}>{expanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}</button><span className="truncate font-semibold">{feature.name}</span></span>
+                        <span className="truncate">{feature.team}</span>
+                        <PortfolioStateBadge state={feature.status} />
+                        <span className="text-right font-mono tabular-nums">{complete}</span>
+                        <span className="text-right font-mono tabular-nums">{rollup}</span>
+                        <span className="text-right font-mono tabular-nums">{estimated}</span>
+                        <span className="flex items-center gap-1.5 min-w-0"><Avatar owner={feature.owner} size="xs" /><span className="truncate">{feature.owner.name}</span></span>
+                      </div>
+                      {expanded && featureLeaf.slice(0, 5).map(item => (
+                        <div key={item.id} className="grid h-8 items-center gap-2 px-3 text-[11px]" style={{ gridTemplateColumns: "36px 74px minmax(260px,1fr) 130px 130px 90px 90px 90px 132px", color: "#64748b", backgroundColor: "#fcfdfe", borderBottom: "1px solid #f0f2f5" }}>
+                          <span /><span className="font-mono">{item.id}</span><span className="truncate pl-6">{item.title}</span><span>{item.team}</span><span>{item.status}</span><span className="text-right">{item.status === "Accepted" || item.status === "Release" ? item.planEstimate : 0}</span><span className="text-right">{item.planEstimate}</span><span className="text-right">{item.planEstimate}</span><span>{item.owner.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </main>
+
+        {activeTab === "details" && (
+          <aside className="w-[340px] shrink-0 overflow-y-scroll p-5 space-y-4 bg-white" style={{ borderLeft: "1px solid #d7dde7", scrollbarGutter: "stable" }}>
+            <Field label="Owner"><select disabled={!editable} aria-label="Epic owner" className={fieldClass} style={fieldStyle} value={epic.owner.name} onChange={e => { const o = OWNERS.find(c => c.name === e.target.value); if (o) onUpdateEpic({ owner: o }); }}>{OWNERS.map(o => <option key={o.name}>{o.name}</option>)}</select></Field>
+            <Field label="Project"><select disabled={!editable} aria-label="Epic project" className={fieldClass} style={fieldStyle} value={epic.project || SCOPE_PROJECTS[0].key} onChange={e => changeProject(e.target.value)}>{editableProjectOptions.map(p => <option key={p.key} value={p.key}>{p.key} · {p.name}</option>)}</select></Field>
+            <section className="space-y-3">
+              <FeatureProgressMeter label="Percent Done By Story Plan Estimate" pct={pctByStoryPlanEstimate} numerator={doneEstimate} denominator={totalEstimate} unit="points" />
+              <FeatureProgressMeter label="Percent Done By Story Count" pct={pctByStoryCount} numerator={acceptedStoryCount} denominator={totalStoryCount} unit="stories" />
+              <FeatureProgressMeter label="Estimated Progress by Story Points" pct={pctEstimatedByEpicPoints} numerator={doneEstimate} denominator={topDownPointEstimate} unit="points" />
+              <FeatureProgressMeter label="Estimated Progress by Story Count" pct={pctEstimatedByEpicCount} numerator={acceptedStoryCount} denominator={topDownCountEstimate} unit="stories" />
+            </section>
+            <Field label="Preliminary Estimate"><select disabled={!editable} aria-label="Epic preliminary estimate" className={fieldClass} style={fieldStyle} value={epic.preliminaryEstimate} onChange={e => onUpdateEpic({ preliminaryEstimate: e.target.value as EstimateSize })}>{ESTIMATE_SIZES.map(size => <option key={size}>{size}</option>)}</select></Field>
+            <Field label="State"><select disabled={!editable} aria-label="Epic state" className={fieldClass} style={fieldStyle} value={epic.status} onChange={e => onUpdateEpic({ status: e.target.value as PortfolioState })}>{PORTFOLIO_STATES.map(s => <option key={s}>{s}</option>)}</select></Field>
+            <Field label="Milestone">
+              <details className="rounded bg-white" style={fieldStyle}>
+                <summary className="cursor-pointer list-none px-3 py-2 text-[12px]" style={{ color: "#1a2234" }}>{selectedMilestoneIds.length} milestone{selectedMilestoneIds.length === 1 ? "" : "s"} selected</summary>
+                <div className="max-h-44 overflow-y-auto px-2 pb-2" style={{ borderTop: "1px solid #edf0f4" }}>
+                  {milestoneOptions.length === 0 ? <p className="px-1 py-2 text-[11px]" style={{ color: "#8c94a6" }}>No related milestone available</p> : milestoneOptions.map(milestone => (
+                    <label key={milestone.id} className="flex items-start gap-2 rounded px-1 py-1.5 text-[11px] hover:bg-[#f8fafc]" style={{ color: "#334155" }}>
+                      <input type="checkbox" disabled={!editable} checked={selectedMilestoneIds.includes(milestone.id)} onChange={() => toggleMilestone(milestone.id)} className="mt-0.5 h-3.5 w-3.5" />
+                      <span><span className="block font-medium">{milestone.name}</span><span className="block text-[10px]" style={{ color: "#8c94a6" }}>{milestone.id}</span></span>
+                    </label>
+                  ))}
+                </div>
+              </details>
+            </Field>
+            <Field label="Creation Date"><input readOnly disabled className={fieldClass} style={{ ...fieldStyle, backgroundColor: "#f8fafc" }} value={epic.createdAt} /></Field>
+            <Field label="Refined Estimate"><input type="number" min={0} disabled={!editable} aria-label="Epic refined estimate" className={fieldClass} style={fieldStyle} value={epic.refinedEstimate ?? ""} placeholder={`${PRELIMINARY_ESTIMATE_POINT_FALLBACK[epic.preliminaryEstimate]} pts fallback`} onChange={e => onUpdateEpic({ refinedEstimate: parseOptionalNonNegativeNumber(e.target.value) })} /></Field>
+            <Field label="Refined Work Item Count Estimate"><input type="number" min={0} disabled={!editable} aria-label="Epic refined work item count estimate" className={fieldClass} style={fieldStyle} value={epic.refinedWorkItemCountEstimate ?? ""} placeholder={`${PRELIMINARY_ESTIMATE_COUNT_FALLBACK[epic.preliminaryEstimate]} stories fallback`} onChange={e => onUpdateEpic({ refinedWorkItemCountEstimate: parseOptionalNonNegativeNumber(e.target.value) })} /></Field>
+            <Field label="Planned Start Date"><input disabled={!editable} placeholder="e.g. Nov 1, 2024" className={fieldClass} style={fieldStyle} value={epic.plannedStartDate || ""} onChange={e => onUpdateEpic({ plannedStartDate: e.target.value })} /></Field>
+            <Field label="Planned End Date"><input type="date" disabled={!editable} className={fieldClass} style={fieldStyle} value={epic.plannedEndDate || ""} onChange={e => onUpdateEpic({ plannedEndDate: e.target.value })} /></Field>
+            <Field label="Market Release Date"><input type="date" disabled={!editable} className={fieldClass} style={fieldStyle} value={epic.marketReleaseDate || ""} onChange={e => onUpdateEpic({ marketReleaseDate: e.target.value })} /></Field>
+          </aside>
+        )}
+      </div>
+      {showArchiveConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0" style={{ backgroundColor: "rgba(15,23,42,0.34)" }} onClick={() => setShowArchiveConfirm(false)} />
+          <section className="relative w-[420px] rounded bg-white shadow-2xl" role="dialog" aria-modal="true" aria-labelledby="archive-epic-title" style={{ border: "1px solid #cbd5e1" }}>
+            <div className="px-5 py-4" style={{ borderBottom: "1px solid #e2e8f0" }}>
+              <h2 id="archive-epic-title" className="text-[15px] font-semibold" style={{ color: "#1a2234" }}>Archive Epic</h2>
+              <p className="mt-1 text-[12px] leading-5" style={{ color: "#64748b" }}>{epic.id} remains available in history. It can only be archived when no active child Feature remains.</p>
+            </div>
+            <div className="flex items-center justify-end gap-2 px-5 py-3" style={{ backgroundColor: "#f8fafc" }}>
+              <button onClick={() => setShowArchiveConfirm(false)} className="px-3.5 py-1.5 text-[12px] font-medium rounded" style={{ border: "1px solid #cbd5e1", color: "#475569" }}>Cancel</button>
+              <button disabled={activeChildFeatures.length > 0} onClick={() => { setShowArchiveConfirm(false); onArchiveEpic(); }} className="px-3.5 py-1.5 text-[12px] font-semibold rounded text-white disabled:opacity-45" style={{ backgroundColor: "#b45309" }}>Archive</button>
+            </div>
+          </section>
+        </div>
+      )}
+      {editable && showAddFeatureModal && <NewFeatureModal role={role} currentProject={SCOPE_PROJECTS.find(project => project.key === epic.project) || SCOPE_PROJECTS[0]} currentTeam="All Teams" releases={releases} epics={[epic]} defaultEpicId={epic.id} onClose={() => setShowAddFeatureModal(false)} onCreate={input => onCreateFeature({ ...input, epicId: epic.id })} onCreateWithDetails={input => onOpenFeature(onCreateFeature({ ...input, epicId: epic.id }).id)} />}
+    </div>
+  );
+}
+
+export function PortfolioPage({ role, project, team, portfolioTypeFilter, releases, epics, features, workItems, tasks, milestones, onCreateEpic, onUpdateEpic, onCreateFeature, onUpdateFeature, onUpdateItem, onCreateItem, onOpenFull }: {
+  role: Role; project: ScopeProject; team: string; releases: ReleaseItem[]; epics: Epic[]; features: Feature[]; workItems: WorkItem[]; tasks: TaskItem[]; milestones: MilestoneItem[];
+  portfolioTypeFilter: "Epic" | "Feature";
+  onCreateEpic: (input: NewEpicInput) => Epic;
+  onUpdateEpic: (id: string, patch: Partial<Epic>) => void;
   onCreateFeature: (input: NewFeatureInput) => Feature;
   onUpdateFeature: (id: string, patch: Partial<Feature>) => void;
   onUpdateItem: (id: string, patch: Partial<WorkItem>) => void;
   onCreateItem: (input: NewWorkItemInput, openDetails: boolean) => void;
   onOpenFull: (item: WorkItem) => void;
 }) {
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState<"Epic" | "Feature" | null>(null);
+  const [showCreateMenu, setShowCreateMenu] = useState(false);
+  const [portfolioSearch, setPortfolioSearch] = useState("");
+  const [showFieldsOpen, setShowFieldsOpen] = useState(false);
+  const [visibleColumns, setVisibleColumns] = useState<Record<PortfolioColumnKey, boolean>>(() =>
+    PORTFOLIO_COLUMN_DEFS.reduce((acc, column) => ({ ...acc, [column.key]: true }), {} as Record<PortfolioColumnKey, boolean>)
+  );
+  const [selectedPortfolioIds, setSelectedPortfolioIds] = useState<Set<string>>(new Set());
+  const [bulkMessage, setBulkMessage] = useState<string | null>(null);
+  const [activeEpicId, setActiveEpicId] = useState<string | null>(null);
   const [activeFeatureId, setActiveFeatureId] = useState<string | null>(null);
+  const [expandedEpicIds, setExpandedEpicIds] = useState<Set<string>>(new Set());
   const [expandedFeatureIds, setExpandedFeatureIds] = useState<Set<string>>(new Set());
-  const [archiveFilter, setArchiveFilter] = useState<ArchiveFilter>("Active");
+  const archiveFilter: ArchiveFilter = "Active";
   const backlogItems = workItems.filter(i => (i.type === "Story" || i.type === "Defect") && i.project === project.key);
   const editable = canManageFeatureInProject(role, project.key);
-  const [columnWidths, setColumnWidths] = useState<Record<PortfolioColumnKey, number>>({ rank: 56, type: 76, id: 76, name: 280, release: 132, state: 172, percentDoneByStoryPlanEstimate: 190, percentDoneByStoryCount: 180, project: 64, team: 150, owner: 132 });
+  const [columnWidthsState, setColumnWidths] = useState<Record<PortfolioColumnKey, number>>({ rank: 56, type: 76, id: 76, name: 280, release: 132, state: 172, percentDoneByStoryPlanEstimate: 190, percentDoneByStoryCount: 180, project: 64, team: 150, owner: 132 });
   const [sort, setSort] = useState<PortfolioSort | null>(null);
   function toggleFeatureExpanded(id: string) {
     setExpandedFeatureIds(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; });
   }
+  function toggleEpicExpanded(id: string) {
+    setExpandedEpicIds(previous => { const next = new Set(previous); next.has(id) ? next.delete(id) : next.add(id); return next; });
+  }
 
-  const featureRollups = features.filter(feat =>
+  const normalizedPortfolioSearch = portfolioSearch.trim().toLowerCase();
+  function matchesPortfolioSearch(values: Array<string | number | undefined | null>) {
+    if (!normalizedPortfolioSearch) return true;
+    return values.some(value => String(value ?? "").toLowerCase().includes(normalizedPortfolioSearch));
+  }
+  const visibleColumnKeys = PORTFOLIO_COLUMN_DEFS.filter(column => visibleColumns[column.key]).map(column => column.key);
+  const columnWidths = PORTFOLIO_COLUMN_DEFS.reduce((acc, column) => ({ ...acc, [column.key]: visibleColumns[column.key] ? columnWidthsState[column.key] : 0 }), {} as Record<PortfolioColumnKey, number>);
+  const shownColumnWidths = visibleColumnKeys.reduce((total, key) => total + columnWidths[key], 0);
+  const portfolioTableWidth = shownColumnWidths + 74;
+
+  const scopedFeatures = features.filter(feat =>
     feat.project === project.key &&
-    (archiveFilter === "All" || (archiveFilter === "Archived" ? Boolean(feat.archivedAt) : !feat.archivedAt))
-  ).map(feat => {
+    (team === "All Teams" || feat.team === team) &&
+    (archiveFilter === "All" || (archiveFilter === "Archived" ? Boolean(feat.archivedAt) : !feat.archivedAt)) &&
+    matchesPortfolioSearch([feat.id, feat.name, feat.release, feat.status, feat.project, feat.team, feat.owner.name])
+  );
+  const featureRollups = scopedFeatures.map(feat => {
     const children = backlogItems.filter(i => i.featureId === feat.id);
     const totalEstimate = children.reduce((s, i) => s + i.planEstimate, 0);
     const acceptedChildren = children.filter(i => i.status === "Accepted" || i.status === "Release");
@@ -799,14 +1129,47 @@ export function PortfolioPage({ role, project, team, releases, features, workIte
     const pctByStoryCount = totalStoryCount > 0 ? Math.round((acceptedStoryCount / totalStoryCount) * 100) : 0;
     return { feat, children, totalEstimate, doneEstimate, totalStoryCount, acceptedStoryCount, pctByStoryPlanEstimate, pctByStoryCount };
   });
+  const epicRollups = epics.filter(epic =>
+    team === "All Teams" &&
+    epic.project === project.key &&
+    (archiveFilter === "All" || (archiveFilter === "Archived" ? Boolean(epic.archivedAt) : !epic.archivedAt))
+  ).map(epic => {
+    const childFeatures = features.filter(feature => feature.project === project.key && feature.epicId === epic.id && (archiveFilter === "All" || (archiveFilter === "Archived" ? Boolean(feature.archivedAt) : !feature.archivedAt)));
+    const childFeatureIds = new Set(childFeatures.map(feature => feature.id));
+    const children = backlogItems.filter(item => item.featureId && childFeatureIds.has(item.featureId));
+    const totalEstimate = children.reduce((s, i) => s + i.planEstimate, 0);
+    const acceptedChildren = children.filter(i => i.status === "Accepted" || i.status === "Release");
+    const doneEstimate = acceptedChildren.reduce((s, i) => s + i.planEstimate, 0);
+    const totalStoryCount = children.length;
+    const acceptedStoryCount = acceptedChildren.length;
+    const pctByStoryPlanEstimate = totalEstimate > 0 ? Math.round((doneEstimate / totalEstimate) * 100) : 0;
+    const pctByStoryCount = totalStoryCount > 0 ? Math.round((acceptedStoryCount / totalStoryCount) * 100) : 0;
+    return { epic, childFeatures, children, totalEstimate, doneEstimate, totalStoryCount, acceptedStoryCount, pctByStoryPlanEstimate, pctByStoryCount };
+  }).filter(rollup => matchesPortfolioSearch([rollup.epic.id, rollup.epic.name, rollup.epic.status, rollup.epic.project, rollup.epic.owner.name, ...rollup.childFeatures.map(feature => feature.name)]));
   const activeRollup = activeFeatureId ? featureRollups.find(r => r.feat.id === activeFeatureId) : undefined;
+  const activeEpicRollup = activeEpicId ? epicRollups.find(r => r.epic.id === activeEpicId) : undefined;
   const releaseOptions = getProjectReleaseOptions(releases, project.key);
-  const portfolioTableWidth = Object.values(columnWidths).reduce((total, width) => total + width, 0) + 44;
   const sortedRollups = [...featureRollups].sort((a, b) => {
     if (!sort) return (a.feat.rank || 99) - (b.feat.rank || 99);
     const result = comparePortfolioSortValues(getPortfolioSortValue(a.feat, a.pctByStoryPlanEstimate, a.pctByStoryCount, sort.column), getPortfolioSortValue(b.feat, b.pctByStoryPlanEstimate, b.pctByStoryCount, sort.column));
     return sort.direction === "asc" ? result : -result;
   });
+  const sortedEpicRollups = [...epicRollups].sort((a, b) => {
+    if (!sort) return (a.epic.rank || 99) - (b.epic.rank || 99);
+    const pseudoA: Feature = { ...(a.epic as unknown as Feature), team: "" };
+    const pseudoB: Feature = { ...(b.epic as unknown as Feature), team: "" };
+    const result = comparePortfolioSortValues(getPortfolioSortValue(pseudoA, a.pctByStoryPlanEstimate, a.pctByStoryCount, sort.column), getPortfolioSortValue(pseudoB, b.pctByStoryPlanEstimate, b.pctByStoryCount, sort.column));
+    return sort.direction === "asc" ? result : -result;
+  });
+  const shouldShowEpicRows = team === "All Teams" && portfolioTypeFilter === "Epic";
+  const shouldShowFeatureRows = portfolioTypeFilter === "Feature";
+  const teamEpicFilterBlocked = team !== "All Teams" && portfolioTypeFilter === "Epic";
+  const visibleRowCount = teamEpicFilterBlocked ? 0 : (shouldShowEpicRows ? sortedEpicRollups.length : 0) + (shouldShowFeatureRows ? sortedRollups.length : 0);
+  const visibleSelectableIds = [
+    ...(shouldShowEpicRows ? sortedEpicRollups.map(rollup => rollup.epic.id) : []),
+    ...(shouldShowFeatureRows ? sortedRollups.map(rollup => rollup.feat.id) : []),
+  ];
+  const allVisibleSelected = visibleSelectableIds.length > 0 && visibleSelectableIds.every(id => selectedPortfolioIds.has(id));
 
   function toggleSort(column: PortfolioColumnKey) {
     setSort(previous => {
@@ -854,6 +1217,73 @@ export function PortfolioPage({ role, project, team, releases, features, workIte
     onUpdateFeature(id, { archivedAt: "Just now" });
     setActiveFeatureId(null);
   }
+  function archiveEpic(id: string) {
+    onUpdateEpic(id, { archivedAt: "Just now" });
+    setActiveEpicId(null);
+  }
+  function togglePortfolioColumn(column: PortfolioColumnKey) {
+    setVisibleColumns(previous => {
+      const visibleCount = Object.values(previous).filter(Boolean).length;
+      if (previous[column] && visibleCount <= 1) return previous;
+      return { ...previous, [column]: !previous[column] };
+    });
+  }
+  function togglePortfolioSelection(id: string) {
+    setBulkMessage(null);
+    setSelectedPortfolioIds(previous => {
+      const next = new Set(previous);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+  function selectAllVisiblePortfolioRows() {
+    setBulkMessage(null);
+    setSelectedPortfolioIds(previous => {
+      if (allVisibleSelected) return new Set([...previous].filter(id => !visibleSelectableIds.includes(id)));
+      return new Set([...previous, ...visibleSelectableIds]);
+    });
+  }
+  function editSelectedPortfolioItem() {
+    const [id] = [...selectedPortfolioIds];
+    if (!id || selectedPortfolioIds.size !== 1) return;
+    if (id.startsWith("EP-")) setActiveEpicId(id);
+    if (id.startsWith("FE-")) setActiveFeatureId(id);
+  }
+  function deleteSelectedPortfolioItems() {
+    let blockedEpics = 0;
+    selectedPortfolioIds.forEach(id => {
+      if (id.startsWith("EP-")) {
+        const hasActiveChild = features.some(feature => feature.epicId === id && !feature.archivedAt);
+        if (hasActiveChild) blockedEpics += 1;
+        else onUpdateEpic(id, { archivedAt: "Just now" });
+      }
+      if (id.startsWith("FE-")) onUpdateFeature(id, { archivedAt: "Just now" });
+    });
+    setSelectedPortfolioIds(new Set());
+    setBulkMessage(blockedEpics > 0 ? `${blockedEpics} Epic has active Feature children and was not deleted.` : null);
+  }
+
+  if (activeEpicRollup) {
+    return (
+      <EpicDetailView
+        epic={activeEpicRollup.epic}
+        childFeatures={activeEpicRollup.childFeatures}
+        leafItems={activeEpicRollup.children}
+        role={role}
+        readOnly={!canManageFeatureInProject(role, activeEpicRollup.epic.project) || Boolean(activeEpicRollup.epic.archivedAt)}
+        releases={releases}
+        milestones={milestones}
+        features={features}
+        tasks={tasks}
+        onBack={() => setActiveEpicId(null)}
+        onUpdateEpic={patch => onUpdateEpic(activeEpicRollup.epic.id, patch)}
+        onArchiveEpic={() => archiveEpic(activeEpicRollup.epic.id)}
+        onUpdateFeature={onUpdateFeature}
+        onCreateFeature={onCreateFeature}
+        onOpenFeature={id => { setActiveEpicId(null); setActiveFeatureId(id); }}
+      />
+    );
+  }
 
   if (activeRollup) {
     return (
@@ -866,6 +1296,7 @@ export function PortfolioPage({ role, project, team, releases, features, workIte
         readOnly={!canManageFeatureInProject(role, activeRollup.feat.project) || Boolean(activeRollup.feat.archivedAt)}
         releases={releases}
         milestones={milestones}
+        epics={epics}
         features={features}
         tasks={tasks}
         onBack={() => setActiveFeatureId(null)}
@@ -879,44 +1310,149 @@ export function PortfolioPage({ role, project, team, releases, features, workIte
   }
 
   return (
-    <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-1.5 bg-white shrink-0" style={{ borderBottom: "1px solid #e2e6eb" }}>
-        <h2 className="text-[13px] font-semibold mr-2" style={{ color: "#1a2234" }}>Portfolio Items</h2>
-        <button className="flex items-center gap-1.5 px-2 py-1 text-[11px] rounded" style={{ border: "1px solid #dde2ea", color: "#5c6478" }}><Filter size={11} /> Filter</button>
-        <select aria-label="Portfolio archive filter" value={archiveFilter} onChange={event => setArchiveFilter(event.target.value as ArchiveFilter)} className="px-2 py-1 text-[11px] rounded bg-white focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#5c6478" }}>
-          {["Active", "Archived", "All"].map(option => <option key={option}>{option}</option>)}
-        </select>
+        <div className="relative">
+          <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" style={{ color: "#8c94a6" }} />
+          <input
+            aria-label="Search portfolio items"
+            value={portfolioSearch}
+            onChange={event => setPortfolioSearch(event.target.value)}
+            placeholder="Search portfolio items"
+            className="h-7 w-60 rounded pl-8 pr-3 text-[12px] focus:outline-none"
+            style={{ border: "1px solid #cbd5e1", color: "#1a2234" }}
+          />
+        </div>
+        {editable && (
+          <div className="relative">
+            <button onClick={() => setShowCreateMenu(previous => !previous)} className="flex h-7 items-center gap-1.5 px-3 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#1d3f73")}><Plus size={12} /> New Portfolio Item <ChevronDown size={12} /></button>
+            {showCreateMenu && (
+              <div className="absolute left-0 top-full mt-1 w-40 rounded bg-white py-1 shadow-xl z-30" style={{ border: "1px solid #cbd5e1" }}>
+                <button onClick={() => { setShowCreateMenu(false); setShowModal("Epic"); }} className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] hover:bg-[#f8fafc]" style={{ color: "#334155" }}><Layers size={13} />New Epic</button>
+                <button onClick={() => { setShowCreateMenu(false); setShowModal("Feature"); }} className="w-full flex items-center gap-2 px-3 py-2 text-left text-[12px] hover:bg-[#f8fafc]" style={{ color: "#334155" }}><Package size={13} />New Feature</button>
+              </div>
+            )}
+          </div>
+        )}
+        <button className="flex h-7 items-center gap-1.5 px-2 text-[11px] rounded" style={{ border: "1px solid #dde2ea", color: "#5c6478" }}><Filter size={11} /> Filter</button>
+        <div className="relative">
+          <button onClick={() => setShowFieldsOpen(previous => !previous)} className="flex h-7 items-center gap-1.5 px-2 text-[11px] rounded" style={{ border: "1px solid #bdd0ef", color: "#2558a6", backgroundColor: showFieldsOpen ? "#edf2fb" : "#ffffff" }}><Columns size={11} /> Show Fields</button>
+          {showFieldsOpen && (
+            <div className="absolute left-0 top-full mt-1 w-72 rounded bg-white py-2 shadow-xl z-40" style={{ border: "1px solid #cbd5e1" }}>
+              <div className="px-3 pb-1 text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Columns</div>
+              {PORTFOLIO_COLUMN_DEFS.map(column => (
+                <label key={column.key} className="flex items-center gap-2 px-3 py-1.5 text-[12px] hover:bg-[#f8fafc]" style={{ color: "#334155" }}>
+                  <input type="checkbox" checked={visibleColumns[column.key]} onChange={() => togglePortfolioColumn(column.key)} className="h-3.5 w-3.5" style={{ accentColor: "#2558a6" }} />
+                  <span>{column.label}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
         <div className="flex-1" />
-        <SavedViewsDrop />
-        {editable && <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-white rounded ml-1" style={{ backgroundColor: "#1d3f73" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "#163259")} onMouseLeave={e => (e.currentTarget.style.backgroundColor = "#1d3f73")}><Plus size={12} /> New Feature</button>}
       </div>
+      {selectedPortfolioIds.size > 0 && (
+        <div className="flex items-center gap-2 px-4 py-1.5 shrink-0" style={{ backgroundColor: "#edf2fb", borderBottom: "1px solid #bdd0ef" }}>
+          <span className="text-[11px] font-semibold mr-1" style={{ color: "#2558a6" }}>{selectedPortfolioIds.size} selected</span>
+          <button disabled={selectedPortfolioIds.size !== 1} onClick={editSelectedPortfolioItem} className="flex items-center gap-1 px-2.5 py-1 text-[11px] rounded disabled:opacity-45" style={{ color: "#2558a6", border: "1px solid #bdd0ef" }}><Edit3 size={11} /> Edit</button>
+          <button onClick={deleteSelectedPortfolioItems} className="flex items-center gap-1 px-2.5 py-1 text-[11px] rounded" style={{ color: "#b91c1c", border: "1px solid #fecaca", backgroundColor: "#fff" }}><Archive size={11} /> Delete</button>
+          {bulkMessage && <span className="text-[11px]" style={{ color: "#b45309" }}>{bulkMessage}</span>}
+          <div className="flex-1" />
+          <button aria-label="Clear selected portfolio items" onClick={() => { setSelectedPortfolioIds(new Set()); setBulkMessage(null); }} className="p-0.5" style={{ color: "#5c6478" }}><X size={13} /></button>
+        </div>
+      )}
       <div className="flex-1 overflow-auto bg-white">
         <div style={{ width: portfolioTableWidth, minWidth: "100%" }}>
           <div className="flex items-center h-8 px-3 gap-2 shrink-0 sticky top-0 z-10" style={{ backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
             <div className="w-5 shrink-0" />
-            <ResizablePortfolioHeader label="Rank" column="rank" width={columnWidths.rank} onResize={startColumnResize} sort={sort} onSort={toggleSort} align="right" />
-            <ResizablePortfolioHeader label="Type" column="type" width={columnWidths.type} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="ID" column="id" width={columnWidths.id} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="Name" column="name" width={columnWidths.name} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="Release" column="release" width={columnWidths.release} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="State" column="state" width={columnWidths.state} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="Percent Done By Story Plan Estimate" column="percentDoneByStoryPlanEstimate" width={columnWidths.percentDoneByStoryPlanEstimate} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="Percent Done By Story Count" column="percentDoneByStoryCount" width={columnWidths.percentDoneByStoryCount} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="Project" column="project" width={columnWidths.project} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="Team" column="team" width={columnWidths.team} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
-            <ResizablePortfolioHeader label="Owner" column="owner" width={columnWidths.owner} onResize={startColumnResize} sort={sort} onSort={toggleSort} />
+            <div className="w-4 shrink-0" onClick={event => event.stopPropagation()}><input aria-label="Select all visible portfolio items" type="checkbox" checked={allVisibleSelected} onChange={selectAllVisiblePortfolioRows} className="w-3.5 h-3.5 rounded" style={{ accentColor: "#1d3f73" }} /></div>
+            {PORTFOLIO_COLUMN_DEFS.filter(column => visibleColumns[column.key]).map(column => (
+              <ResizablePortfolioHeader key={column.key} label={column.label} column={column.key} width={columnWidths[column.key]} onResize={startColumnResize} sort={sort} onSort={toggleSort} align={column.align} />
+            ))}
           </div>
-          {sortedRollups.length === 0 ? <EmptyState message="No Portfolio Items found" /> : sortedRollups.map(({ feat, children, totalEstimate, doneEstimate, totalStoryCount, acceptedStoryCount, pctByStoryPlanEstimate, pctByStoryCount }, idx) => {
+          {visibleRowCount === 0 ? <EmptyState message={teamEpicFilterBlocked ? "Filter not show item" : "No Portfolio Items found"} /> : <>
+          {shouldShowEpicRows && sortedEpicRollups.map(({ epic, childFeatures, children, totalEstimate, doneEstimate, totalStoryCount, acceptedStoryCount, pctByStoryPlanEstimate, pctByStoryCount }, idx) => {
+            const epicExpanded = expandedEpicIds.has(epic.id);
+            const rowEditable = editable && !epic.archivedAt && canManageFeatureInProject(role, epic.project);
+            const isSelected = selectedPortfolioIds.has(epic.id);
+            const childRollups = featureRollups.filter(rollup => rollup.feat.epicId === epic.id);
+            return (
+              <div key={epic.id}>
+                <div className="flex items-center h-9 px-3 gap-2 cursor-pointer hover:bg-[#f7f8fa]" style={{ width: portfolioTableWidth, minWidth: "100%", borderBottom: "1px solid #edf0f4", backgroundColor: isSelected ? "#edf2fb" : "#fbfaff" }} onClick={() => setActiveEpicId(epic.id)}>
+                  <button aria-label={`${epicExpanded ? "Collapse" : "Expand"} ${epic.id} children`} onClick={event => { event.stopPropagation(); if (childFeatures.length > 0) toggleEpicExpanded(epic.id); }} className="w-5 shrink-0 flex items-center justify-center" style={{ color: "#6d28d9" }}>
+                    {childFeatures.length > 0 ? (epicExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />) : null}
+                  </button>
+                  <div className="w-4 shrink-0" onClick={event => event.stopPropagation()}><input aria-label={`Select ${epic.id}`} type="checkbox" checked={isSelected} onChange={() => togglePortfolioSelection(epic.id)} className="w-3.5 h-3.5 rounded" style={{ accentColor: "#1d3f73" }} /></div>
+                  <div className="shrink-0 flex items-center justify-end gap-1" style={{ width: columnWidths.rank }}><span className="text-[11px] font-mono tabular-nums" style={{ color: "#5c6478" }}>{epic.rank ?? idx + 1}</span></div>
+                  <div className="shrink-0 overflow-hidden" style={{ width: columnWidths.type }}><PortfolioItemTypeBadge type="Epic" /></div>
+                  <div className="shrink-0 overflow-hidden font-mono text-[11px] font-semibold" style={{ width: columnWidths.id, color: "#6d28d9" }}>{epic.id}</div>
+                  <div className="shrink-0 min-w-0 pr-2" style={{ width: columnWidths.name }} onClick={event => event.stopPropagation()}>
+                    <input aria-label={`${epic.id} name`} readOnly={!rowEditable} value={epic.name} onChange={e => onUpdateEpic(epic.id, { name: e.target.value })} className="block w-full truncate text-[12px] font-semibold bg-transparent px-1 py-1 focus:outline-none focus:bg-white focus:rounded" style={{ color: "#1a2234", border: rowEditable ? "1px solid transparent" : "0" }} />
+                  </div>
+                  <div className="shrink-0 overflow-hidden text-[11px]" style={{ width: columnWidths.release, color: "#94a3b8" }}>—</div>
+                  <div className="shrink-0 overflow-hidden" style={{ width: columnWidths.state }} onClick={event => event.stopPropagation()}>
+                    {rowEditable ? <select aria-label={`${epic.id} state`} value={epic.status} onChange={e => onUpdateEpic(epic.id, { status: e.target.value as PortfolioState })} className="w-full text-[11px] rounded-sm bg-white focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234", padding: "3px 4px" }}>{PORTFOLIO_STATES.map(s => <option key={s}>{s}</option>)}</select> : <PortfolioStateBadge state={epic.status} />}
+                  </div>
+                  <div className="shrink-0 flex items-center" style={{ width: columnWidths.percentDoneByStoryPlanEstimate }}><FeatureListProgressCell pct={pctByStoryPlanEstimate} numerator={doneEstimate} denominator={totalEstimate} /></div>
+                  <div className="shrink-0 flex items-center" style={{ width: columnWidths.percentDoneByStoryCount }}><FeatureListProgressCell pct={pctByStoryCount} numerator={acceptedStoryCount} denominator={totalStoryCount} /></div>
+                  <div className="shrink-0 overflow-hidden text-[11px]" style={{ width: columnWidths.project }} onClick={event => event.stopPropagation()}>
+                    {rowEditable ? <select aria-label={`${epic.id} project`} value={epic.project || project.key} onChange={e => { const nextProject = SCOPE_PROJECTS.find(p => p.key === e.target.value) || project; onUpdateEpic(epic.id, { project: nextProject.key }); }} className="w-full text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{getRoleScopedProjects(role, project).map(p => <option key={p.key}>{p.key}</option>)}</select> : <span style={{ color: "#5c6478" }}>{epic.project}</span>}
+                  </div>
+                  <div className="shrink-0 overflow-hidden text-[11px]" style={{ width: columnWidths.team, color: "#8c94a6" }}>{childFeatures.length} Feature{childFeatures.length === 1 ? "" : "s"}</div>
+                  <div className="shrink-0 flex items-center gap-1.5 overflow-hidden" style={{ width: columnWidths.owner }} onClick={event => event.stopPropagation()}>
+                    <Avatar owner={epic.owner} size="xs" />
+                    {rowEditable ? <select aria-label={`${epic.id} owner`} value={epic.owner.name} onChange={e => { const o = OWNERS.find(c => c.name === e.target.value); if (o) onUpdateEpic(epic.id, { owner: o }); }} className="min-w-0 flex-1 text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{OWNERS.map(o => <option key={o.name}>{o.name}</option>)}</select> : <span className="text-[11px] truncate" style={{ color: "#5c6478" }}>{epic.owner.name}</span>}
+                  </div>
+                </div>
+                {epicExpanded && childRollups.map(({ feat, totalEstimate, doneEstimate, totalStoryCount, acceptedStoryCount, pctByStoryPlanEstimate, pctByStoryCount }) => {
+                  const childRowEditable = editable && !feat.archivedAt && canManageFeatureInProject(role, feat.project);
+                  const childProjectTeams = (SCOPE_PROJECTS.find(p => p.key === feat.project) || SCOPE_PROJECTS[0]).teams;
+                  const childReleaseOptions = getProjectReleaseOptions(releases, feat.project);
+                  return (
+                    <div key={`${epic.id}-${feat.id}`} className="flex items-center h-8 px-3 gap-2 cursor-pointer hover:bg-[#f7f8fa]" style={{ width: portfolioTableWidth, minWidth: "100%", backgroundColor: "#fcfdfe", borderBottom: "1px solid #f0f2f5" }} onClick={() => setActiveFeatureId(feat.id)}>
+                      <div className="w-5 shrink-0" />
+                      <div className="w-4 shrink-0" />
+                      <div className="shrink-0" style={{ width: columnWidths.rank }} />
+                      <div className="shrink-0 overflow-hidden" style={{ width: columnWidths.type }}><PortfolioItemTypeBadge type="Feature" /></div>
+                      <div className="shrink-0 overflow-hidden font-mono text-[11px] font-semibold" style={{ width: columnWidths.id, color: "#2558a6" }}>{feat.id}</div>
+                      <div className="shrink-0 min-w-0 pr-2" style={{ width: columnWidths.name }} onClick={event => event.stopPropagation()}>
+                        <input aria-label={`${feat.id} name`} readOnly={!childRowEditable} value={feat.name} onChange={e => onUpdateFeature(feat.id, { name: e.target.value })} className="block w-full truncate text-[11px] font-semibold bg-transparent px-1 py-1 focus:outline-none focus:bg-white focus:rounded" style={{ color: "#334155", border: childRowEditable ? "1px solid transparent" : "0" }} />
+                      </div>
+                      <div className="shrink-0 overflow-hidden text-[11px]" style={{ width: columnWidths.release }} onClick={event => event.stopPropagation()}>
+                        {childRowEditable ? <select aria-label={`${feat.id} release`} value={childReleaseOptions.includes(feat.release) ? feat.release : "Unscheduled"} onChange={e => onUpdateFeature(feat.id, getReleasePatch(releases, feat.project, e.target.value))} className="w-full text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{childReleaseOptions.map(r => <option key={r}>{r}</option>)}</select> : <span style={{ color: "#5c6478" }}>{feat.release}</span>}
+                      </div>
+                      <div className="shrink-0 overflow-hidden" style={{ width: columnWidths.state }} onClick={event => event.stopPropagation()}>
+                        {childRowEditable ? <select aria-label={`${feat.id} state`} value={feat.status} onChange={e => onUpdateFeature(feat.id, { status: e.target.value as PortfolioState })} className="w-full text-[11px] rounded-sm bg-white focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234", padding: "3px 4px" }}>{PORTFOLIO_STATES.map(s => <option key={s}>{s}</option>)}</select> : <PortfolioStateBadge state={feat.status} />}
+                      </div>
+                      <div className="shrink-0 flex items-center" style={{ width: columnWidths.percentDoneByStoryPlanEstimate }}><FeatureListProgressCell pct={pctByStoryPlanEstimate} numerator={doneEstimate} denominator={totalEstimate} /></div>
+                      <div className="shrink-0 flex items-center" style={{ width: columnWidths.percentDoneByStoryCount }}><FeatureListProgressCell pct={pctByStoryCount} numerator={acceptedStoryCount} denominator={totalStoryCount} /></div>
+                      <div className="shrink-0 overflow-hidden text-[11px] truncate" style={{ width: columnWidths.project, color: "#5c6478" }}>{feat.project}</div>
+                      <div className="shrink-0 overflow-hidden text-[11px]" style={{ width: columnWidths.team }} onClick={event => event.stopPropagation()}>
+                        {childRowEditable ? <select aria-label={`${feat.id} team`} value={feat.team || childProjectTeams[0]} onChange={e => onUpdateFeature(feat.id, { team: e.target.value })} className="w-full text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{childProjectTeams.map(t => <option key={t}>{t}</option>)}</select> : <span style={{ color: "#5c6478" }}>{feat.team}</span>}
+                      </div>
+                      <div className="shrink-0 flex items-center gap-1.5 overflow-hidden" style={{ width: columnWidths.owner }} onClick={event => event.stopPropagation()}>
+                        <Avatar owner={feat.owner} size="xs" />
+                        {childRowEditable ? <select aria-label={`${feat.id} owner`} value={feat.owner.name} onChange={e => { const o = OWNERS.find(c => c.name === e.target.value); if (o) onUpdateFeature(feat.id, { owner: o }); }} className="min-w-0 flex-1 text-[11px] bg-transparent focus:outline-none" style={{ color: "#5c6478" }}>{OWNERS.map(o => <option key={o.name}>{o.name}</option>)}</select> : <span className="text-[11px] truncate" style={{ color: "#5c6478" }}>{feat.owner.name}</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
+          {shouldShowFeatureRows && sortedRollups.map(({ feat, children, totalEstimate, doneEstimate, totalStoryCount, acceptedStoryCount, pctByStoryPlanEstimate, pctByStoryCount }, idx) => {
             const projectTeams = (SCOPE_PROJECTS.find(p => p.key === feat.project) || SCOPE_PROJECTS[0]).teams;
             const featExpanded = expandedFeatureIds.has(feat.id);
             const shownChildren = children.slice(0, 5);
             const rowEditable = editable && !feat.archivedAt && canManageFeatureInProject(role, feat.project);
+            const isSelected = selectedPortfolioIds.has(feat.id);
             return (
               <div key={feat.id}>
-              <div className="flex items-center h-9 px-3 gap-2 cursor-pointer hover:bg-[#f7f8fa]" style={{ width: portfolioTableWidth, minWidth: "100%", borderBottom: "1px solid #edf0f4" }} onClick={() => setActiveFeatureId(feat.id)}>
+              <div className="flex items-center h-9 px-3 gap-2 cursor-pointer hover:bg-[#f7f8fa]" style={{ width: portfolioTableWidth, minWidth: "100%", borderBottom: "1px solid #edf0f4", backgroundColor: isSelected ? "#edf2fb" : undefined }} onClick={() => setActiveFeatureId(feat.id)}>
                 <button aria-label={`${featExpanded ? "Collapse" : "Expand"} ${feat.id} children`} onClick={event => { event.stopPropagation(); if (children.length > 0) toggleFeatureExpanded(feat.id); }} className="w-5 shrink-0 flex items-center justify-center" style={{ color: "#8c94a6" }}>
                   {children.length > 0 ? (featExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />) : null}
                 </button>
+                <div className="w-4 shrink-0" onClick={event => event.stopPropagation()}><input aria-label={`Select ${feat.id}`} type="checkbox" checked={isSelected} onChange={() => togglePortfolioSelection(feat.id)} className="w-3.5 h-3.5 rounded" style={{ accentColor: "#1d3f73" }} /></div>
                 <div className="shrink-0 flex items-center justify-end gap-1" style={{ width: columnWidths.rank }} onClick={event => event.stopPropagation()}>
                   {rowEditable && (
                     <div className="flex flex-col">
@@ -958,6 +1494,7 @@ export function PortfolioPage({ role, project, team, releases, features, workIte
                 return (
                   <div key={item.id} className="flex items-center h-8 px-3 gap-2" style={{ width: portfolioTableWidth, minWidth: "100%", backgroundColor: "#fcfdfe", borderBottom: "1px solid #f0f2f5" }}>
                     <div className="w-5 shrink-0" />
+                    <div className="w-4 shrink-0" />
                     <div className="shrink-0" style={{ width: columnWidths.rank }} />
                     <div className="shrink-0 overflow-hidden" style={{ width: columnWidths.type }}><TypeBadge type={item.type} /></div>
                     <div className="shrink-0 overflow-hidden font-mono text-[11px]" style={{ width: columnWidths.id, color: item.type === "Defect" ? "#b45309" : "#2558a6" }}>{item.id}</div>
@@ -981,10 +1518,11 @@ export function PortfolioPage({ role, project, team, releases, features, workIte
               )}
               </div>
             );
-          })}
+          })}</>}
         </div>
       </div>
-      {showModal && <NewFeatureModal role={role} currentProject={project} currentTeam={team} releases={releases} onClose={() => setShowModal(false)} onCreate={onCreateFeature} onCreateWithDetails={input => setActiveFeatureId(onCreateFeature(input).id)} />}
+      {showModal === "Epic" && <NewEpicModal role={role} currentProject={project} onClose={() => setShowModal(null)} onCreate={onCreateEpic} onCreateWithDetails={input => setActiveEpicId(onCreateEpic(input).id)} />}
+      {showModal === "Feature" && <NewFeatureModal role={role} currentProject={project} currentTeam={team} releases={releases} epics={epics} onClose={() => setShowModal(null)} onCreate={onCreateFeature} onCreateWithDetails={input => setActiveFeatureId(onCreateFeature(input).id)} />}
     </div>
   );
 }
