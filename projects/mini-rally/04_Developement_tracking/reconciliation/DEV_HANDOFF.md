@@ -1,16 +1,17 @@
 # Mini Rally — Reconciliation DEV Handoff
 
-**Effective date:** 2026-07-26
-**Status:** Active Phase 0–4 handoff. Phase 5 governance is confirmed, but the dedicated Phase 5 DEV handoff does not exist until Phase 5 closes.
-**Scope:** Phase 0–4 frontend behavior, business rules, DevInt verification and UAT. Phase 5 content below is a planning boundary only, not authorization to implement. Database, schema and infrastructure are outside this handoff.
+**Effective date:** 2026-07-28
+**Status:** Active Phase 0–4 handoff. Phase 5 is now BA/mockup closed and has its own implementation handoff at `../Phase 5/PHASE5_DEV_HANDOFF.md`.
+**Scope:** Phase 0–4 frontend behavior, business rules, DevInt verification and UAT. Use the dedicated Phase 5 handoff, not this document, to implement Phase 5. Database, schema and infrastructure remain outside this Phase 0–4 handoff.
 
 ## 1. Documents DEV must use
 
 1. `../RECONCILED_SOURCE_OF_TRUTH.md` — cross-phase business baseline.
 2. `../Mini_Rally_Product_Plan.xlsx` — product roadmap, BA tasks, DEV tasks and dependencies.
-3. Relevant `../Phase */.../SRS.md` and phase mockup checklist.
-4. `../../06_Dev testing align/DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx` — DevInt gap execution.
-5. `../../07_Test Business/specs/` and `../../07_Test Business/BUSINESS_E2E_TEST_TRACKER.xlsx` — business acceptance.
+3. `../Phase 5/PHASE5_DEV_HANDOFF.md` — closed Phase 5 implementation authority.
+4. Relevant `../Phase */.../SRS.md` and phase mockup checklist.
+5. `../../06_Dev testing align/DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx` — DevInt gap execution.
+6. `../../07_Test Business/specs/` and `../../07_Test Business/BUSINESS_E2E_TEST_TRACKER.xlsx` — business acceptance.
 
 If wording conflicts, use the source-of-truth document and raise the mismatch to BA before implementing a new interpretation.
 
@@ -23,7 +24,7 @@ If wording conflicts, use the source-of-truth document and raise the mismatch to
 - Teams and User Management also live under the Settings gear.
 - `Track > Iteration Status` is list-only. Team Board and Iteration Board are Future Backlog.
 - Phase 3 Release management remains under `Plan > Timeboxes`.
-- Phase 5 is Portfolio-only: Portfolio Items, Capacity Planning and Release Tracking. Release Planning, Generic Reports and Theme/Initiative are not included in the active Phase 5 MVP.
+- Closed Phase 5 is Portfolio-only: Portfolio Items and Capacity Planning. Release Planning and Release Tracking are excluded. Reports are a future observation direction only and are not authorized by the Phase 5 handoff.
 - Phase 3 Release management remains the only Release create/edit registry; no Portfolio screen duplicates it.
 
 ### Work item and task lifecycle
@@ -69,9 +70,9 @@ If wording conflicts, use the source-of-truth document and raise the mismatch to
 2. Close Phase 2 Iteration lifecycle, scope and metrics gaps.
 3. Close Phase 3 Team Status, Release/Milestone and Quality gaps.
 4. Implement and DevInt Phase 4 governance after Phase 0–3 critical paths are stable.
-5. Run Phase 5 BA/mockup work in order: P5.1 Portfolio Items closure, P5.2 Capacity Planning, P5.3 Release Tracking, P5.4 Phase closeout and dedicated DEV handoff.
-6. For each Phase 5 feature: propose -> BA confirm -> align docs -> implement mockup -> verify -> BA accept -> close.
-7. Do not start Phase 5 production implementation from this handoff. Wait until all Phase 5 features close and BA publishes the dedicated Phase 5 DEV handoff.
+5. Phase 5 BA/mockup work is closed: P5.1 Portfolio Items and P5.2 Capacity Planning were accepted; Release Tracking was removed from scope; P5.4 published the dedicated handoff.
+6. Start Phase 5 production analysis/implementation only from `../Phase 5/PHASE5_DEV_HANDOFF.md`.
+7. Preserve the confirmed delivery gate for any future feature or rule change: propose -> BA confirm -> align docs -> implement -> verify -> BA accept -> close.
 
 The task-level order, owners, proposed dates and acceptance criteria are maintained in `../Mini_Rally_Product_Plan.xlsx`.
 
@@ -88,7 +89,7 @@ The task-level order, owners, proposed dates and acceptance criteria are maintai
 ## 5. Deferred — do not implement implicitly
 
 - Team Board, Iteration Board, drag/drop and WIP rules.
-- Generic Reports, Theme/Initiative and Portfolio Overview.
+- Release Tracking, Reports, Theme/deeper hierarchy and Portfolio Overview.
 - Release burnup/trend until trustworthy historical snapshots exist.
 - Release Planning, Multi-Release/Plan of Plans, multiple what-if plans for the same Project+Release, automatic rebalance and velocity-driven automatic capacity.
 - Database/schema/infra design or persistence implementation decisions.

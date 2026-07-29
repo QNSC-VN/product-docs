@@ -46,6 +46,16 @@ export interface NewFeatureInput {
   name: string;
   project: string;
   team: string;
+  epicId?: string;
+  owner: Owner;
+  release: string;
+  releaseId?: string;
+  state: PortfolioState;
+  preliminaryEstimate: EstimateSize;
+}
+export interface NewEpicInput {
+  name: string;
+  project: string;
   owner: Owner;
   release: string;
   releaseId?: string;
@@ -110,7 +120,7 @@ export interface NewMilestoneInput {
 }
 export interface Feature {
   id: string; name: string; status: PortfolioState; priority: PriorityType;
-  owner: Owner; release: string; releaseId?: string; project?: string; team?: string;
+  owner: Owner; release: string; releaseId?: string; project?: string; team?: string; epicId?: string;
   preliminaryEstimate: EstimateSize;
   refinedEstimate?: number;
   refinedWorkItemCountEstimate?: number;
@@ -123,6 +133,21 @@ export interface Feature {
   // Feature has no Plan Estimate. Percent Done rollups are computed from linked
   // Story/Defect (WorkItem.featureId). Estimated Progress uses optional refined
   // top-down fields, falling back to Preliminary Estimate sizing.
+}
+export interface Epic {
+  id: string; name: string; status: PortfolioState; priority: PriorityType;
+  owner: Owner; release: string; releaseId?: string; project?: string;
+  preliminaryEstimate: EstimateSize;
+  refinedEstimate?: number;
+  refinedWorkItemCountEstimate?: number;
+  rank?: number;
+  milestoneIds?: string[];
+  createdAt: string;
+  plannedStartDate?: string; plannedEndDate?: string; marketReleaseDate?: string;
+  description?: string; notes?: string; successCriteria?: string; attachments?: string[];
+  archivedAt?: string;
+  // Epic is a Project-level Portfolio Item. It does not own Story/Defect
+  // directly; rollups are computed through child Features and their leaf work.
 }
 export interface Project {
   key: string; name: string; activeSprint: string; progress: number;
@@ -167,6 +192,36 @@ export interface WorkflowStatusItem {
   order: number; isFinal: boolean;
 }
 export interface LabelItem { id: string; name: string; color: string; usage: number; }
+
+// ─── Formatting helpers ───────────────────────────────────────────────────────
+
+/**
+ * Normalises a date string to the ISO `YYYY-MM-DD` form required by
+ * `<input type="date">`. Release/Iteration records store human-readable dates
+ * such as "Feb 1, 2025", which a date input silently discards, so any value
+ * copied from those records into a date-input-backed field must pass through
+ * here first. Values already in ISO form are returned untouched.
+ */
+export function toDateInputValue(value?: string) {
+  if (!value) return "";
+  const isoDate = value.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+  if (isoDate) return isoDate;
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return "";
+  const month = String(parsed.getMonth() + 1).padStart(2, "0");
+  const day = String(parsed.getDate()).padStart(2, "0");
+  return `${parsed.getFullYear()}-${month}-${day}`;
+}
+
+/**
+ * Numeric fallback for a Feature's T-shirt Preliminary Estimate, used as the last
+ * resort when no Refined Estimate has been supplied. Shared by Portfolio Items
+ * (Estimated Progress bars) and Capacity Planning (Estimated column), so both
+ * surfaces read the same numbers. A user-configurable mapping is still deferred
+ * to Settings > Workspace > Project Management; these are the documented defaults.
+ */
+export const PRELIMINARY_ESTIMATE_POINT_FALLBACK: Record<EstimateSize, number> = { "No Entry": 0, XS: 1, S: 3, M: 5, L: 8, XL: 13 };
+export const PRELIMINARY_ESTIMATE_COUNT_FALLBACK: Record<EstimateSize, number> = { "No Entry": 0, XS: 1, S: 2, M: 3, L: 5, XL: 8 };
 
 // ─── Permissions ──────────────────────────────────────────────────────────────
 
@@ -406,11 +461,17 @@ export const WORK_ITEMS: WorkItem[] = [
 ];
 
 export const FEATURES: Feature[] = [
-  { id: "FE-318", name: "Advanced Reporting Module", status: "Developing", priority: "High", owner: OWNERS[3], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Data & Reporting", preliminaryEstimate: "L", refinedEstimate: 8, refinedWorkItemCountEstimate: 2, rank: 1, createdAt: "Thursday, September 12, 2024 09:15:42", plannedStartDate: "Nov 1, 2024", plannedEndDate: "2025-01-31", marketReleaseDate: "2025-02-01", description: "Consolidated reporting capability for portfolio-level delivery, release health, and export workflows.", notes: "Keep Phase 5 reporting scope separate from generic Reports until Portfolio is closed.", successCriteria: "Leadership can inspect progress from linked Story/Defect items without manually typing percentage.", attachments: ["reporting-discovery-notes.pdf"] },
-  { id: "FE-311", name: "Enterprise Authentication Suite (SAML / OIDC)", status: "Done", priority: "High", owner: OWNERS[0], release: "Nexus Platform Q4 2024", releaseId: "REL-001", project: "NXP", team: "Identity & Access", preliminaryEstimate: "M", refinedEstimate: 5, refinedWorkItemCountEstimate: 1, rank: 2, createdAt: "Wednesday, July 3, 2024 14:22:10", plannedStartDate: "Jul 15, 2024", plannedEndDate: "2024-10-25", marketReleaseDate: "2024-11-01", description: "Enterprise authentication work grouped as one shippable portfolio capability.", notes: "Accepted scope stays visible for rollup regression checks.", successCriteria: "SSO onboarding work is traceable from Feature to child Story evidence.", attachments: ["saml-release-checklist.xlsx"] },
+  { id: "FE-318", name: "Advanced Reporting Module", status: "Developing", priority: "High", owner: OWNERS[3], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Data & Reporting", epicId: "EP-101", preliminaryEstimate: "L", refinedEstimate: 8, refinedWorkItemCountEstimate: 2, rank: 1, createdAt: "Thursday, September 12, 2024 09:15:42", plannedStartDate: "Nov 1, 2024", plannedEndDate: "2025-01-31", marketReleaseDate: "2025-02-01", description: "Consolidated reporting capability for portfolio-level delivery, release health, and export workflows.", notes: "Keep Phase 5 reporting scope separate from generic Reports until Portfolio is closed.", successCriteria: "Leadership can inspect progress from linked Story/Defect items without manually typing percentage.", attachments: ["reporting-discovery-notes.pdf"] },
+  { id: "FE-311", name: "Enterprise Authentication Suite (SAML / OIDC)", status: "Done", priority: "High", owner: OWNERS[0], release: "Nexus Platform Q4 2024", releaseId: "REL-001", project: "NXP", team: "Identity & Access", epicId: "EP-101", preliminaryEstimate: "M", refinedEstimate: 5, refinedWorkItemCountEstimate: 1, rank: 2, createdAt: "Wednesday, July 3, 2024 14:22:10", plannedStartDate: "Jul 15, 2024", plannedEndDate: "2024-10-25", marketReleaseDate: "2024-11-01", description: "Enterprise authentication work grouped as one shippable portfolio capability.", notes: "Accepted scope stays visible for rollup regression checks.", successCriteria: "SSO onboarding work is traceable from Feature to child Story evidence.", attachments: ["saml-release-checklist.xlsx"] },
   { id: "FE-322", name: "Mobile Application MVP - iOS & Android", status: "Idea Prioritization", priority: "Medium", owner: OWNERS[4], release: "Unscheduled", project: "MOB", team: "Mobile Experience", preliminaryEstimate: "XL", rank: 3, createdAt: "Wednesday, October 2, 2024 11:05:33", description: "Mobile MVP planning placeholder for a project with no active scoped Release yet.", notes: "Release remains Unscheduled until a Mobile release is created in Plan > Timeboxes.", successCriteria: "Mobile Feature is visible only in Mobile project context." },
-  { id: "FE-315", name: "Backlog Automation & Smart Prioritization Engine", status: "Developing", priority: "High", owner: OWNERS[1], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Core Platform", preliminaryEstimate: "M", rank: 4, createdAt: "Friday, September 20, 2024 16:40:05", plannedStartDate: "Dec 1, 2024", plannedEndDate: "2025-02-15", description: "Automation feature for backlog sorting, ranking and guided prioritization.", notes: "Use this row for Project Member read-only checks in Core Platform scope.", successCriteria: "Portfolio list and detail preserve project/team permissions." },
-  { id: "FE-308", name: "Cross-Project Portfolio Hierarchy & Roadmap View", status: "Problem Discovery", priority: "Medium", owner: OWNERS[2], release: "Nexus Platform Q2 2025", releaseId: "REL-003", project: "NXP", team: "Core Platform", preliminaryEstimate: "S", rank: 5, createdAt: "Thursday, October 10, 2024 10:30:00", description: "Discovery placeholder for future hierarchy and roadmap needs.", notes: "Theme/Initiative remains out of Phase 5 v1.", successCriteria: "Feature-level hierarchy stays single-level until BA reopens the decision." },
+  { id: "FE-315", name: "Backlog Automation & Smart Prioritization Engine", status: "Developing", priority: "High", owner: OWNERS[1], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Core Platform", epicId: "EP-102", preliminaryEstimate: "M", rank: 4, createdAt: "Friday, September 20, 2024 16:40:05", plannedStartDate: "Dec 1, 2024", plannedEndDate: "2025-02-15", description: "Automation feature for backlog sorting, ranking and guided prioritization.", notes: "Use this row for Project Member read-only checks in Core Platform scope.", successCriteria: "Portfolio list and detail preserve project/team permissions." },
+  { id: "FE-308", name: "Cross-Project Portfolio Hierarchy & Roadmap View", status: "Problem Discovery", priority: "Medium", owner: OWNERS[2], release: "Nexus Platform Q2 2025", releaseId: "REL-003", project: "NXP", team: "Core Platform", epicId: "EP-102", preliminaryEstimate: "S", rank: 5, createdAt: "Thursday, October 10, 2024 10:30:00", description: "Discovery placeholder for future hierarchy and roadmap needs.", notes: "Theme/Initiative remains out of Phase 5 v1.", successCriteria: "Feature-level hierarchy stays single-level until BA reopens the decision." },
+];
+
+export const EPICS: Epic[] = [
+  { id: "EP-101", name: "Enterprise Platform Modernization", status: "Developing", priority: "High", owner: OWNERS[0], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", preliminaryEstimate: "XL", refinedEstimate: 21, refinedWorkItemCountEstimate: 4, rank: 1, createdAt: "Monday, June 10, 2024 10:30:00", plannedStartDate: "Jul 15, 2024", plannedEndDate: "2025-02-01", marketReleaseDate: "2025-02-15", description: "Project-level Epic grouping reporting and identity capabilities under one modernization goal.", notes: "Epic estimates are top-down and stay independent from child Feature estimates.", successCriteria: "Leadership can inspect the Epic through Feature children and leaf Story/Defect execution evidence.", attachments: ["platform-modernization-brief.pdf"] },
+  { id: "EP-102", name: "Portfolio Operations Intelligence", status: "Problem Discovery", priority: "High", owner: OWNERS[1], release: "Nexus Platform Q2 2025", releaseId: "REL-003", project: "NXP", preliminaryEstimate: "L", refinedEstimate: 13, refinedWorkItemCountEstimate: 3, rank: 2, createdAt: "Wednesday, August 21, 2024 09:00:00", plannedStartDate: "Feb 1, 2025", plannedEndDate: "2025-05-01", description: "Epic for backlog automation, prioritization and future portfolio hierarchy experiments.", notes: "Seeded for P5.1.1 Epic hierarchy review.", successCriteria: "Feature rollups can be read at Epic level without changing Capacity Planning.", attachments: [] },
+  { id: "EP-201", name: "Mobile Customer Experience", status: "Idea Prioritization", priority: "Medium", owner: OWNERS[4], release: "Unscheduled", project: "MOB", preliminaryEstimate: "XL", rank: 3, createdAt: "Wednesday, October 2, 2024 08:40:00", description: "Mobile project Epic grouping MVP mobile capabilities.", notes: "Visible in Mobile project All Teams context only.", successCriteria: "Mobile Features can be grouped without Team-level Epic ownership.", attachments: [] },
 ];
 
 export const NOTIFICATIONS: Notification[] = [
@@ -479,6 +540,9 @@ export const RELEASES_DATA: ReleaseItem[] = [
   { id: "REL-002", name: "Nexus Platform Q1 2025", version: "v3.5.0", status: "Planning", startDate: "Nov 1, 2024", releaseDate: "Feb 1, 2025", progress: 12, totalItems: 38, completedItems: 5, openDefects: 2, blockedItems: 0, owner: OWNERS[0], description: "Q1 2025 release including advanced reporting module, notification center, and markdown support.", projectKey: "NXP", team: "Core Platform" },
   { id: "REL-003", name: "Nexus Platform Q2 2025", version: "v4.0.0", status: "Planning", startDate: "Feb 1, 2025", releaseDate: "May 1, 2025", progress: 0, totalItems: 52, completedItems: 0, openDefects: 0, blockedItems: 0, owner: OWNERS[3], description: "Major v4.0 with mobile app, portfolio hierarchy, and redesigned reporting dashboards.", projectKey: "NXP", team: "Core Platform" },
   { id: "REL-004", name: "Nexus Platform v3.3", version: "v3.3.0", status: "Accepted", startDate: "Jul 1, 2024", releaseDate: "Sep 30, 2024", progress: 100, totalItems: 18, completedItems: 18, openDefects: 0, blockedItems: 0, owner: OWNERS[0], description: "Accepted on schedule. Included board view, CSV import, and SSO foundation.", projectKey: "NXP", team: "Core Platform" },
+  // Seeded so a second Project has a Release: Capacity Planning requires one to create
+  // a plan, and without it the Project Admin unmanaged-Project RBAC path is untestable.
+  { id: "REL-005", name: "Mobile App MVP R1", version: "v1.0.0", status: "Planning", startDate: "Jan 6, 2025", releaseDate: "Mar 28, 2025", progress: 0, totalItems: 12, completedItems: 0, openDefects: 1, blockedItems: 0, owner: OWNERS[3], description: "First Mobile App MVP release covering iOS and Android onboarding scope.", projectKey: "MOB", team: "Mobile Experience" },
 ];
 
 export const CAPACITY_PLANS_DATA: CapacityPlan[] = [

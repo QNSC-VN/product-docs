@@ -245,7 +245,13 @@ export function SavedViewsDrop() {
   );
 }
 
-export function ContextBar({ currentPage, currentProject, currentTeam }: { currentPage: Page; currentProject: ScopeProject; currentTeam: string }) {
+export function ContextBar({ currentPage, currentProject, currentTeam, portfolioTypeFilter, onPortfolioTypeFilterChange }: {
+  currentPage: Page;
+  currentProject: ScopeProject;
+  currentTeam: string;
+  portfolioTypeFilter?: "Epic" | "Feature";
+  onPortfolioTypeFilterChange?: (type: "Epic" | "Feature") => void;
+}) {
   if (currentPage === "settings" || currentPage === "notifications") return null;
   const crumbs: Record<Page, string[]> = {
     home: ["ACME Space Inc.", "Home"],
@@ -265,6 +271,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam }: { curre
     settings: [],
   };
   const showSaved = ["backlog", "quality", "portfolio", "releases"].includes(currentPage);
+  const showContextControls = currentPage !== "portfolio";
 
   return (
     <div className="h-8 flex items-center px-4 gap-4 bg-white shrink-0 relative z-20" style={{ borderBottom: "1px solid #e2e6eb" }}>
@@ -275,9 +282,24 @@ export function ContextBar({ currentPage, currentProject, currentTeam }: { curre
             <span style={{ color: i === 0 ? "#1d3f73" : i === crumbs[currentPage].length - 1 ? "#1a2234" : "#5c6478", fontWeight: i === 0 || i === crumbs[currentPage].length - 1 ? 600 : 400 }}>{c}</span>
           </span>
         ))}
+        {currentPage === "portfolio" && portfolioTypeFilter && onPortfolioTypeFilterChange && (
+          <span className="ml-3 flex items-center gap-1.5">
+            <span className="text-[10px] font-semibold uppercase tracking-wide" style={{ color: "#8c94a6" }}>Type</span>
+            <select
+              aria-label="Portfolio item type filter"
+              value={portfolioTypeFilter}
+              onChange={event => onPortfolioTypeFilterChange(event.target.value as "Epic" | "Feature")}
+              className="h-6 rounded bg-white px-2 text-[11px] focus:outline-none"
+              style={{ border: "1px solid #cbd5e1", color: "#1a2234" }}
+            >
+              <option>Epic</option>
+              <option>Feature</option>
+            </select>
+          </span>
+        )}
       </div>
       <div className="flex-1" />
-      {!["projects", "backlog", "iterations", "track", "teamBoard", "teamStatus"].includes(currentPage) && (
+      {showContextControls && !["projects", "backlog", "iterations", "track", "teamBoard", "teamStatus"].includes(currentPage) && (
         <div className="flex items-center gap-4" style={{ borderLeft: "1px solid #e2e6eb", paddingLeft: "1rem" }}>
           {["home", "projects"].includes(currentPage) && <CtxSelect label="Workspace" value="ACME Space Inc." />}
           {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} />}

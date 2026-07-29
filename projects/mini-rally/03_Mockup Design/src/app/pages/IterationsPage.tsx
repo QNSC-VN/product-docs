@@ -1,6 +1,6 @@
 import { useMemo, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
 import { AlignLeft, ArrowDown, ArrowUpDown, Bold, ChevronLeft, ChevronRight, Filter, Info, Italic, Link2, List, ListOrdered, PencilLine, Plus, Search, Underline, X } from "lucide-react";
-import { type IterationItem, type MilestoneItem, type MilestoneState, type NewIterationInput, type NewMilestoneInput, type NewReleaseInput, type Owner, type ReleaseItem, type Role, type WorkItem, can, OWNERS, SCOPE_PROJECTS } from "../model";
+import { type IterationItem, type MilestoneItem, type MilestoneState, type NewIterationInput, type NewMilestoneInput, type NewReleaseInput, type Owner, type ReleaseItem, type Role, type WorkItem, can, toDateInputValue, OWNERS, SCOPE_PROJECTS } from "../model";
 
 type TimeboxType = "Iterations" | "Releases" | "Milestones";
 type NewTimeboxType = "Iteration" | "Release" | "Milestones";
@@ -143,17 +143,6 @@ function modalTypeFromList(type: TimeboxType): NewTimeboxType {
   if (type === "Iterations") return "Iteration";
   if (type === "Releases") return "Release";
   return "Milestones";
-}
-
-function toDateInputValue(value?: string) {
-  if (!value) return "";
-  const isoDate = value.match(/\d{4}-\d{2}-\d{2}/)?.[0];
-  if (isoDate) return isoDate;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return "";
-  const month = String(parsed.getMonth() + 1).padStart(2, "0");
-  const day = String(parsed.getDate()).padStart(2, "0");
-  return `${parsed.getFullYear()}-${month}-${day}`;
 }
 
 function selectedReleases(releases: ReleaseItem[], releaseIds?: string[]) {
