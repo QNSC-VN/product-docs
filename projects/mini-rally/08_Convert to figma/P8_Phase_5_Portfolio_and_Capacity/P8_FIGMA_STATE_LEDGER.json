@@ -1,0 +1,62 @@
+{
+  "plan": "P8_Phase_5_Portfolio_and_Capacity",
+  "fileKey": "ttpggMpbPwggOZl6umowzC",
+  "runId": "p8-phase5-20260729",
+  "updatedAt": "2026-07-29",
+  "status": "COMPLETE_CONFIRMED_2026-07-29",
+  "p8_1": {
+    "status": "complete",
+    "pages": {
+      "portfolioStateBadge": "217:2",
+      "estimateSizeBadge": "219:2",
+      "capacityPlanStatusBadge": "220:2"
+    },
+    "componentSets": {
+      "portfolioStateBadge": "217:36",
+      "estimateSizeBadge": "219:15",
+      "capacityPlanStatusBadge": "220:7",
+      "typeBadge": "50:15"
+    },
+    "extensions": {
+      "typeBadgeEpic": "217:43"
+    },
+    "supersessionTarget": {
+      "legacyPortfolioReference": "175:1713",
+      "status": "retain_until_P8_5_review"
+    },
+    "qa": {
+      "portfolioStateBadgeScreenshot": "passed",
+      "estimateSizeBadgeScreenshot": "passed",
+      "capacityPlanStatusBadgeScreenshot": "passed",
+      "variantApiValidation": "passed"
+    }
+  },
+  "p8_2": {
+    "status": "in_progress",
+    "screenPage": "222:1829",
+    "portfolioList": {
+      "wrapper": "222:1830",
+      "header": "223:2",
+      "listControls": "225:191",
+      "table": "228:203"
+    },
+    "epicDetail": {
+      "wrapper": "229:268",
+      "header": "229:269",
+      "content": "231:191",
+      "screenshot": "passed"
+    },
+    "completedSteps": [
+      "create-screen-wrapper",
+      "build-and-validate-app-shell-header",
+      "build-and-validate-list-controls",
+      "build-and-validate-portfolio-hierarchy-table",
+      "build-and-validate-epic-detail-editable-state"
+    ],
+    "resume": {
+      "nextStep": "create Feature Detail read-only/archive state and New Epic/New Feature dialogs",
+      "lastResolvedIssue": "Portfolio table border uses figma.variables.setBoundVariableForPaint for color/border/row.",
+      "portfolioListScreenshot": "passed"
+    }
+  }
+}

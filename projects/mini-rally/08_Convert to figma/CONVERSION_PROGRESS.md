@@ -13,6 +13,15 @@
 - Full open-question ledger (Q-01 through Q-16) and every known gap is consolidated in `P7_Future_QA_and_Handoff/RELEASE_NOTES.md` — this is the authoritative single list going forward.
 - Last updated: `2026-07-21` (Plan 7 confirmed same day — conversion project complete)
 
+## P8 Phase 5 delta
+
+- Current active delta: `PLAN 8 — Phase 5 Portfolio and Capacity`.
+- Status: `COMPLETE — Plan 8 confirmed 2026-07-29. Portfolio and Capacity Planning Figma delta is Figma/BA/dev-handoff ready; production persistence, API authorization and deployment remain out of scope.`
+- Scope: P5.1 Portfolio Items (`Epic → Feature`) and P5.2 Capacity Planning only.
+- Excluded: Release Planning, Release Tracking, Reports, multi-release/plan-of-plans, deeper hierarchy and estimate-scale configuration.
+- Folder: `P8_Phase_5_Portfolio_and_Capacity`.
+- Previous P0–P7 approvals remain valid. P8 supersedes the old future/reference Portfolio screen only after P8 review.
+
 ## Gate log
 
 | Plan | Status | Review package | User decision | Notes |
