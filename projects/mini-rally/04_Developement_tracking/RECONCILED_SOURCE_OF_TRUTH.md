@@ -4,6 +4,8 @@
 **Applies to:** Phase 0–5 BA documents, test pack and frontend mockup.
 **Scope:** business behavior, screen behavior and session-level FE mock state only. Database, API, infrastructure and persistence after browser refresh remain outside this source.
 
+**Phase 6 addendum (2026-07-31):** Reports are BA/mockup confirmed under `Phase 6/PHASE6_REPORTS_BUSINESS_AND_DATA_CONTRACT.md`. Portfolio Release Tracking is BA/mockup approved and closed for DEV handoff under `Phase 6/01_Release_Tracking/SRS.md`. These Phase 6 contracts supersede the earlier Future Backlog wording for these items only; the closed Phase 0–5 baseline remains unchanged.
+
 ## 1. Use this document
 
 This is the current entry point for BA, FE development and QA. It consolidates the BA-confirmed reconciliation decisions C01–C07, mockup checkpoints M1–M5.3 and the closed Phase 5 `P5-GOV v4` baseline. If an older phase document conflicts with this file, update that document before implementation; do not create a new behavior from the older wording.
@@ -12,6 +14,7 @@ Implementation handoff and acceptance references are consolidated in:
 
 - `reconciliation/DEV_HANDOFF.md`
 - `Phase 5/PHASE5_DEV_HANDOFF.md`
+- `Phase 6/PHASE6_REPORTS_BUSINESS_AND_DATA_CONTRACT.md`
 - `Mini_Rally_Product_Plan.xlsx`
 - `../07_Test Business/specs/E2E_AGILE_LIFECYCLE_RECONCILIATION.md`
 
@@ -65,7 +68,7 @@ Release <-> Milestone
 | Plan > Timeboxes > Releases | Sole Phase 3 Release create/edit/detail/artifact surface |
 | Portfolio > Portfolio Items | **P5.1 closed for BA/mockup scope 2026-07-28.** Accepted `Epic -> Feature` hierarchy; Type filter, search/show-fields toolbar, root checkbox bulk actions, type-specific inline edit, Epic list/create/detail/children, Feature parent-Epic assignment and four progress bars. Epic has no Team or Release assignment. |
 | Portfolio > Capacity Planning | **P5.2 closed for BA/mockup scope 2026-07-28.** Single-Release Plan list/detail; Team selection from Project Breakdown; Plan-level and Team-level Feature add; one-Team assignment and multi-Team allocation; manual/forecast Capacity; live Complete/Rollup; fixed planning Estimated; advisory exceed warnings; Publish variants and Revert to Draft |
-| Portfolio > Release Tracking | **Not included in closed Phase 5.** BA removed the dedicated screen on 2026-07-28. Future cross-release observation should be proposed under Reports; no Report is currently specified or claimed. |
+| Portfolio > Release Tracking | **Not included in closed Phase 5. Phase 6 BA/mockup approved and closed for DEV handoff.** Dedicated surface governed by `Phase 6/01_Release_Tracking/SRS.md`; it is the final item in the Portfolio menu. |
 | Portfolio > Release Planning | Future Backlog; not active in Phase 5 MVP |
 | Team Board / Iteration Board | Future Backlog; absent from active navigation |
 | Settings gear > Workspace > Project Management | Projects only in the accepted mockup; user-configurable Preliminary Estimate mapping is deferred and not yet implemented |
@@ -91,8 +94,8 @@ Technical roles are only `Workspace Admin`, `Project Admin` and `Project Member`
 
 ## 7. Deferred work
 
-- Release Tracking, Reports and Theme/deeper custom Portfolio Item hierarchy: outside the closed Phase 5 scope. Reports are the preferred future observation direction but remain unconfirmed Future Backlog.
-- Release burnup/trend charts: deferred until trustworthy historical snapshots exist.
+- Reports and Release Tracking remain outside the closed Phase 5 scope, but are no longer unconfirmed Future Backlog: they are governed as Phase 6 BA/mockup-approved work. Theme/deeper custom Portfolio Item hierarchy remains Future Backlog.
+- Release Tracking's Burnup visual contract is approved. Production historical accuracy and readiness cannot be claimed until DEV implements trustworthy snapshots or auditable event history plus a persisted ideal baseline.
 - Release Planning, Multi-Release/Plan of Plans, multiple what-if plans for the same Project+Release, automatic rebalance and velocity-driven automatic capacity: outside the Phase 5 MVP.
 - Team Board, Iteration Board, drag/drop, WIP limit and board-specific transitions: Future Backlog.
 - Refresh/API/database persistence and all infrastructure behavior: DevInt implementation/verification.

@@ -1,5 +1,5 @@
 ﻿export type Role = "Workspace Admin" | "Project Admin" | "Project Member";
-export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "capacityPlanning" | "releasePlanning" | "releases" | "reports" | "notifications" | "settings";
+export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "releaseTracking" | "capacityPlanning" | "releasePlanning" | "releases" | "reports" | "notifications" | "settings";
 export type WorkItemType = "Story" | "Defect" | "Task" | "Feature";
 export type StatusType = "Idea" | "Defined" | "In-Progress" | "Completed" | "Accepted" | "Release";
 export type TaskState = "Defined" | "In-Progress" | "Completed";
@@ -16,6 +16,8 @@ export interface WorkItem {
   planEstimate: number; taskCount: number; completedTasks: number;
   taskEstimate?: number; todoEstimate?: number;
   iteration: string; release: string; releaseId?: string; milestoneIds?: string[]; featureId?: string; tags: string[];
+  /** Timestamp when the Story/Defect actually entered Accepted; null means not accepted. */
+  acceptedDate?: string | null;
   description: string; lastUpdated: string; dueDate?: string;
   blocked?: boolean; defectCount?: number; commentCount?: number;
   attachmentCount?: number; project?: string; team?: string; rank?: number;
@@ -178,6 +180,8 @@ export interface IterationItem {
   id: string; name: string; theme: string; state: "Planning" | "Committed" | "Accepted";
   projectKey: string; team: string; startDate: string; endDate: string;
   project: string; plannedVelocity: number; taskEstimate: number;
+  /** Immutable planning baseline captured once when the Iteration starts. */
+  totalTaskEstimateAtStart?: number;
   capacity: number; plannedPoints: number; acceptedPoints: number;
   itemCount: number; defectCount: number; blockedCount: number;
   owner: Owner; goal: string; history: string[];
@@ -303,6 +307,16 @@ export const WORK_ITEMS: WorkItem[] = [
     lastUpdated: "Oct 18, 2024",
   },
   {
+    id: "US-4827", type: "Story", rank: 3.5,
+    title: "Validate smart-prioritization readiness criteria before release assignment",
+    status: "Defined", priority: "Medium", owner: OWNERS[1], project: "NXP",
+    planEstimate: 3, taskCount: 0, completedTasks: 0, taskEstimate: 0, todoEstimate: 0,
+    iteration: "Unscheduled", release: "Unscheduled", featureId: "FE-315", tags: ["backlog", "readiness"],
+    commentCount: 0, defectCount: 0,
+    description: "A child Story that remains part of the Feature estimate but is not ready to appear in Release Tracking until a Release is assigned.",
+    lastUpdated: "Oct 22, 2024",
+  },
+  {
     id: "US-4803", type: "Story", rank: 4,
     title: "Per-user notification preference center with channel routing and digest options",
     status: "Defined", priority: "Low", owner: OWNERS[4], project: "NXP",
@@ -384,7 +398,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Email notifications fail when recipient address contains a plus sign character",
     status: "Accepted", priority: "Medium", owner: OWNERS[1], project: "NXP",
     planEstimate: 1, taskCount: 1, completedTasks: 1,
-    iteration: "Sprint 24.2", release: "Q4 2024", tags: ["notifications", "email"],
+    iteration: "Sprint 24.2", release: "Q4 2024", acceptedDate: "2024-10-14", tags: ["notifications", "email"],
     description: "Addresses like user+tag@company.com fail RFC 5321 validation in the notification service. The plus sign is treated as a space in the URL-encoded envelope, causing SMTP rejection.",
     lastUpdated: "Oct 14, 2024",
   },
@@ -443,7 +457,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Shopping Cart — persistent cart with price recalculation and coupon support",
     status: "Accepted", priority: "High", owner: OWNERS[0], project: "ECO",
     planEstimate: 13, taskCount: 8, completedTasks: 8, taskEstimate: 20, todoEstimate: 0,
-    iteration: "Sprint 24.3", release: "Q4 2024", tags: ["cart", "checkout"],
+    iteration: "Sprint 24.3", release: "Q4 2024", acceptedDate: "2024-10-28", tags: ["cart", "checkout"],
     commentCount: 5, defectCount: 0,
     description: "Build a persistent shopping cart that recalculates prices on quantity change, applies coupon codes, and persists across sessions via local storage and server sync.",
     lastUpdated: "Oct 16, 2024",
@@ -453,7 +467,7 @@ export const WORK_ITEMS: WorkItem[] = [
     title: "Make a pet shop — full e-commerce store for pet products and accessories",
     status: "Accepted", priority: "High", owner: OWNERS[1], project: "ECO",
     planEstimate: 21, taskCount: 14, completedTasks: 14, taskEstimate: 40, todoEstimate: 0,
-    iteration: "Sprint 24.3", release: "Q4 2024", tags: ["storefront", "foundation"],
+    iteration: "Sprint 24.3", release: "Q4 2024", acceptedDate: "2024-10-30", tags: ["storefront", "foundation"],
     commentCount: 12, attachmentCount: 6, defectCount: 2,
     description: "Foundation story covering the complete e-commerce storefront: product catalog, search, filters, product detail pages, and basic navigation structure.",
     lastUpdated: "Oct 15, 2024",
@@ -499,13 +513,31 @@ export const TASKS_DATA: TaskItem[] = [
   { id: "TA-481902", parentWorkItemId: "US-4819", rank: 2, name: "Add shortcut help panel", state: "Completed", owner: OWNERS[2], project: "NXP", team: "Core Platform", estimate: 2, todo: 0, actuals: 2, description: "Add and validate the shortcut help panel.", notes: "Complete.", attachments: [] },
 ];
 
-export const VELOCITY_DATA = [
-  { sprint: "23.4", planned: 44, accepted: 40 },
-  { sprint: "23.5", planned: 38, accepted: 32 },
-  { sprint: "23.6", planned: 41, accepted: 41 },
-  { sprint: "24.1", planned: 45, accepted: 38 },
-  { sprint: "24.2", planned: 52, accepted: 49 },
-  { sprint: "24.3", planned: 47, accepted: 16 },
+export interface VelocityIterationData {
+  projectKey: string;
+  team: string;
+  sprint: string;
+  endDate: string;
+  hasScheduledItems: boolean;
+  acceptedDuring: number;
+  acceptedAfter: number;
+  notAccepted: number;
+}
+
+/** Representative completed-iteration snapshots for the Phase 6 mockup. */
+export const VELOCITY_DATA: VelocityIterationData[] = [
+  { projectKey: "NXP", team: "Core Platform", sprint: "23.4", endDate: "2024-08-23", hasScheduledItems: true, acceptedDuring: 49, acceptedAfter: 0, notAccepted: 0 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "23.5", endDate: "2024-09-06", hasScheduledItems: true, acceptedDuring: 50, acceptedAfter: 2, notAccepted: 0 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "23.6", endDate: "2024-09-20", hasScheduledItems: true, acceptedDuring: 49, acceptedAfter: 0, notAccepted: 1 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "24.1", endDate: "2024-09-27", hasScheduledItems: true, acceptedDuring: 42, acceptedAfter: 3, notAccepted: 0 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "24.2", endDate: "2024-10-11", hasScheduledItems: true, acceptedDuring: 47, acceptedAfter: 0, notAccepted: 2 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "24.3", endDate: "2024-10-28", hasScheduledItems: true, acceptedDuring: 54, acceptedAfter: 2, notAccepted: 0 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "24.4", endDate: "2024-11-12", hasScheduledItems: true, acceptedDuring: 56, acceptedAfter: 0, notAccepted: 0 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "25.1", endDate: "2025-01-17", hasScheduledItems: true, acceptedDuring: 51, acceptedAfter: 3, notAccepted: 0 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "25.2", endDate: "2025-01-31", hasScheduledItems: true, acceptedDuring: 52, acceptedAfter: 0, notAccepted: 1 },
+  { projectKey: "NXP", team: "Core Platform", sprint: "25.3", endDate: "2025-02-14", hasScheduledItems: true, acceptedDuring: 34, acceptedAfter: 4, notAccepted: 6 },
+  { projectKey: "NXP", team: "Identity & Access", sprint: "24.5", endDate: "2024-11-26", hasScheduledItems: true, acceptedDuring: 36, acceptedAfter: 0, notAccepted: 0 },
+  { projectKey: "NXP", team: "Data & Reporting", sprint: "25.1", endDate: "2025-01-17", hasScheduledItems: true, acceptedDuring: 42, acceptedAfter: 2, notAccepted: 0 },
 ];
 
 export const BURNDOWN_DATA = [
@@ -520,6 +552,32 @@ export const BURNDOWN_DATA = [
   { day: "Oct 24", remaining: null, ideal: 8.3 },
   { day: "Oct 25", remaining: null, ideal: 4.0 },
   { day: "Oct 28", remaining: null, ideal: 0 },
+];
+
+export interface IterationDailySnapshot {
+  iterationId: string;
+  date: string;
+  remainingToDo: number;
+  acceptedPoints: number;
+}
+
+/**
+ * Representative mock snapshots for the Iteration Burndown screen. In
+ * production these rows are append-only daily snapshots written by a scheduled
+ * job; they are intentionally not reconstructed from today's task values.
+ */
+export const ITERATION_DAILY_SNAPSHOTS: IterationDailySnapshot[] = [
+  { iterationId: "IT-24-3", date: "2024-10-14", remainingToDo: 30, acceptedPoints: 0 },
+  { iterationId: "IT-24-3", date: "2024-10-15", remainingToDo: 28, acceptedPoints: 0 },
+  { iterationId: "IT-24-3", date: "2024-10-16", remainingToDo: 25, acceptedPoints: 0 },
+  { iterationId: "IT-24-3", date: "2024-10-17", remainingToDo: 22, acceptedPoints: 5 },
+  { iterationId: "IT-24-3", date: "2024-10-18", remainingToDo: 19, acceptedPoints: 8 },
+  { iterationId: "IT-24-3", date: "2024-10-21", remainingToDo: 16, acceptedPoints: 12 },
+  { iterationId: "IT-24-3", date: "2024-10-22", remainingToDo: 13, acceptedPoints: 16 },
+  { iterationId: "IT-24-3", date: "2024-10-23", remainingToDo: 10, acceptedPoints: 16 },
+  { iterationId: "IT-24-3", date: "2024-10-24", remainingToDo: 7, acceptedPoints: 16 },
+  { iterationId: "IT-24-3", date: "2024-10-25", remainingToDo: 4, acceptedPoints: 16 },
+  { iterationId: "IT-24-3", date: "2024-10-28", remainingToDo: 0, acceptedPoints: 16 },
 ];
 
 export const STATUS_PIE = [
@@ -586,7 +644,7 @@ export const ITERATIONS_DATA: IterationItem[] = [
   {
     id: "IT-24-3", name: "Sprint 24.3", theme: "Authentication stability", state: "Planning", projectKey: "NXP", team: "Core Platform",
     startDate: "2024-10-14 12:00 AM EST", endDate: "2024-10-28 11:59 PM EST", project: "Nexus Platform 2025",
-    plannedVelocity: 47, taskEstimate: 106, capacity: 54, plannedPoints: 47, acceptedPoints: 16,
+    plannedVelocity: 47, taskEstimate: 106, totalTaskEstimateAtStart: 30, capacity: 54, plannedPoints: 47, acceptedPoints: 16,
     itemCount: 9, defectCount: 2, blockedCount: 1, owner: OWNERS[0],
     goal: "Stabilize authentication, resolve high priority defects, and keep reporting work visible for Q4 readiness.",
     history: ["Created Oct 10 by Marcus Webb", "Sprint scope agreed Oct 14 with 9 items", "Scope adjusted Oct 21 after timezone defect triage"],

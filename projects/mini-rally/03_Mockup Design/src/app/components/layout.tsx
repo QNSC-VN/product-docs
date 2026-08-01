@@ -25,7 +25,7 @@ export const NAV_ITEMS: { key: Page; label: string; icon: React.ReactNode; child
   { key: "backlog", label: "Plan", icon: <Calendar size={12} />, children: [{ key: "backlog", label: "Backlog", icon: <AlignJustify size={12} /> }, { key: "iterations", label: "Timeboxes", icon: <RotateCw size={12} /> }] },
   { key: "track", label: "Track", icon: <Activity size={12} />, children: [{ key: "track", label: "Iteration Status", icon: <Activity size={12} /> }, { key: "teamStatus", label: "Team status", icon: <ListChecks size={12} /> }] },
   { key: "quality", label: "Quality", icon: <CheckCircle size={12} />, children: [{ key: "quality", label: "Defect", icon: <AlertTriangle size={12} /> }] },
-  { key: "portfolio", label: "Portfolio", icon: <Package size={12} />, children: [{ key: "portfolio", label: "Portfolio Items", icon: <Package size={12} /> }, { key: "capacityPlanning", label: "Capacity Planning", icon: <Tag size={12} /> }] },
+  { key: "portfolio", label: "Portfolio", icon: <Package size={12} />, children: [{ key: "portfolio", label: "Portfolio Items", icon: <Package size={12} /> }, { key: "capacityPlanning", label: "Capacity Planning", icon: <Tag size={12} /> }, { key: "releaseTracking", label: "Release Tracking", icon: <TrendingUp size={12} /> }] },
   { key: "reports", label: "Reports", icon: <BarChart2 size={12} /> },
 ];
 
@@ -52,7 +52,7 @@ export function TopNav({
   const visibleNavItems = currentRole === "Project Member"
     ? NAV_ITEMS
       .filter(item => ["home", "backlog", "track", "portfolio"].includes(item.key))
-      .map(item => item.children ? { ...item, children: item.children.filter(child => child.key === "track" || child.key === "backlog" || child.key === "portfolio" || child.key === "capacityPlanning") } : item)
+      .map(item => item.children ? { ...item, children: item.children.filter(child => child.key === "track" || child.key === "backlog" || child.key === "portfolio" || child.key === "releaseTracking" || child.key === "capacityPlanning") } : item)
     : NAV_ITEMS;
   function toggleProject(key: string) {
     setExpandedProjects(prev => {
@@ -203,7 +203,17 @@ export function TopNav({
 
 // ─── Context Bar ──────────────────────────────────────────────────────────────
 
-export function CtxSelect({ label, value }: { label: string; value: string }) {
+export function CtxSelect({ label, value, options, onChange }: { label: string; value: string; options?: string[]; onChange?: (value: string) => void }) {
+  if (options && onChange) {
+    return (
+      <label className="flex items-center gap-1">
+        <span className="text-[10px] font-medium" style={{ color: "#8c94a6" }}>{label}:</span>
+        <select aria-label={`${label} scope`} value={value} onChange={event => onChange(event.target.value)} className="h-6 max-w-52 rounded bg-white px-1 text-[12px] font-medium outline-none" style={{ color: "#1a2234" }}>
+          {options.map(option => <option key={option} value={option}>{option}</option>)}
+        </select>
+      </label>
+    );
+  }
   return (
     <div className="flex items-center gap-1">
       <span className="text-[10px] font-medium" style={{ color: "#8c94a6" }}>{label}:</span>
@@ -245,10 +255,12 @@ export function SavedViewsDrop() {
   );
 }
 
-export function ContextBar({ currentPage, currentProject, currentTeam, portfolioTypeFilter, onPortfolioTypeFilterChange }: {
+export function ContextBar({ currentPage, currentProject, currentTeam, currentRole, onScopeChange, portfolioTypeFilter, onPortfolioTypeFilterChange }: {
   currentPage: Page;
   currentProject: ScopeProject;
   currentTeam: string;
+  currentRole: Role;
+  onScopeChange: (project: ScopeProject, team: string) => void;
   portfolioTypeFilter?: "Epic" | "Feature";
   onPortfolioTypeFilterChange?: (type: "Epic" | "Feature") => void;
 }) {
@@ -263,6 +275,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam, portfolio
     teamStatus: [currentProject.name, "Track", "Team status"],
     quality: [currentProject.name, "Quality", "Defects"],
     portfolio: [currentProject.name, "Portfolio", "Portfolio Items"],
+    releaseTracking: [currentProject.name, "Portfolio", "Release Tracking"],
     capacityPlanning: [currentProject.name, "Portfolio", "Capacity Planning"],
     releasePlanning: [currentProject.name, "Portfolio", "Release Planning (Phase 5)"],
     releases: [currentProject.name, "Plan", "Timeboxes", "Releases"],
@@ -271,7 +284,13 @@ export function ContextBar({ currentPage, currentProject, currentTeam, portfolio
     settings: [],
   };
   const showSaved = ["backlog", "quality", "portfolio", "releases"].includes(currentPage);
-  const showContextControls = currentPage !== "portfolio";
+  const showContextControls = currentPage !== "portfolio" && currentPage !== "reports" && currentPage !== "releaseTracking";
+  const visibleProjects = currentRole === "Project Member"
+    ? SCOPE_PROJECTS.filter(project => project.key === ROLE_SCOPE.projectMemberProjectKey)
+    : SCOPE_PROJECTS;
+  const visibleTeams = currentRole === "Project Member"
+    ? currentProject.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number]))
+    : ["All Teams", ...currentProject.teams];
 
   return (
     <div className="h-8 flex items-center px-4 gap-4 bg-white shrink-0 relative z-20" style={{ borderBottom: "1px solid #e2e6eb" }}>
@@ -302,12 +321,12 @@ export function ContextBar({ currentPage, currentProject, currentTeam, portfolio
       {showContextControls && !["projects", "backlog", "iterations", "track", "teamBoard", "teamStatus"].includes(currentPage) && (
         <div className="flex items-center gap-4" style={{ borderLeft: "1px solid #e2e6eb", paddingLeft: "1rem" }}>
           {["home", "projects"].includes(currentPage) && <CtxSelect label="Workspace" value="ACME Space Inc." />}
-          {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} />}
+          {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} options={visibleProjects.map(project => project.name)} onChange={name => { const project = visibleProjects.find(candidate => candidate.name === name); if (project) onScopeChange(project, currentRole === "Project Member" ? project.teams[0] : "All Teams"); }} />}
           {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Release" value="Q4 2024" />}
           {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Iteration" value="Sprint 24.3" />}
           {currentPage === "releases" && <CtxSelect label="Status" value="All Releases" />}
           {currentPage === "reports" && <CtxSelect label="Period" value="Last 6 Sprints" />}
-          {!["home", "projects"].includes(currentPage) && <CtxSelect label="Team" value={currentTeam} />}
+          {!["home", "projects"].includes(currentPage) && <CtxSelect label="Team" value={currentTeam} options={visibleTeams} onChange={team => onScopeChange(currentProject, team)} />}
           {showSaved && <SavedViewsDrop />}
         </div>
       )}
