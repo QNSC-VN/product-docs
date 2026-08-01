@@ -10,6 +10,7 @@ import { BacklogPage } from "./pages/BacklogPage";
 import { IterationsPage } from "./pages/IterationsPage";
 import { QualityPage } from "./pages/QualityPage";
 import { PortfolioPage } from "./pages/PortfolioPage";
+import { ReleaseTrackingPage } from "./pages/ReleaseTrackingPage";
 import { CapacityPlanningPage } from "./pages/CapacityPlanningPage";
 import { ReleasesPage } from "./pages/ReleasesPage";
 import { ReportsPage } from "./pages/ReportsPage";
@@ -39,7 +40,8 @@ export default function App() {
   const [workItems, setWorkItems] = useState<WorkItem[]>(() => WORK_ITEMS.map(item => {
     const releaseId = item.releaseId || ({ "Q4 2024": "REL-001", "Q1 2025": "REL-002", "Q2 2025": "REL-003" } as Record<string, string>)[item.release];
     const releaseName = RELEASES_DATA.find(release => release.id === releaseId)?.name;
-    return { ...item, releaseId, release: releaseName || item.release };
+    const inheritedTeam = item.featureId ? FEATURES.find(feature => feature.id === item.featureId)?.team : undefined;
+    return { ...item, releaseId, release: releaseName || item.release, team: item.team || inheritedTeam || "Core Platform" };
   }));
   const [tasks, setTasks] = useState<TaskItem[]>(TASKS_DATA);
   const [iterations, setIterations] = useState<IterationItem[]>(ITERATIONS_DATA);
@@ -358,7 +360,7 @@ export default function App() {
   }, [workItems]);
   function handleItemClick(item: WorkItem) { setActiveItem(previous => previous?.id === item.id ? null : item); }
   function navigateTo(page: Page) {
-    if (currentRole === "Project Member" && !["home", "backlog", "track", "portfolio", "capacityPlanning", "notifications", "settings"].includes(page)) {
+    if (currentRole === "Project Member" && !["home", "backlog", "track", "portfolio", "releaseTracking", "capacityPlanning", "notifications", "settings"].includes(page)) {
       setAccessState("access-denied");
       setActiveItem(null);
       closeFullDetail();
@@ -385,7 +387,7 @@ export default function App() {
       const memberProject = SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.projectMemberProjectKey) ?? SCOPE_PROJECTS[0];
       setCurrentProject(memberProject);
       setCurrentTeam(ROLE_SCOPE.projectMemberTeams[0]);
-      if (!["home", "backlog", "track", "portfolio", "capacityPlanning", "notifications", "settings"].includes(currentPage)) setAccessState("access-denied");
+      if (!["home", "backlog", "track", "portfolio", "releaseTracking", "capacityPlanning", "notifications", "settings"].includes(currentPage)) setAccessState("access-denied");
       else setAccessState(null);
     } else {
       setAccessState(null);
@@ -433,10 +435,11 @@ export default function App() {
       case "teamStatus": return <TeamStatusPage role={currentRole} readOnly={projectReadOnly} items={workItems} tasks={tasks} onUpdateTask={updateTask} onOpenFull={openFullDetail} />;
       case "quality": return <QualityPage role={currentRole} readOnly={projectReadOnly} projectKey={currentProject.key} items={workItems} onUpdateItem={updateWorkItem} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
       case "portfolio": return <PortfolioPage role={currentRole} project={currentProject} team={currentTeam} portfolioTypeFilter={portfolioTypeFilter} releases={releases} epics={epics} features={features} workItems={workItems} tasks={tasks} milestones={milestones} onCreateEpic={createEpic} onUpdateEpic={updateEpic} onCreateFeature={createFeature} onUpdateFeature={updateFeature} onUpdateItem={updateWorkItem} onCreateItem={createWorkItem} onOpenFull={openFullDetail} />;
+      case "releaseTracking": return <ReleaseTrackingPage project={currentProject} team={currentTeam} releases={releases} iterations={iterations} features={features} workItems={workItems} onOpenWorkItem={openFullDetail} />;
       case "capacityPlanning": return <CapacityPlanningPage role={currentRole} project={currentProject} releases={releases} features={features} workItems={workItems} capacityPlans={capacityPlans} permissionMatrix={permissionMatrix} onCreateCapacityPlan={createCapacityPlan} onUpdateCapacityPlan={updateCapacityPlan} onPublishCapacityPlan={publishCapacityPlan} />;
       case "releasePlanning": return <ReleasePlanningPlaceholder />;
       case "releases": return <ReleasesPage role={currentRole} readOnly={projectReadOnly} />;
-      case "reports": return <ReportsPage role={currentRole} readOnly={projectReadOnly} />;
+      case "reports": return <ReportsPage role={currentRole} readOnly={projectReadOnly} projectKey={currentProject.key} team={currentTeam} iterations={iterations} items={workItems} tasks={tasks} />;
       case "notifications": return <NotificationsPage onOpenWorkItem={openNotificationWorkItem} />;
       case "settings": return <SettingsPage role={currentRole} projectReadOnly={projectReadOnly} permissionMatrix={permissionMatrix} onSavePermissionMatrix={setPermissionMatrix} />;
     }
@@ -447,7 +450,7 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen overflow-hidden" style={{ fontFamily: "'Inter', system-ui, -apple-system, sans-serif", backgroundColor: "#f0f2f5" }}>
       <TopNav currentPage={currentPage} onNavigate={navigateTo} currentRole={currentRole} onRoleChange={changeRole} unreadCount={unreadCount} currentProject={currentProject} currentTeam={currentTeam} onScopeChange={changeScope} onSignOut={signOut} />
-      <ContextBar currentPage={currentPage} currentProject={currentProject} currentTeam={currentTeam} portfolioTypeFilter={portfolioTypeFilter} onPortfolioTypeFilterChange={setPortfolioTypeFilter} />
+      <ContextBar currentPage={currentPage} currentProject={currentProject} currentTeam={currentTeam} currentRole={currentRole} onScopeChange={changeScope} portfolioTypeFilter={portfolioTypeFilter} onPortfolioTypeFilterChange={setPortfolioTypeFilter} />
       <div className="flex flex-1 overflow-hidden">
         {accessState
           ? <AccessStatePage variant={accessState} onBack={() => { setAccessState(null); setCurrentPage("backlog"); }} />
