@@ -304,6 +304,16 @@ Four matrix rows did not survive contact with the code. All four failed the same
 | `P5-CP-7` | FIX CODE — block publish on an empty plan | **Already implemented**, with a sharper rule than the matrix stated: `capacity-plans.service.ts:456-465` blocks only when never-published AND no items AND no projects, because "a plan that has been published before may be re-published even when empty — that is how a planner undoes an over-eager clear-out." Both publish variants exist too (`options.updateFields`) |
 | `P5-PI-13` | FIX CODE — retire the Portfolio KPI strip | **Already gone.** `portfolio-page.tsx:130`: "`total` is deliberately unused: the BA removed the summary metrics strip that read it". The finding came from `rally-09-portfolio.png`, a stale clone screenshot |
 
+### Verified NO CHANGE on inspection — 2026-08-05
+
+Checked in code, no tenant needed. All three were carried as FIX CODE and none needed one.
+
+| Row | Was | Verified |
+|---|---|---|
+| `P5-CP-13` | verify plan capacity is not written to `Release.PlannedVelocity` | **Clean.** The capacity module only ever SELECTs from `releases` (dates, name, id — `capacity-plan.drizzle-repository.ts:523,767`, `capacity-plans.service.ts:1741`). The sole write to `plannedVelocity` is `release.drizzle-repository.ts:84`, driven by release edits. Plan capacity stays "stored in this plan only, not globally", matching Rally |
+| `P5-PI-14` | FIX CODE if we ship a portfolio hierarchy tree | **No tree exists.** `portfolio-page.tsx:5-6` records that a client-side `parentId` tree was REMOVED at migration 0072. What ships is a flat list with expandable child rows — Rally's model plus Rally's documented expandable-rows idiom. The audit's "our tree is an invention" mistook the disclosure for a tree |
+| `P5-PI-18` | FIX CODE — pin `Rank, ID, Name` first | **Already pinned.** `ID` and `Name` carry `locked: true` on all three portfolio grids (`columns.ts:69,75`; `children-columns.ts:40,50,98,101`), and Rank is structural — rendered by `RankCell` outside the column list, so it cannot be reordered or hidden |
+
 ### Re-sized on inspection
 
 | Row | Was | Actually |
