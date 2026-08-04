@@ -290,6 +290,9 @@ Every row must correspond to a `RALLY PARITY (differs from BA design)` comment i
 | `P5-CP-5` | `Add Features` picker rows now carry a trailing line naming the team(s) that currently hold an allocation and the committed amount. Added an optional `meta` slot to the shared `SelectionModal` | Capacity SRS §225-233 asks for ID / Name / Project / Team / Allocation; we shipped key + name only, and this file's docblock argued that was sufficient | Rally's `Add Items` dialog carries Planned Project Assignment, Project and the numerics beside ID and Name | `apps/web/src/shared/ui/selection-modal.tsx`, `apps/web/src/pages/capacity-planning/ui/add-features-modal.tsx`, `apps/web/src/shared/i18n/locales/en/capacity.json` | `821e6465` | pending |
 | `P6-R-4` | Velocity report now opens on the **last 10** completed iterations. Both windows stay selectable | Velocity SRS §6: default Last 5 | "all accepted plan estimate units for each of the last **10** completed iterations", trend = "the average accepted points in the last 10 iterations" | `libs/modules/reporting/src/domain/velocity.ts`, `.../dto/reporting-request.dto.ts`, `apps/web/src/features/reporting/api.ts`, `apps/web/src/pages/reports/ui/velocity-report.tsx` | `72f3aea6` | pending |
 
+| `P6-RT-10` | Each Release Tracking bucket tile now carries Rally's own definition on hover | Mockup had an AlertCircle popover; the build dropped it, leaving explanations only in the three EMPTY states | Labels and taxonomy are Rally's near-verbatim, incl. the percent-for-direct / bare-count-for-derived asymmetry | `apps/web/src/pages/release-tracking/release-tracking-page.tsx`, `.../locales/en/release-tracking.json` | `0198cf2a` | pending |
+| `P6-RT-5` | Release Tracking grid is now sortable by `Name` | §246 does not name Name as a sort key; the grid sorted Rank / ID / Team | Rally sorts its three pinned columns — "You can reorder columns (except for Rank, ID, and Name)" | `apps/web/src/pages/release-tracking/ui/tracking-grid.tsx` | `ed3e6cef` | pending |
+
 ### Rows WITHDRAWN on inspection — do not action
 
 Four matrix rows did not survive contact with the code. All four failed the same way: a research agent read Rally's docs without reading the reasoning already recorded at the code site. Recorded so they are not re-opened.
@@ -305,6 +308,7 @@ Four matrix rows did not survive contact with the code. All four failed the same
 
 | Row | Was | Actually |
 |---|---|---|
+| `P6-RT-5` (order half) | "Name buried 5th" | **Already correct.** The code puts Name 3rd, matching Rally — `tracking-grid.tsx:143-166` and its own docblock ("Rank, ID, NAME, Team, Issue, Status"). The 5th position was the **SRS's** order, not the code's; the research compared Rally against the spec and the audit transcribed it as the implementation. Only the sort key was genuinely missing, and that shipped as `ed3e6cef`. The extra `Team` column and `Issue`-before-`Status` remain, both pending `P6-RT-1` |
 | `P6-RT-6` | "small — `blocked` is just the flag" | **Medium slice.** Two blockers: SRS §5 states "the approved type in this slice is `Release mismatch`; adding other issue types requires a separate BA rule", so this is a deferred feature addition rather than a divergence fix. And Rally's 20-item cap is "in order of **oldest to newest**" — our `ReleaseChild` carries no creation date, so capping without one returns an arbitrary 20, which is worse than uncapped. Needs `createdAt` threaded through the repository first |
 
 ### Reverse ledger — deliberate divergences *from* Rally
