@@ -20,7 +20,7 @@
 | **NO CHANGE** | Verified correct. Recorded so it is not re-litigated. |
 | **VERIFY FIRST** | Cannot be settled from public docs. Needs a live Rally tenant before any code moves. |
 
-**Headline count:** 12 FIX CODE, 11 AMEND SRS, 3 SPLIT, 7 BA DECIDES, 9 NO CHANGE, 6 VERIFY FIRST.
+**Headline count (revised 2026-08-05):** 12 FIX CODE, **8** AMEND SRS, 3 SPLIT, 7 BA DECIDES, **13** NO CHANGE, 6 VERIFY FIRST — plus **4 rows where the BA beats Rally and nothing changes** (§0-C), and **10 rows corrected on inspection** (below).
 
 **The single most important number in this document:** of the gaps the audit blamed on our code, **11 turned out to be the BA spec being wrong about Rally.** Fixing those in code would have moved us *away* from the product we are cloning. Read §0 before starting anything.
 
@@ -32,7 +32,7 @@ Recorded so the rest of this document is read through them. These supersede the 
 
 | Decision | Ruling |
 |---|---|
-| **Precedence when BA spec and Rally conflict** | **Rally wins; the SRS gets amended.** Documented Rally behavior is the target. The 11 AMEND SRS rows become doc tickets, not code tickets. |
+| **Precedence when BA spec and Rally conflict** | **Rally wins BY DEFAULT — not absolutely.** Documented Rally behaviour is the target *unless the BA's rule is a deliberate improvement with a stated reason*, in which case the BA's rule stands and the row leaves the amend list. Revised 2026-08-05 after per-item review; see §0-C. The original blanket form would have retired three sound BA rules, one of them the largest piece of work in Phase 6. |
 | **D-1 / D-2 — portfolio State + PreliminaryEstimate enum shape** | **Defer the schema change. Correct values only for now.** Log the shape gap as a known divergence. See §0-B — the honest scope of "values only" is smaller than it appears. |
 | **D-3 — reporting history** | **Fix the self-contradiction only.** No bitemporal rebuild. Pick one history rule and apply it to all three reports; record the snapshot-table scaling cost in the SRS as accepted. |
 | **P6-RT-1 — Release Tracking Breakdown** | **Expose it.** RT-AC-12 gets amended. |
@@ -76,6 +76,46 @@ Checked against the code after the ruling. **It is close to a no-op, and one par
 
 ---
 
+## 0-C. Where the BA design beats Rally — kept, and OFF the amend list
+
+Reviewed per item on 2026-08-05 rather than applying the precedence rule blindly. Four rows survive that review in the BA's favour. Each is a case where the BA appears to have reasoned about the problem and Rally's behaviour looks like an artefact of its implementation.
+
+### The frozen Ideal baseline — `P6-R-2`, `P6-RT-3`. **Keep ours. Do not amend IB §3.**
+
+Rally recomputes the Ideal from currently-scheduled work over total calendar days, so **adding scope mid-iteration retroactively redraws every past day of the plan line.** Three consequences, all bad:
+
+- "Behind plan" becomes unfalsifiable — the line you are measured against moves with the work.
+- A chart screenshotted last Tuesday cannot be reproduced.
+- A team that *adds* scope looks more on-track, because the ideal rises to meet them.
+
+The BA's rule (IB §3, example 4, RT-BR-09: capture at start, never move) is the standard burndown definition and the auditable one, and `iteration_team_baselines` / migration 0098 exist to make it per-team correct. Rally's version is most likely a side effect of computing every series from Lookback at view time, not a considered choice.
+
+**Actions:** keep the baseline. Rename our Release Tracking series so it stops colliding with Rally's `Ideal (Accepted Points)`, which is a **trend prediction** — a genuinely different and also-useful artefact. Best outcome ships **both**: a fixed baseline *and* a prediction line, which beats either product alone.
+
+**This is the single biggest change this review avoids.** `P6-R-2` drops from a large change touching the domain, repository, service, DTO, FE and specs, to renaming a series and optionally adding a second one.
+
+### One bucket at a time, no `D` marker — `P6-RT-4`. **Keep ours. Do not amend SRS §5/§9.**
+
+Rally interleaves direct and derived features in one ranked list and marks derived rows with rank `D` — a magic letter in a numeric column, explained nowhere on screen. The BA's one-bucket-at-a-time is more legible: each list has one meaning, ranks are actually ranks, and the summary tiles do the switching. The `D` marker is a workaround for interleaving; stop interleaving and it is redundant, exactly as §9 says.
+
+### The ≤5 leaf preview cap — §404, §61. **Keep ours.**
+
+Rally has no documented limit. Unbounded nesting inside a grid is worse than a bounded peek plus a route to the full list. Already implemented and already recorded in the reverse ledger.
+
+### `capacity:view_draft` — `P5-CP-10`. **Keep ours.**
+
+Rally gates the whole Capacity Planning page on a single **Planner** role. Ours is finer-grained and is what makes AC-012 (a read-only Project Admin may open Drafts) and AC-013 (a Project Member may not) *jointly* satisfiable — which Rally's coarser model cannot express. Better for our three-role model, and no longer counted as an invention without precedent.
+
+### Wash cases — take the cheaper option, stop spending review on them
+
+| Row | Verdict |
+|---|---|
+| `P5-PI-10` Type as a column | BA's is marginally better for sorting; Rally's prefix-in-ID plus a Type **filter** costs no column and is what ships. Add the filter, keep the cell |
+| `P5-CP-9` `CompositeBar` vs three columns | Rally's three are more sortable, ours is denser. Genuinely close — leave as the declared deviation |
+| `P5-PI-17`, `P5-CP-6`, `P5-CP-12`, `P6-RT-7` | Pure doc corrections (config location, column order, object citation, control label). No design content |
+
+---
+
 ## 0. Three structural decisions that gate everything else
 
 These are not line-item fixes. Each changes the shape of the schema or of the reporting layer, and each invalidates downstream work if decided after coding starts.
@@ -112,7 +152,7 @@ The instinct behind that map was right — and the comment at `enums.ts:294-301`
 - The *mechanism* diverges, and the cost is real: every future historical report needs its own table plus its own job, where Rally serves ~12 charts from one schema. A missed run is unrecoverable. Our own SRS §9 already concedes this.
 - **Our spec contradicts itself.** It freezes Burndown but leaves Velocity live — "Unlike Burndown, Velocity is not frozen…". Rally has no such split.
 
-**Verdict: BA DECIDES, with a strong recommendation.** Do **not** rebuild onto a Lookback-style bitemporal store this phase — that is a platform project, and the outcome is already correct. **Do** fix the self-contradiction: pick one rule and apply it to all three reports. Recommend attributing velocity by iteration membership *as at iteration end*, which makes Velocity consistent with Burndown without new infrastructure. Record the snapshot-table scaling cost in the SRS as a known, accepted trade-off rather than leaving it implicit.
+**Verdict: BA DECIDES — and §0-C settles the Ideal half in the BA's favour.** Do **not** rebuild onto a Lookback-style bitemporal store this phase — that is a platform project, and the outcome is already correct. **Do** fix the self-contradiction: pick one rule and apply it to all three reports. Recommend attributing velocity by iteration membership *as at iteration end*, which makes Velocity consistent with Burndown without new infrastructure. Record the snapshot-table scaling cost in the SRS as a known, accepted trade-off rather than leaving it implicit.
 
 ---
 
@@ -168,7 +208,7 @@ The instinct behind that map was right — and the comment at `enums.ts:294-301`
 | # | Gap | BA/SRS says | Rally does | Verdict |
 |---|---|---|---|---|
 | P6-R-1 | Reporting history model | Burndown frozen; "Unlike Burndown, Velocity is not frozen" | One rule for all charts: persist artifact history, recompute series at view time | **BA DECIDES** — see **D-3**. Recommend fixing the self-contradiction, not the storage layer |
-| P6-R-2 | Ideal line: working days, frozen at iteration start | SRS example 4: changing Task Estimate after start does not change Ideal | "calculates the total amount of story or task work scheduled in the iteration, and divides that figure by the **total number of days**" — straight line, **total calendar days**, recomputed **present-tense from currently-scheduled work** | **FIX CODE.** Our SRS example 4 is the exact opposite of Rally. Recompute from current scope over total days; if the frozen baseline has value to us, keep it as a clearly-labelled second series, not as "Ideal" |
+| P6-R-2 | Ideal line: working days, frozen at iteration start | SRS example 4: changing Task Estimate after start does not change Ideal | "calculates the total amount of story or task work scheduled in the iteration, and divides that figure by the **total number of days**" — straight line, **total calendar days**, recomputed **present-tense from currently-scheduled work** | **SUPERSEDED by §0-C — KEEP OURS, do not amend.** Rally recomputing the Ideal means adding scope retroactively redraws every past day, which makes "Behind plan" unfalsifiable and past charts irreproducible. The BA rule is the standard, auditable definition. Optional addition: ship Rally's trend PREDICTION as a second series alongside our fixed baseline |
 | P6-R-3 | Iteration Burndown units | SRS: dual unit | Blue bars = remaining task hours, green bars = completed story points, black line = ideal from task estimate. Dual axis | **NO CHANGE** — matches exactly |
 | P6-R-4 | Velocity default window | SRS/our default | "all accepted plan estimate units for each of the last **10** completed iterations" | **FIX CODE** — set the default to 10 |
 | P6-R-5 | Velocity segments and trend line | SRS: three mutually exclusive segments + trend | Three exclusive stacked segments — **dark green** accepted by last day, **light green** accepted since, **red** not accepted — plus dark green line = "proposed velocity, the average accepted points in the last 10 iterations". Uses accepted `PlanEstimate`, **not** `PlannedVelocity` | **NO CHANGE.** Our colours match too. Confirm we source from accepted PlanEstimate |
@@ -193,8 +233,8 @@ The instinct behind that map was right — and the comment at `enums.ts:294-301`
 |---|---|---|---|---|
 | P6-RT-1 | Breakdown view built but not exposed | RT-AC-12 forbids showing it | Breakdown is Rally's **default** view: a team × iteration matrix with feature tiles, an `Unscheduled` column, `D` markers and drill-down | **BA DECIDES — recommend exposing it.** Suppressing it collapses the page's documented left/right architecture and is *why* we bolted on a `Team` column Rally does not have. Biggest Phase 6 decision |
 | P6-RT-2 | Chart includes derived features | — | "Data for the derived features is **not** included" | **FIX CODE.** Our `TrackedLeaves` includes derived-causing children, so Planned and Accepted both read high. This is a numeric correctness bug, not a presentation choice |
-| P6-RT-3 | `Ideal` = persisted 0→target baseline | SRS specifies the persisted baseline | Rally's `Ideal (Accepted Points)` is a **trend-based prediction** from recent acceptance activity, feeding a predicted completion date | **FIX CODE or rename.** Different artifact wearing the same label. Either implement the trend prediction or stop calling ours Ideal. Ties to **D-3** and P6-R-2 — same disease in three places |
-| P6-RT-4 | Two ranked lists, no `D` marker | SRS §9 explicitly superseded both the merged list and the marker | Rally interleaves **one** ranked list with a `D` marker on derived rows | **AMEND SRS.** We superseded correct Rally behaviour. Reverting also removes the need for a separate list |
+| P6-RT-3 | `Ideal` = persisted 0→target baseline | SRS specifies the persisted baseline | Rally's `Ideal (Accepted Points)` is a **trend-based prediction** from recent acceptance activity, feeding a predicted completion date | **RENAME, do not replace** (§0-C). Ours is a fixed baseline, Rally's is a trend prediction — two different artefacts, and the collision is only in the label. Rename ours; adding Rally's prediction as a second series is a genuine enhancement, not a correction |
+| P6-RT-4 | Two ranked lists, no `D` marker | SRS §9 explicitly superseded both the merged list and the marker | Rally interleaves **one** ranked list with a `D` marker on derived rows | **SUPERSEDED by §0-C — KEEP OURS.** Rally's `D` is a magic letter in a numeric column, explained nowhere on screen, and exists only because Rally interleaves. One bucket at a time gives each list one meaning and makes ranks actual ranks. No SRS change |
 | P6-RT-5 | Column order buries Name 5th; sorts by Team | SRS ordering | Rally: `Rank, ID, Name, Status, Issues` — first three pinned, sortable by Name | **FIX CODE** |
 | P6-RT-6 | One Issue type shipped | SRS | Rally has **three**: ours, plus `blocked` and unscheduled-predecessor. Also a **20-item cap** we lack | **FIX CODE.** `blocked` is cheap — it is just the flag |
 | P6-RT-7 | Control labelled other than `Grid Unit` | SRS §9 renamed it | `Grid Unit` is Rally's actual control name | **AMEND SRS** — we kept the right behaviour and dropped the right label |
@@ -270,7 +310,7 @@ Revised for the four decisions in §0-A. D-1/D-2 migrations are **out of scope**
 
 **Step 7 — remaining BA decisions.** P6-R-9 (scope line — recommend yes), P5-PI-9 (progress hover callouts incl. Missing Estimates), P5-PI-7 (archive gate), P5-CP-4 (block deleting a published plan), P5-CP-8 (missing columns/tabs — `+/-` republish diff first), P5-PI-15 (record that our Epic = Rally's Initiative level).
 
-**Step 8 — doc pass.** The 11 AMEND SRS rows, §5's nine corrections to the main audit, the two deferred schema-shape divergences from §0-B, and the §8 ledger review with the BA.
+**Step 8 — doc pass.** The **8** AMEND SRS rows (three came off the list in §0-C, where the BA's rule is the better design), §5's corrections to the main audit, the two deferred schema-shape divergences from §0-B, and the §8 ledger review with the BA.
 
 **Net effect on surface area:** deletes more UI than it adds — a release progress bar, a burndown table, two KPI strips, one fabricated metric, one false comment — while adding one chart series, one export, a Breakdown view that already exists, and roughly six columns.
 
