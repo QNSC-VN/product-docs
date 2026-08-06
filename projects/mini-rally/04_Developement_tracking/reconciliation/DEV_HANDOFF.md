@@ -11,7 +11,7 @@
 3. `../Phase 5/PHASE5_DEV_HANDOFF.md` — closed Phase 5 implementation authority.
 4. Relevant `../Phase */.../SRS.md` and phase mockup checklist.
 5. `../../06_Dev testing align/DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx` — DevInt gap execution.
-6. `../../07_Test Business/specs/` and `../../07_Test Business/BUSINESS_E2E_TEST_TRACKER.xlsx` — business acceptance.
+6. `../../07_Testing Plan/01_test_phase_1_to_4/specs/` and `../../07_Testing Plan/01_test_phase_1_to_4/BUSINESS_E2E_TEST_TRACKER.xlsx` — Phase 0-4 business acceptance.
 
 If wording conflicts, use the source-of-truth document and raise the mismatch to BA before implementing a new interpretation.
 

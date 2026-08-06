@@ -198,7 +198,7 @@ Deferred:
 - Audit README: `06_Dev testing align/README.md`
 - Retest plan: `06_Dev testing align/RETEST_PLAN.md`
 - Phase 0-4 SRS source: `04_Developement_tracking/`
-- Business test pack: `07_Test Business/specs/`
+- Business test pack: `07_Testing Plan/01_test_phase_1_to_4/specs/`
 - Latest mockup source: `03_Mockup Design/src/app/`
 
 When in doubt, the latest BA-confirmed rule in this handoff and updated SRS/mockup wins over older tracker recommendation wording.

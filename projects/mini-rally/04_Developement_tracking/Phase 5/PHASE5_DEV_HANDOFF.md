@@ -25,7 +25,7 @@ Use these sources in this order:
 4. `02_Capacity_Planning/BUSINESS_FLOW_AND_UI_CATALOG.md` - Capacity Planning flows and button-by-button behavior.
 5. `PHASE5_DEVELOPMENT_TRACKING.md` - decision history and delivery evidence.
 6. `../RECONCILED_SOURCE_OF_TRUTH.md` - cross-phase identity, lifecycle, navigation and access contracts.
-7. `../../07_Test Business/specs/PHASE5_TEST_SCENARIOS.md` - DEV/QA acceptance scenarios and traceability.
+7. `../../07_Testing Plan/02_test_phase_5_6/PHASE5_TEST_SCENARIOS.md` - DEV/QA acceptance scenarios and traceability.
 
 If a historical Release Planning or Release Tracking document conflicts with this handoff, this handoff wins: neither feature belongs to the closed Phase 5 MVP.
 
@@ -491,7 +491,7 @@ The handoff does not prescribe REST versus another transport, but production beh
 
 ## 11. DEV/QA Acceptance Package
 
-Primary scenario pack: `../../07_Test Business/specs/PHASE5_TEST_SCENARIOS.md`.
+Primary scenario pack: `../../07_Testing Plan/02_test_phase_5_6/PHASE5_TEST_SCENARIOS.md`.
 
 The mockup evidence in that file proves BA behavior and visual direction only. DEV must execute the scenarios again against the production implementation, including:
 

@@ -24,7 +24,7 @@ Replace the existing lower-fidelity Portfolio future/reference frame with dev-ha
 
 1. `04_Developement_tracking/Phase 5/PHASE5_DEV_HANDOFF.md`
 2. `01_Portfolio_Items/SRS.md` and `02_Capacity_Planning/SRS.md`
-3. `02_Capacity_Planning/BUSINESS_FLOW_AND_UI_CATALOG.md` and `07_Test Business/specs/PHASE5_TEST_SCENARIOS.md`
+3. `02_Capacity_Planning/BUSINESS_FLOW_AND_UI_CATALOG.md` and `07_Testing Plan/02_test_phase_5_6/PHASE5_TEST_SCENARIOS.md`
 4. `03_Mockup Design/src/app/pages/PortfolioPage.tsx` and `CapacityPlanningPage.tsx`
 5. Approved Figma P0–P7 library and screens.
 

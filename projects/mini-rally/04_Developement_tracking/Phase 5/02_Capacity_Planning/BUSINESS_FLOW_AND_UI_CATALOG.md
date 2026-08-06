@@ -9,7 +9,7 @@
 | Status | BA accepted and feature closed on 2026-07-28 |
 | Applies to | Mini Rally BA rules, frontend mockup, QA and future developer handoff |
 | Primary specification | `SRS.md` in this folder |
-| Verification | `07_Test Business/specs/PHASE5_TEST_SCENARIOS.md`, scenarios `P5-CP-*` |
+| Verification | `07_Testing Plan/02_test_phase_5_6/PHASE5_TEST_SCENARIOS.md`, scenarios `P5-CP-*` |
 | Production boundary | Session-level frontend state only; API, persistence and server-side authorization are not implemented |
 
 This document is the screen-by-screen operating specification for Capacity

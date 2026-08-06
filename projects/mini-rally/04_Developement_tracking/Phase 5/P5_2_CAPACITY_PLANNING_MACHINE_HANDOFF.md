@@ -169,7 +169,7 @@ Release and lists active Features across the Plan Project.
 - `03_Mockup Design/src/app/pages/SettingsPage.tsx` - `PROD_ROLE_ACTION_MATRIX`, the temporary `capacity_planning:manage` Full/View row, `permissionAllows`, and the intentionally locked `WA` column.
 - `04_Developement_tracking/Phase 5/02_Capacity_Planning/SRS.md` - business rules. §8 Allocate dialog, §9 expanded Team table incl. the new columns, §10 the two picker scopes, §11 the three-tier Estimated + Preliminary mapping table.
 - `04_Developement_tracking/Phase 5/PHASE5_DEVELOPMENT_TRACKING.md` - `P5-CAP-10`..`P5-CAP-18`; `P5-CAP-08` holds the closure gate.
-- `07_Test Business/specs/PHASE5_TEST_SCENARIOS.md` - historical evidence plus the 2026-07-28 Pass evidence for `P5-PI-012`, `P5-CP-023`, `-024`, `-026`..`-028`.
+- `07_Testing Plan/02_test_phase_5_6/PHASE5_TEST_SCENARIOS.md` - historical evidence plus the 2026-07-28 Pass evidence for `P5-PI-012`, `P5-CP-023`, `-024`, `-026`..`-028`.
 
 ## Local run
 
