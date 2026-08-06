@@ -16,7 +16,7 @@ Implementation handoff and acceptance references are consolidated in:
 - `Phase 5/PHASE5_DEV_HANDOFF.md`
 - `Phase 6/PHASE6_REPORTS_BUSINESS_AND_DATA_CONTRACT.md`
 - `Mini_Rally_Product_Plan.xlsx`
-- `../07_Test Business/specs/E2E_AGILE_LIFECYCLE_RECONCILIATION.md`
+- `../07_Testing Plan/01_test_phase_1_to_4/specs/E2E_AGILE_LIFECYCLE_RECONCILIATION.md`
 
 ## 2. Canonical Agile lifecycle
 
@@ -102,4 +102,4 @@ Technical roles are only `Workspace Admin`, `Project Admin` and `Project Member`
 
 ## 8. Required acceptance reference
 
-Before accepting production FE work, run `../07_Test Business/specs/E2E_AGILE_LIFECYCLE_RECONCILIATION.md` together with the relevant `../07_Test Business/specs/PHASE*_TEST_SCENARIOS.md`. Phase 5 is closed at BA/mockup scope and its remaining Not Run/Partial scenarios are carried into `Phase 5/PHASE5_DEV_HANDOFF.md` as required DEV/QA acceptance coverage. Production acceptance still requires shared identity, persistence, project scope, authorization, status/roll-up behavior and metrics to agree across screens.
+Before accepting production FE work, run `../07_Testing Plan/01_test_phase_1_to_4/specs/E2E_AGILE_LIFECYCLE_RECONCILIATION.md` together with the relevant scenario pack under `../07_Testing Plan/`. Phase 5-6 production checks are tracked under `../07_Testing Plan/02_test_phase_5_6/`. Phase 5 is closed at BA/mockup scope and its remaining Not Run/Partial scenarios are carried into `Phase 5/PHASE5_DEV_HANDOFF.md` as required DEV/QA acceptance coverage. Production acceptance still requires shared identity, persistence, project scope, authorization, status/roll-up behavior and metrics to agree across screens.

@@ -1,4 +1,6 @@
-# 07 - Business E2E Test
+# 07 - Business E2E Test — Historical Phase 0-4
+
+This folder preserves the earlier Phase 0-4 execution history. Phase 0 remains the authentication and app-shell precondition for the Phase 1-4 regression pack.
 
 ## Purpose
 

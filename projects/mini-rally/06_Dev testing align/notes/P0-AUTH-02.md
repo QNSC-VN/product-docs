@@ -18,7 +18,7 @@
 Primary references:
 
 - `04_Developement_tracking/Phase 0/02_Authentication/SRS.md`
-- `07_Test Business/specs/PHASE0_TEST_SCENARIOS.md`
+- `07_Testing Plan/01_test_phase_1_to_4/specs/PHASE0_TEST_SCENARIOS.md`
 
 ## DevInt execution and result
 

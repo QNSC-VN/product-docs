@@ -24,7 +24,7 @@ Primary references:
 - `04_Developement_tracking/Phase 0/02_Authentication/SRS.md`
 - `04_Developement_tracking/Phase 0/PHASE0_MOCKUP_CHECKLIST.md`
 - `03_Mockup Design/src/app/pages/LoginPage.tsx`
-- `07_Test Business/specs/PHASE0_TEST_SCENARIOS.md`
+- `07_Testing Plan/01_test_phase_1_to_4/specs/PHASE0_TEST_SCENARIOS.md`
 
 ## DevInt observed behavior
 
