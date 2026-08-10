@@ -1,5 +1,7 @@
 # P7.d — Accessibility and Desktop-Responsive Audit
 
+> **Historical screen note (2026-08-10):** `SCR-09 Roles & Permissions` findings below apply to the former matrix screen. The current Permission Model is read-only and must be re-audited when converted to native Figma.
+
 Figma is a static design tool — it cannot demonstrate real keyboard interaction, screen-reader behavior, or live viewport resizing. This audit therefore covers what a design file *can* actually verify (token contrast ratios, documented focus states, structural min-width/overflow behavior) and documents the rest as **developer guidance annotations**, consistent with the project's standing rule that Figma visibility is never itself a security or behavior guarantee (`P1_DESIGN_RULES.md` rule 9; the same principle extends to accessibility).
 
 ## 1. Color contrast audit (WCAG 2.1)

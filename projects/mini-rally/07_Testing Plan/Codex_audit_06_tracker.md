@@ -1,4 +1,6 @@
 # Codex Audit 0-6 Tracker
+> **Historical execution log:** Results before 2026-08-10 used the former Project Admin/Project Member model. They remain evidence of what was tested at that time, but do not certify the current per-Project `Admin`/`Editor`/`Viewer`/`No Access` baseline. Re-run current access scenarios before authorization sign-off.
+
 **Source:** `02_test_phase_5_6/PHASE_0_6_AUDIT_TRACKER.xlsx`  \n**Purpose:** Codex working log for audit execution. The Excel tracker remains the formal BA result source.
 
 ## Rules
@@ -6,7 +8,7 @@
 1. Execute one Scenario ID at a time.
 2. Record browser evidence and conclusion below the matching ID.
 3. Do not create, edit, archive or delete deployed records unless BA has authorized that specific action.
-4. RBAC cases remain `Blocked` until the required accounts and project assignments exist.
+4. Current access cases remain `Blocked` until WA and normal users with controlled per-Project `Admin`, `Editor`, `Viewer` and `No Access` assignments exist.
 
 ## Current Summary
 
@@ -41,11 +43,11 @@
 - **BA Confirmation:** Fix Direction Approved
 - **Codex Audit Log:** Pending
 
-### GAP-P0-SHELL-002 — Portfolio menu behavior
+### GAP-P0-SHELL-002 — Portfolio menu behavior (C2 reconciled)
 
 - **Phase / Module:** Phase 0 / Global navigation
 - **Priority:** P1
-- **Current Status:** Not Run
+- **Current Status:** Pass — Not a Defect
 - **Previous Result:** Still Open
 - **Reference:** P0-SHELL-01
 - **Preconditions:** DevInt truy cập được và không có lỗi tải trang nghiêm trọng.
@@ -57,14 +59,14 @@
 4. Thực hiện nghiệp vụ: Tại màn hình Global navigation, kiểm tra chức năng "Portfolio menu behavior" theo Expected Result..
 5. Kiểm tra ngay UI, validation, quyền thao tác và các giá trị thay đổi so với Expected Result.
 6. Reload trang hoặc chuyển sang màn hình liên quan rồi quay lại; xác nhận dữ liệu và scope vẫn đúng.
-7. So sánh với lỗi/kết quả cũ: DevInt renders Portfolio as a direct link to /portfolio and has no Release Planning dropdown item..
-8. Kiểm tra hướng sửa đã chốt: Convert Portfolio to a dropdown and add Release Planning as a Phase 5 entry marked Coming Soon until Phase 5. Do not expose Release create/edit there. Reconcile mockup and navigation documents after the full audit..
+7. So sánh với lỗi/kết quả cũ: DevInt Portfolio dropdown contains Portfolio Items, Capacity Planning and Release Tracking.
+8. Kiểm tra hướng sửa đã chốt: C2 xác nhận Release Planning thuộc Future Backlog và không cần hiện trong navigation hiện tại.
 9. Ghi Actual Result, chọn Current Status, điền Evidence và Gap/Comment trong chính dòng case.
-- **Expected:** Portfolio is a dropdown containing Release Planning. Release Planning is a Phase 5 placeholder and is not a second Release management source in Phase 0–4.
+- **Expected:** Portfolio là dropdown gồm Portfolio Items, Capacity Planning và Release Tracking. Release Planning thuộc Future Backlog, không phải mục navigation hiện hành.
 - **Evidence:** evidence/retest_2026-07-24/P0-SHELL-01-dev.png; evidence/retest_2026-07-24/P0-SHELL-01-mock.png
-- **Gap / Comment:** Current build retest 2026-07-24: DevInt Portfolio is still a direct /portfolio link; mockup uses a Portfolio menu with Release Planning (Phase 5).
-- **BA Confirmation:** Fix Direction Approved
-- **Codex Audit Log:** Pending
+- **Gap / Comment:** C2 BA confirmed 2026-08-06. Previous mismatch was caused by stale SRS/mockup; reclassified as Not a Defect.
+- **BA Confirmation:** Confirmed C2 — Closed / Not a Defect
+- **Codex Audit Log:** Reconciled 2026-08-09
 
 ### GAP-P0-SHELL-004 — Iteration Status label
 
@@ -502,11 +504,11 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 - **BA Confirmation:** Future Backlog Approved
 - **Codex Audit Log:** Pending
 
-### GAP-P1-CREATE-003 — Team selector contains invalid project team
+### GAP-P1-CREATE-003 — Team optional and Project/Team scope (C1 reconciled)
 
 - **Phase / Module:** Phase 1 / Work Item Create
 - **Priority:** P0
-- **Current Status:** Not Run
+- **Current Status:** Pass — Not a Defect
 - **Previous Result:** Still Open
 - **Reference:** P1-CREATE-01
 - **Preconditions:** DevInt truy cập được và không có lỗi tải trang nghiêm trọng.
@@ -520,13 +522,13 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 5. Kiểm tra ngay UI, validation, quyền thao tác và các giá trị thay đổi so với Expected Result.
 6. Reload trang hoặc chuyển sang màn hình liên quan rồi quay lại; xác nhận dữ liệu và scope vẫn đúng.
 7. So sánh với lỗi/kết quả cũ: In DevInt NXP / All Teams, the modal listed No team and Team Alpha. Selecting Team Alpha and submitting returned Team is not linked to this project..
-8. Kiểm tra hướng sửa đã chốt: Make the Project dropdown drive the required Team options. Remove No team. List only active Teams linked to the selected Project; if the Project has no valid Team, disable create and show a clear Team validation/empty state..
+8. Kiểm tra hướng sửa đã chốt: Team là optional. Không chọn Team thì Work Item thuộc Project backlog; chọn Team thì Team phải thuộc Project đã chọn.
 9. Ghi Actual Result, chọn Current Status, điền Evidence và Gap/Comment trong chính dòng case.
-- **Expected:** Team is required. Team options in Work Item create are filtered to Teams linked to the selected/current Project; No team and invalid Team/Project combinations cannot be selected.
+- **Expected:** Project là required; Team là optional. `No team` tạo Work Item ở Project backlog; Team được chọn phải linked với Project.
 - **Evidence:** evidence/retest_2026-07-24/P1-CREATE-01-quick-create.png
-- **Gap / Comment:** Current build retest 2026-07-24: Team dropdown still offers No team even though Team Alpha is linked and selected by context.
-- **BA Confirmation:** Fix Direction Approved
-- **Codex Audit Log:** Pending
+- **Gap / Comment:** C1 BA confirmed 2026-08-06. `No team` là hành vi hợp lệ; chỉ Team không thuộc Project mới là invalid.
+- **BA Confirmation:** Confirmed C1 — Closed / Not a Defect
+- **Codex Audit Log:** Reconciled 2026-08-09
 
 ### GAP-P1-CREATE-006 — Owner default and allowed values
 
@@ -552,8 +554,8 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 - **Actual Result (2026-08-06):** After Hieu was added to Team Pegasus, Settings > Teams showed both Anh and Hieu, but the Owner dropdown on US-1 still showed only `— No Entry —` and Anh. The Owner selector therefore did not refresh from current Team membership.
 - **Evidence:** evidence/retest_2026-07-24/P1-CREATE-01-quick-create.png
 - **Gap / Comment:** Keep the approved default rule, but source every Owner selector from current Project/Team membership and invalidate stale membership options after a member is added or removed.
-- **BA Confirmation:** Fix Direction Approved
-- **Codex Audit Log:** Pending
+- **BA Confirmation:** Confirmed C10 — DEV fix required
+- **Codex Audit Log:** Reconciled 2026-08-09
 
 ### GAP-P1-CREATE-008 — Default values and field persistence on Detail
 
@@ -682,11 +684,11 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 - **BA Confirmation:** Fix Direction Approved
 - **Codex Audit Log:** Pending
 
-### GAP-P1-WID-008 — Required Team and No team option
+### GAP-P1-WID-008 — Optional Team and Project backlog (C1 reconciled)
 
 - **Phase / Module:** Phase 1 / Work Item Detail
 - **Priority:** P0
-- **Current Status:** Not Run
+- **Current Status:** Pass — Not a Defect
 - **Previous Result:** Still Open
 - **Reference:** P1-WID-01
 - **Preconditions:** DevInt truy cập được và không có lỗi tải trang nghiêm trọng.
@@ -699,13 +701,13 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 5. Kiểm tra ngay UI, validation, quyền thao tác và các giá trị thay đổi so với Expected Result.
 6. Reload trang hoặc chuyển sang màn hình liên quan rồi quay lại; xác nhận dữ liệu và scope vẫn đúng.
 7. So sánh với lỗi/kết quả cũ: DevInt US-7 Team dropdown includes No team and Team Alpha while Project is not displayed..
-8. Kiểm tra hướng sửa đã chốt: Remove No team from Work Item Detail and filter Team options by Project. Apply the same required linked-Team rule in Quick Create and Detail..
+8. Kiểm tra hướng sửa đã chốt: Đồng nhất Quick Create và Detail: Team optional; `No team` thuộc Project backlog; Team được chọn phải linked với Project.
 9. Ghi Actual Result, chọn Current Status, điền Evidence và Gap/Comment trong chính dòng case.
-- **Expected:** Team remains required for a Work Item and must be linked to the selected Project; No team is not an allowed value.
+- **Expected:** Team là optional. `No team` là giá trị hợp lệ và đặt Work Item trong Project backlog; Team được chọn phải linked với Project.
 - **Evidence:** evidence/retest_2026-07-24/P1-WID-01-US-13-detail.png
-- **Gap / Comment:** Current build retest 2026-07-24: Detail Team dropdown still offers No team.
-- **BA Confirmation:** Fix Direction Approved
-- **Codex Audit Log:** Pending
+- **Gap / Comment:** C1 BA confirmed 2026-08-06. Previous required-Team expectation is obsolete.
+- **BA Confirmation:** Confirmed C1 — Closed / Not a Defect
+- **Codex Audit Log:** Reconciled 2026-08-09
 
 ### GAP-P1-TASK-005 — Create with details action is missing
 
@@ -886,7 +888,7 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 - **BA Confirmation:** Confirmed
 - **Codex Audit Log:** Pending
 
-### GAP-P2-IT-001 — Missing Project and Task Estimate columns
+### GAP-P2-IT-001 — Missing Task Estimate column (C9 narrowed)
 
 - **Phase / Module:** Phase 2 / Timeboxes > Iterations list
 - **Priority:** P1
@@ -903,19 +905,19 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 5. Kiểm tra ngay UI, validation, quyền thao tác và các giá trị thay đổi so với Expected Result.
 6. Reload trang hoặc chuyển sang màn hình liên quan rồi quay lại; xác nhận dữ liệu và scope vẫn đúng.
 7. So sánh với lỗi/kết quả cũ: DevInt list shows ID, Name, Theme, Start Date, End Date, Planned Velocity and State only. Project and Task Estimate are absent..
-8. Kiểm tra hướng sửa đã chốt: Add the Project and Task Estimate columns to the Iterations list using the existing list contract..
+8. Kiểm tra hướng sửa đã chốt: Không thêm Project column trong single-project scope. Chỉ bổ sung Task Estimate.
 9. Ghi Actual Result, chọn Current Status, điền Evidence và Gap/Comment trong chính dòng case.
-- **Expected:** Iterations list shows Name, Theme, Start Date, End Date, Project, Planned Velocity, Task Estimate and State (P2-IT-FR-005).
+- **Expected:** Iterations list shows ID, Name, Theme, Start Date, End Date, Planned Velocity, Task Estimate and State. Project column/search/sort is omitted in single-project scope.
 - **Evidence:** evidence/retest_2026-07-24/P2-IT-01-timeboxes.png
-- **Gap / Comment:** Current build retest 2026-07-24: Iterations list still omits Project and Task Estimate; columns remain ID, Name, Theme, dates, Planned Velocity and State.
-- **BA Confirmation:** Confirmed
-- **Codex Audit Log:** Pending
+- **Gap / Comment:** C9 BA confirmed 2026-08-06. Project omission is correct; only missing Task Estimate remains a DEV gap.
+- **BA Confirmation:** Confirmed C9 — Dev fix Task Estimate only
+- **Codex Audit Log:** Reconciled 2026-08-09
 
-### GAP-P2-IS-003 — Missing Type column
+### GAP-P2-IS-003 — Type column not required (C3 reconciled)
 
 - **Phase / Module:** Phase 2 / Iteration Status list
 - **Priority:** P2
-- **Current Status:** Not Run
+- **Current Status:** Pass — Not a Defect
 - **Previous Result:** Still Open
 - **Reference:** P2-IS-01
 - **Preconditions:** DevInt truy cập được và không có lỗi tải trang nghiêm trọng.
@@ -924,17 +926,17 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 - **Steps:** 1. Mở https://rally-dev.qnsc.vn/ và xác nhận đúng tài khoản/role của case.
 2. Chọn Workspace/Project/Team theo Test Data; ghi lại scope trước khi thao tác.
 3. Mở Iteration Status list; chụp trạng thái ban đầu nếu case liên quan UI, số liệu hoặc quyền.
-4. Thực hiện nghiệp vụ: Tại màn hình Iteration Status list, kiểm tra chức năng "Missing Type column" theo Expected Result..
+4. Thực hiện nghiệp vụ: Tại màn hình Iteration Status list, kiểm tra nhận diện loại Work Item qua prefix/glyph theo Expected Result.
 5. Kiểm tra ngay UI, validation, quyền thao tác và các giá trị thay đổi so với Expected Result.
 6. Reload trang hoặc chuyển sang màn hình liên quan rồi quay lại; xác nhận dữ liệu và scope vẫn đúng.
 7. So sánh với lỗi/kết quả cũ: DevInt list has no Type column; it also adds Feature, Blocked Reason, Tasks, Actual, Defect Status, Milestones and Dev Owner beyond the contract..
-8. Kiểm tra hướng sửa đã chốt: Add the Type column; review the extra columns against the approved contract or make them opt-in via Show Fields..
+8. Kiểm tra hướng sửa đã chốt: Không thêm Type column; ID prefix/glyph đã đủ nhận diện US/DE.
 9. Ghi Actual Result, chọn Current Status, điền Evidence và Gap/Comment trong chính dòng case.
-- **Expected:** List columns are checkbox, rank, ID, Type, Name, Schedule State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner (P2-IS-FR-018).
+- **Expected:** List không có Type column riêng. Work Item type được nhận diện bằng ID prefix/glyph; các cột còn lại theo P2-IS-FR-018.
 - **Evidence:** evidence/retest_2026-07-24/P2-IS-01-iteration-status.png
-- **Gap / Comment:** Current build retest 2026-07-24: Iteration Status list still has no Type column and retains extra Feature, Blocked Reason, Tasks, Actual, Defect Status, Milestones and Dev Owner columns.
-- **BA Confirmation:** Confirmed
-- **Codex Audit Log:** Pending
+- **Gap / Comment:** C3 BA confirmed 2026-08-06. Missing Type column is correct behavior; other optional/extra columns are assessed separately.
+- **BA Confirmation:** Confirmed C3 — Closed / Not a Defect
+- **Codex Audit Log:** Reconciled 2026-08-09
 
 ### GAP-P2-IS-004 — Forbidden per-row Defects column
 
@@ -1037,11 +1039,11 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 - **BA Confirmation:** Gap Confirmed
 - **Codex Audit Log:** Pending
 
-### GAP-P3-TS-002 — Filters/Show Fields/pagination controls
+### GAP-P3-TS-002 — Show Fields remains out of scope (C4 narrowed)
 
 - **Phase / Module:** Phase 3 / Team Status
 - **Priority:** P2
-- **Current Status:** Not Run
+- **Current Status:** Partial
 - **Previous Result:** Still Open
 - **Reference:** P3-TS-01
 - **Preconditions:** DevInt truy cập được và không có lỗi tải trang nghiêm trọng.
@@ -1054,13 +1056,13 @@ Chỉ dùng dữ liệu audit có prefix P56-AUDIT; không sửa dữ liệu ngh
 5. Kiểm tra ngay UI, validation, quyền thao tác và các giá trị thay đổi so với Expected Result.
 6. Reload trang hoặc chuyển sang màn hình liên quan rồi quay lại; xác nhận dữ liệu và scope vẫn đúng.
 7. So sánh với lỗi/kết quả cũ: DevInt shows a Filters button, a Show Fields button and full pagination (Rows per page, Page X of Y) copied from the Iteration Status/Backlog template..
-8. Kiểm tra hướng sửa đã chốt: Remove Filters/Show Fields/pagination from Team Status, or get explicit BA sign-off if this is an intentional deviation from the approved mockup..
+8. Kiểm tra hướng sửa đã chốt: Giữ Filters và pagination; bỏ Show Fields. Totals luôn tính trên toàn bộ Iteration, không phụ thuộc filter hoặc trang hiện tại.
 9. Ghi Actual Result, chọn Current Status, điền Evidence và Gap/Comment trong chính dòng case.
-- **Expected:** SRS section 7 screen mapping lists only the Iteration selector plus dense table with totals row; no Filters, Show Fields or pagination.
+- **Expected:** Team Status cho phép Filters và pagination, không có local Search Tasks hoặc Show Fields. Totals tính trên toàn bộ Iteration.
 - **Evidence:** evidence/retest_2026-07-24/P3-TS-01-team-status.png
-- **Gap / Comment:** Current build retest 2026-07-24: Team Status still exposes Filters, Show Fields and full rows-per-page pagination.
-- **BA Confirmation:** Gap Confirmed
-- **Codex Audit Log:** Pending
+- **Gap / Comment:** C4 BA confirmed 2026-08-06. Filters/pagination are accepted; only Show Fields remains a DEV gap. Retest Totals against full Iteration after fix.
+- **BA Confirmation:** Confirmed C4 — Partial / Dev remove Show Fields
+- **Codex Audit Log:** Reconciled 2026-08-09
 
 ### GAP-P3-TS-003 — Breadcrumb
 
@@ -1482,20 +1484,20 @@ Có account và Project assignment tương ứng để kiểm tra quyền.
 4. Thực hiện nghiệp vụ: Tại màn hình User Management, kiểm tra chức năng "List columns, role values and detail fields" theo Expected Result..
 5. Kiểm tra ngay UI, validation, quyền thao tác và các giá trị thay đổi so với Expected Result.
 6. Reload trang hoặc chuyển sang màn hình liên quan rồi quay lại; xác nhận dữ liệu và scope vẫn đúng.
-7. So sánh với lỗi/kết quả cũ: DevInt list replaces Phone number with Teams, contains Project Viewer/Workspace Member/blank roles, and non-admin detail has no Name/Phone or Remove User Access..
-8. Kiểm tra hướng sửa đã chốt: Align list/detail with SRS and mockup; remove unsupported roles; keep team allocation in detail without replacing the required Phone column; implement guarded Remove User Access..
+7. So sánh với lỗi/kết quả cũ: DevInt list contains Teams and unsupported/blank roles; non-admin detail has no Name/Phone or Remove User Access.
+8. Kiểm tra hướng sửa đã chốt: List chỉ gồm Name, Email, Role, Status, Last Login. Phone chỉ ở Detail/Profile; Teams chỉ ở User Detail/Team Members. Giữ ba role đã duyệt và guarded Remove User Access.
 9. Ghi Actual Result, chọn Current Status, điền Evidence và Gap/Comment trong chính dòng case.
-- **Expected:** List columns are Name, Email, Phone number, Role, Status and Last Login; roles are the approved three. Non-admin detail edits Name/Phone/Role/Status, keeps Email read-only and exposes Remove User Access.
+- **Expected:** List columns are Name, Email, Role, Status and Last Login; không có Phone/Teams. Detail edits Name/Phone/Role/Status, keeps Email read-only, shows team membership and exposes Remove User Access.
 - **Evidence:** evidence/phase4_2026-07-24/P4-RBAC-dev.png; evidence/phase4_2026-07-24/P4-RBAC-mock.png
-- **Gap / Comment:** BA confirmed 2026-07-24: entry points are correct; dev must align columns, three-role values, detail fields and Remove User Access.
-- **BA Confirmation:** BA Confirmed 2026-07-24
-- **Codex Audit Log:** Pending
+- **Gap / Comment:** C5 BA confirmed 2026-08-06. Missing Phone in list is not a defect; Teams in list, missing Phone/detail fields, unsupported roles and missing Remove User Access remain DEV gaps.
+- **BA Confirmation:** Confirmed C5 — Dev fix narrowed scope
+- **Codex Audit Log:** Reconciled 2026-08-09
 
 ### GAP-P4-SET-003 — Event scope and business detail
 
 - **Phase / Module:** Phase 4 / Audit Log
 - **Priority:** P1
-- **Current Status:** Not Run
+- **Current Status:** Fail
 - **Previous Result:** Still Open
 - **Reference:** P4-SET-04
 - **Preconditions:** DevInt truy cập được và không có lỗi tải trang nghiêm trọng.
@@ -1562,9 +1564,9 @@ Có account và Project assignment tương ứng để kiểm tra quyền.
 9. Ghi Actual Result, chọn Current Status, điền Evidence và Gap/Comment trong chính dòng case.
 - **Expected:** Notification Preferences is removed from the Phase 4 baseline; notifications are fixed to assignment and Note mention events.
 - **Evidence:** evidence/phase4_2026-07-24/P4-AUDIT-dev.png
-- **Gap / Comment:** BA confirmed 2026-07-24: remove Notification Preferences from delivered navigation or track it only as Future Backlog; other deferred surfaces remain absent as expected.
-- **BA Confirmation:** BA Confirmed 2026-07-24
-- **Codex Audit Log:** Pending
+- **Gap / Comment:** C6 was explicitly not confirmed. Notification Preferences belongs to Future Backlog and must be hidden from the Phase 4 delivered navigation.
+- **BA Confirmation:** C6 Not Confirmed — Dev hide entry
+- **Codex Audit Log:** Reconciled 2026-08-09
 
 ## Phase 5 Scenarios Index
 
@@ -1636,7 +1638,7 @@ Có account và Project assignment tương ứng để kiểm tra quyền.
 | P5-CP-028 | P0 | Remove one allocation from Team | Not Required | Superseded 2026-07-28. Historical pass retained only for traceability; do not use this as a current acceptance requirement. |
 | P5-CP-029 | P0 | Live Complete/Rollup/Estimated and Team-split display | Not Run | Pass 2026-07-28. FE-318 total showed Complete 0 / Rollup 6 / Estimated 8; Data & Reporting showed 0 / 6 / 5, Core Platform 0 / 0 / 3. Feature rows and Feature tooltip contained numbers only; Data & Reporting Team row/tooltip retained 0 (0%) / 6 (60%) / 5 (50%) against Capacity 10. FE-315 showed 5 / 5 / 5; changing US-4798 Completed -> In-Progress changed it to 0 / 5 / 5. Clean reload had no new console errors. |
 | P5-CP-030 | P0 | Exceed warnings on Capacity Plan progress bars | Not Run | Pass 2026-07-28. Seeded Data & Reporting row (Rollup 6, Estimated 5) displayed the warning triangle and tooltip text; the expanded FE-318 row under Data & Reporting also displayed Rollup exceeds Estimated. Tooltip used fixed overlay and was not clipped by the grid. Build passed with only the standard Vite chunk-size warning. |
-| P5-CP-031 | P0 | Features tab Rally-style grid rebuild | Not Run | Pass 2026-07-28. Browser smoke on CP-001 confirmed the new headers, FE-318 parent total 0 / 6 / 8, allocation subrows Data & Reporting 0 / 6 / 5 and Core Platform 0 / 0 / 3, no Feature-grid progress-bar node beyond the plan header bar, ID rendered as FE-318 without the type badge, and settings menu items Allocate / Remove from Plan only. Build passed with only the standard Vite chunk-size warning. |
+| P5-CP-031 | P0 | Features tab Rally-style grid rebuild | Pass | C8 BA confirmed the DevInt order `Dependencies, Rollup, Estimated, Complete`; previous expected order was stale documentation. Closed / Not a Defect on 2026-08-09. |
 | P5-CP-032 | P0 | Features tab quick Planned Team Assignment | Not Run | Pass 2026-07-28. Browser smoke confirmed FE-315 showed the yellow ⚠ Not assigned combobox with Teams Core Platform, Identity & Access, and Data & Reporting; FE-318 stayed as 2 teams with split allocation subrows and no inline one-Team selector. Build passed with only the standard Vite chunk-size warning. |
 | P5-CP-033 | P0 | Capacity Plan ranking, warnings and summary breakdown polish | Not Run | Pass 2026-07-28. Browser smoke confirmed FE-318/FE-315 ranks displayed 1/2, FE-318 menu contained Move up, Move down, Allocate, Remove from Plan, Data & Reporting showed Rollup exceeds Estimated in the Feature subrow and Team Capacity rail, Breakdown opened By Points with Complete/Rollup/Estimated/Capacity totals, and Publish actions rendered next to Back. Build passed with only the standard Vite chunk-size warning. |
 | P5-CP-034 | P0 | Features-tab unassign and compact Breakdown refinement | Not Run | Pass 2026-07-28. Browser smoke on CP-001 confirmed FE-315 selector options changed to Unassign after assigning Core Platform, and selecting the empty option returned value "", text ⚠ Not assigned, yellow background/border, and Team options intact. DOM smoke confirmed the removed intro/sort bar text was absent, Add Feature remained, and the By Points Breakdown panel had four metric rows with one aligned bar segment each. Build passed with only the standard Vite chunk-size warning. |
@@ -1668,9 +1670,9 @@ This section is the current DevInt execution result and overrides the older `Cur
 
 | Status | Count | Scenario IDs |
 |---|---:|---|
-| Pass | 37 | `P5-PI-001`, `002`, `010`, `012`, `022`, `014`, `018`, `019`, `020`, `021`, `028`, `029`, `030`, `031`, `032`, `034`, `035`, `036`, `039`; `P5-CP-001`, `002`, `003`, `004`, `007`, `009`, `016`, `017`, `020`, `021`, `022`, `024`; `P5-CP-DEF-001`, `P5-CP-DEF-002`; `P5-CLOSE-001..004` |
+| Pass | 38 | `P5-PI-001`, `002`, `010`, `012`, `022`, `014`, `018`, `019`, `020`, `021`, `028`, `029`, `030`, `031`, `032`, `034`, `035`, `036`, `039`; `P5-CP-001`, `002`, `003`, `004`, `007`, `009`, `016`, `017`, `020`, `021`, `022`, `024`, `031`; `P5-CP-DEF-001`, `P5-CP-DEF-002`; `P5-CLOSE-001..004` |
 | Partial | 22 | `P5-PI-003`, `007`, `008`, `009`, `011`, `013`, `016`, `017`, `033`, `037`, `038`; `P5-CP-006`, `008`, `014`, `015`, `010`, `023`, `025`, `027`, `029`, `033`, `035` |
-| Fail | 4 | `P5-CP-005`, `P5-CP-031`, `P5-CP-032`, `P5-CP-034` |
+| Fail | 3 | `P5-CP-005`, `P5-CP-032`, `P5-CP-034` |
 | Blocked | 7 | `P5-PI-004`, `005`, `006`, `015`; `P5-CP-011`, `019`, `026` |
 | Not Required | 4 | `P5-RT-001`, `P5-CP-018`, `P5-CP-028`, `P5-RP-001` |
 | Not Run | 4 | `P5-CP-012`, `P5-CP-013`, `P5-CP-030`, `P5-CP-DEF-003` |
@@ -1690,7 +1692,6 @@ This section is the current DevInt execution result and overrides the older `Cur
 | Scenario | Actual DevInt result | Expected / fix direction |
 |---|---|---|
 | `P5-CP-005` | Team Capacity renders as text (`Not entered` / `30 points`); no inline capacity editor is exposed in Draft. Capacity can currently be populated only through Forecast. | Restore Draft-only manual Capacity editing without changing allocations or live Feature estimates. |
-| `P5-CP-031` | Features grid order is `... Dependencies, Rollup, Estimated, Complete`. | Align with accepted order `... Dependencies, Complete, Rollup, Estimated`. |
 | `P5-CP-032` | Selecting Pegasus in `Planned Team Assignment` changes allocation counters but the selector stays `Not assigned`; reload still shows `Not assigned`. | Persist and render the selected planned team from the same allocation ledger. |
 | `P5-CP-034` | Because the quick planned-team selection does not persist/render, the selector never reaches a one-Team state and `Unassign` cannot be exercised from the Features grid. | Fix `P5-CP-032`, then ensure `Unassign` clears the team and keeps the Feature in the plan. |
 
@@ -1739,7 +1740,7 @@ This section is the current DevInt execution result and overrides the older `Cur
 | P6-VEL-003 | P0 | Use Accepted/Release/Completed states | Not Run | No eligible completed Iteration exists for state comparison. |
 | P6-VEL-004 | P0 | Move Work Item into/out of completed Iteration | Not Run | No controlled completed Iteration exists. |
 | P6-VEL-005 | P0 | Reopen and re-accept an item | Not Run | No historical accepted-date data exists. |
-| P6-VEL-006 | P0 | Switch Last 5/Last 10 | Fail | Control works, but default is Last 10 instead of the required Last 5. |
+| P6-VEL-006 | P0 | Switch Last 5/Last 10 | Pass | C7 BA confirmed default Last 10, toggle 5/10 and persistence. Previous Last-5 expectation was stale documentation; closed / Not a Defect on 2026-08-09. |
 | P6-VEL-007 | P1 | Use fewer than three Iterations | Not Run | No eligible Iteration exists. |
 | P6-VEL-008 | P0 | Use Accepted/Release item without acceptedDate | Not Run | Required malformed historical test record is unavailable. |
 | P6-VEL-009 | P0 | Select Team and All Teams | Not Run | There is no eligible velocity data to compare Team aggregation. |
@@ -1768,9 +1769,9 @@ This section is the current DevInt execution result and overrides the older `Cur
 
 | Result | Count | Conclusion |
 |---|---:|---|
-| Pass | 22 | Expected behavior was observed with available data. |
+| Pass | 23 | Expected behavior was observed with available data, including C7-reconciled Velocity default. |
 | Partial | 6 | Main branch passed, but another branch lacks data or a manual interaction. |
-| Fail | 4 | DevInt conflicts with the approved Phase 6 contract or the shared Work Item rules. |
+| Fail | 3 | DevInt conflicts with the approved Phase 6 contract or the shared Work Item rules. |
 | Blocked | 1 | Requires Project Admin and Project Member accounts. |
 | Not Run | 20 | Requires snapshots, historical Iterations, a second Release/Project/Iteration, or controlled Task data. |
 
@@ -1779,7 +1780,6 @@ This section is the current DevInt execution result and overrides the older `Cur
 | Scenario | Actual DevInt result | Expected / fix direction |
 |---|---|---|
 | `P6-COM-006` | Reload resets Reports Type/window and Release Tracking Chart Unit/bucket. | Preserve the selected Phase 6 view/filter state across reload using the agreed URL or client preference mechanism. |
-| `P6-VEL-006` | Velocity opens with `Last 10 sprints`. | Default to `Last 5 sprints`; retain the user-selected Last 5/Last 10 value. |
 | `P6-E2E-001` | In Feature Children, `Create with details` created records silently while the modal stayed open. Repeated clicks produced extra Work Items before `Create Item` closed the dialog. | One user submission must create exactly one record. Show success, close/navigate as designed, and disable/debounce submission while saving. |
 | `P6-E2E-002` | A controlled child changed to Accepted did not persist/mirror reliably. After reload, Schedule State and Flow State returned to Idea, and Direct Feature status remained `0/3 points accepted`. | Persist Work Item state changes and enforce two-way Schedule State/Flow State mirroring before refreshing Release Tracking and report totals. |
 
@@ -1799,23 +1799,24 @@ These results are from the read-only Carryover retest on 2026-08-05. They overri
 
 | ID | Result | Evidence / conclusion |
 |---|---|---|
-| GAP-P0-SHELL-002 | Partial | Portfolio is now a dropdown. It contains Portfolio Items, Capacity Planning and Release Tracking; historical expected Release Planning is absent and requires BA trace alignment. |
+| GAP-P0-SHELL-002 | Pass — Not a Defect | C2 confirmed Portfolio Items, Capacity Planning and Release Tracking; Release Planning is Future Backlog. |
 | GAP-P0-SHELL-004 | Pass | Track menu label is `Iteration Status`; Team Status is also present. |
 | GAP-P1-BL-001 | Blocked | TEST has no Backlog rows. Browser keyboard `Ctrl+A` did not select the full search value, so this cannot distinguish an automation limitation from a product defect. Manual retest with backlog data is required. |
 | GAP-P1-BL-002 | Partial | Priority filter exists with None, Low, Normal, High and Urgent. Defect-only filtering and Story dash behavior need real records. |
 | GAP-P1-BL-004 | Partial | Header sort controls are available for Rank, ID, Name, Schedule State, Priority and Est.; ID changed to ascending state. No rows exist to prove sort order and rank preservation. |
-| GAP-P1-CREATE-003 | Partial | New Work Item Team selector exposes `No team` and Pegasus. This conflicts with the historical required-Team wording, but matches the newer BA decision that a no-team item belongs to the Project backlog. BA trace/SRS must be updated before formal pass. |
+| GAP-P1-CREATE-003 | Pass — Not a Defect | C1 confirmed Team optional: `No team` means Project backlog; selected Team must belong to Project. |
 | GAP-P1-CREATE-006 | Fail | Owner defaults to Unassigned/No Entry. After Hieu was added to Pegasus, Settings showed him as a member but the US-1 Owner dropdown still listed only No Entry and Anh; Owner membership options are stale/inconsistent. |
 | GAP-P1-CREATE-008 / 009 | Blocked | State defaults and persistence require a submitted Work Item. Submission would create deployed data and was not performed. |
-| GAP-P1-WID-008 | Partial | Quick Create still offers `No team`; this conflicts with historical SRS but matches the newer BA Project-backlog decision. Work Item Detail branch needs a created item to confirm. |
+| GAP-P1-WID-008 | Pass — Not a Defect | C1 confirmed the same optional-Team rule for Quick Create and Detail. |
 | GAP-P1-TEAM-001 | Pass | New Team form shows optional `Team lead` without required marker and offers `— No lead —`; create remains available after other required fields are supplied. |
-| GAP-P2-IT-001 | Fail | Iterations list has ID, Name, Theme, Start Date, End Date, Planned Velocity and State. Required Project and Task Estimate columns are absent. |
-| GAP-P2-IS-003 / 004 / 005 | Blocked | Iteration Status shows `No iterations in this project/team yet`; list columns and Board toggle cannot be inspected. |
+| GAP-P2-IT-001 | Fail | C9 confirms Project omission in single-project scope; only missing Task Estimate remains a defect. |
+| GAP-P2-IS-003 | Pass — Not a Defect | C3 confirms no Type column; ID prefix/glyph identifies US/DE. |
+| GAP-P2-IS-004 / 005 | Mixed | Separate results retained: per-row Defects column fails; List/Board toggle passes. |
 | GAP-P3-TS-001 to GAP-P3-TS-007 | Blocked | Team Status shows `No iterations in this project/team yet`; all Team Status list/task behavior requires an Iteration with Work Items. |
 | GAP-P3-QA-001 | Blocked | Quality > Defects exposes Add New but has no defects. Creating/submitting a Defect would mutate deployed data and was not performed. |
 | GAP-P4-NOTIF-001 / 002 / 003 | Blocked | Notification Center is empty (`You're all caught up`); event, unread-count and read-persistence branches need generated notification data. |
 | GAP-P4-SET-001 | Partial | Workspace Settings shows read-only Slug and Workspace Admin identities, but no explicit single-company scope. |
-| GAP-P4-SET-002 | Fail | User Management has User, Email, Role, Status, Teams and Last Login. Required Phone is missing and unexpected Teams is present; only Workspace Admin values are available. |
+| GAP-P4-SET-002 | Fail | C5 confirms Phone is Detail/Profile-only and not required in list. Teams in list, unsupported roles and missing detail actions remain defects. |
 | GAP-P4-SET-003 | Fail | Audit Log contains `auth.login.sso` and `access.role_elevated` technical events; Detail is technical label/ID rather than an administrative business sentence with before/after context. |
 | GAP-P4-SET-004 | Fail — side effect observed | Selecting `Deactive` for Team Pegasus saved immediately with toast `Status updated`; no target-specific confirmation was shown. With BA approval, Pegasus was restored to Active and DevInt displayed `Active 1 / Deactive 0`. |
 | GAP-P4-SET-005 | Fail | Notification Preferences is still shown in Settings navigation, despite the approved Phase 4 scope removing it. |
@@ -1830,11 +1831,11 @@ The controlled data set used for this completion was `P56-AUDIT Carryover Sprint
 | GAP-P1-BL-002 | Fail | Priority filter offers the values, but selecting `None` kept both the Defect and the Story visible. Story rows must remain dash/not be treated as Priority `None`. |
 | GAP-P1-BL-004 | Pass | ID header sorted DE-1 before US-1; selecting Rank restored US-1 then DE-1. Reload restored default rank order, with no persisted field mutation observed. |
 | GAP-P1-CREATE-008 / 009 | Pass | New US-1 persisted default Schedule State = Idea and Flow State = Idea on Detail after creation. |
-| GAP-P2-IS-003 | Fail | Iteration Status list is populated but has no Type column. |
+| GAP-P2-IS-003 | Pass — Not a Defect | C3 confirms no Type column; ID prefix/glyph is the approved type indicator. |
 | GAP-P2-IS-004 | Fail | Iteration Status exposes the prohibited per-row Defects column. |
 | GAP-P2-IS-005 | Pass | List and Board toggle are both visible. |
 | GAP-P3-TS-001 | Fail | Team Status still exposes the forbidden local `Search tasks` input. |
-| GAP-P3-TS-002 | Fail | Team Status still exposes forbidden Filters, Show Fields and rows-per-page pagination. |
+| GAP-P3-TS-002 | Partial | C4 accepts Filters and pagination. Show Fields remains out of scope; Totals must be regression-tested against the full Iteration. |
 | GAP-P3-TS-003 | Fail | No breadcrumb showing Project > Track > Team Status is present. |
 | GAP-P3-TS-004 | Pass | Completing TA-1 changed US-1 to Completed; reopening TA-1 to In-Progress recalculated US-1 to In-Progress. |
 | GAP-P3-TS-005 | Fail | Team Status task state is a three-segment control, not the required inline dropdown. |
@@ -1848,10 +1849,74 @@ The controlled data set used for this completion was `P56-AUDIT Carryover Sprint
 
 | Result | Count | Meaning |
 |---|---:|---|
-| Pass | 5 | Expected behavior confirmed. |
-| Fail | 9 | Current DevInt behavior conflicts with the approved SRS/mockup rule. |
-| Partial | 1 | One branch is confirmed; the remaining branch still needs controlled data. |
+| Pass | 6 | Expected behavior confirmed, including C3 reclassification. |
+| Fail | 7 | Current DevInt behavior conflicts with the approved SRS/mockup rule. |
+| Partial | 2 | One branch is confirmed; the remaining branch still needs a fix or controlled regression. |
 | Blocked | 2 | Cannot be completed without a second recipient/RBAC test account. |
+
+## Fail / Partial Re-test — 2026-08-09
+
+Scope: re-test all 51 scenarios whose current status was `Fail` or `Partial`. Existing `Blocked` scenarios were excluded. Controlled records created in this run: `US-7 P56-AUDIT RETEST E2E 20260809` and `FE-4 P56-AUDIT RETEST Feature 20260809`.
+
+| Result | Count |
+|---|---:|
+| Pass | 11 |
+| Partial | 31 |
+| Fail | 9 |
+
+| ID | Result | Re-test conclusion |
+|---|---|---|
+| GAP-P1-BL-001 | Fail | Clearing Backlog search still leaves one filtered row until reload. |
+| GAP-P1-BL-002 | Pass | Priority=None now returns Defects only. |
+| GAP-P1-CREATE-006 | Fail | Owner still defaults to Unassigned; current user is not offered. |
+| GAP-P2-IT-001 | Pass | Task Estimate column is present; Project remains correctly omitted. |
+| GAP-P2-IS-004 | Pass | Per-row Defects column is removed. |
+| GAP-P3-TS-001 | Pass | Local Task search is removed. |
+| GAP-P3-TS-002 | Pass | Filters/pagination retained, Show Fields removed, full-Iteration Totals shown. |
+| GAP-P3-TS-003 | Pass | Project > Track > Team Status breadcrumb is present. |
+| GAP-P3-TS-005 | Fail | Counted Task row/control is not rendered, so inline State dropdown is unavailable. |
+| GAP-P3-TS-006 | Partial | Fully-empty Task data is still unavailable. |
+| GAP-P3-TS-007 | Fail | Exact Task State catalog cannot be used because the Task control is absent. |
+| GAP-P3-TS-008 | Fail | Hieu is absent from Pegasus membership but still appears in Team Status with one Task. |
+| GAP-P4-SET-001 | Pass | Single-company scope is now explicit. |
+| GAP-P4-SET-002 | Partial | User list columns align; User Detail/roles/actions remain incomplete. |
+| GAP-P4-SET-003 | Fail | Audit Log still contains technical auth/access events and IDs. |
+| GAP-P4-SET-004 | Partial | Team Deactive now has confirmation; typed User-access confirmation remains untested. |
+| GAP-P4-SET-005 | Pass | Notification Preferences is hidden. |
+| P5-PI-003 | Partial | Full Project-change validity branch needs a second Project. |
+| P5-PI-007 | Partial | Cross-Project Release filtering needs a second Project. |
+| P5-PI-008 | Pass | Create with details created FE-4 once and opened Feature Detail. |
+| P5-PI-009 | Partial | Description persisted; attachment branch remains. |
+| P5-PI-011 | Partial | Archived-item branch is unavailable. |
+| P5-PI-013 | Partial | Complete child/Task grid branch lacks data. |
+| P5-PI-016 | Partial | Fresh child-create immediate rollup was not executable. |
+| P5-PI-017 | Partial | Invalid Feature clearing needs multiple Projects. |
+| P5-PI-033 | Partial | Multi-level Epic denominator data is unavailable. |
+| P5-PI-037 | Partial | Destructive bulk archive needs disposable records. |
+| P5-PI-038 | Partial | Rank comparison needs multiple Feature children. |
+| P5-CP-005 | Fail | Draft Capacity remains read-only text; only Forecast is actionable. |
+| P5-CP-006 | Partial | Remove/restore Team needs a second disposable Team. |
+| P5-CP-008 | Partial | Split allocation needs a second Team. |
+| P5-CP-014 | Partial | Independent sort persistence could not complete in the current UI session. |
+| P5-CP-015 | Partial | Cutline/split branches lack data. |
+| P5-CP-010 | Partial | Publish mismatch/non-cascade branches need a disposable Draft plan. |
+| P5-CP-023 | Partial | Allocated tier passes; Refined/Preliminary fallbacks lack data. |
+| P5-CP-025 | Partial | Cross-Team origin attribution needs a second Team. |
+| P5-CP-027 | Partial | Immediate refresh after Remove from Plan still needs disposable data. |
+| P5-CP-029 | Partial | Child status rollback branch lacks controlled child data. |
+| P5-CP-032 | Fail | FE-2 is allocated to Pegasus but Planned Team still says Not assigned. |
+| P5-CP-033 | Partial | Warning branches lack suitable data. |
+| P5-CP-034 | Fail | Unassign remains blocked by the P5-CP-032 Planned Team defect. |
+| P5-CP-035 | Partial | Mismatching-date publish needs a disposable plan. |
+| P6-COM-005 | Partial | A second empty Project is unavailable. |
+| P6-COM-006 | Pass | Reports and Release Tracking selections now persist after reload. |
+| P6-RT-003 | Partial | Sorting remains; resize was not executed. |
+| P6-RT-007 | Partial | Completed is excluded from accepted; Release-state data is unavailable. |
+| P6-RT-014 | Partial | Empty snapshot gaps pass; no-Release Project is unavailable. |
+| P6-E2E-001 | Pass | One submission created exactly US-7 and navigated to detail. |
+| P6-E2E-002 | Partial | State save/mirroring/reload passes; full parent/Iteration/Release rollup remains. |
+| P6-E2E-003 | Partial | Cross-context validation needs multiple Releases/Iterations/Projects. |
+| P6-E2E-004 | Partial | Persistence passes; sign-out/sign-in cycle remains. |
 
 ## Execution Sessions
 

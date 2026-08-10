@@ -42,10 +42,9 @@ BA confirmed the current Work Item state display contract:
 ## 3. Actor
 
 - Workspace Admin.
-- Project Manager.
-- Product Owner / BA.
-- Developer / QA.
-- Viewer.
+- Normal user with `Admin` Access Level in the Project.
+- Normal user with `Editor` Access Level in the Project and membership in the selected Team.
+- Normal user with `Viewer` Access Level in the Project (read-only).
 
 ## 4. Functional Requirements
 

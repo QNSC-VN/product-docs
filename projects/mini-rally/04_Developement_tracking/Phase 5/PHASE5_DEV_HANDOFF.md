@@ -346,7 +346,7 @@ Feature tab parent row:
 - Complete and Rollup are total live child values across the Feature.
 - Estimated uses the precedence rule above.
 - Split Feature parent shows total; allocation subrows show Team slices.
-- Complete, Rollup and Estimated show numbers only, not percentages.
+- Features-tab metric columns are ordered `Dependencies → Rollup → Estimated → Complete`; the numeric values show numbers only, not percentages.
 
 Team:
 
@@ -404,29 +404,27 @@ The exhaustive visual/button catalog is in `02_Capacity_Planning/BUSINESS_FLOW_A
 - Publish.
 - Revert to Draft.
 
-All mutation controls are hidden or disabled in Published and planner View contexts.
+All mutation controls are hidden or disabled in Published and Viewer contexts.
 
 ## 6. Access and Authorization Boundary
 
 ### 6.1 Portfolio Items
 
 - Workspace Admin: manage every Project.
-- Project Admin: manage assigned Projects; read-only elsewhere.
-- Project Member: read-only within assigned Project/Team context.
+- Project `Admin`: manage Portfolio Items in the assigned Project.
+- Project `Viewer`: read-only across the assigned Project.
+- Project `Editor` and `No Access`: Portfolio is hidden.
+- Access in one Project grants nothing in another Project.
 - Archive and create/edit actions require management permission.
 
-### 6.2 Capacity Planning temporary baseline
+### 6.2 Capacity Planning
 
-Two gates must both pass:
-
-1. `capacity_planning:manage` is Enabled for Full or Read-only for View.
-2. User has access to the Plan Project.
-
-- Workspace Admin remains locked at Full.
-- Project Admin Full manages assigned Projects only; View opens without mutations.
-- Project Member sees Published only and only its assigned Team.
-
-This Full/View model is temporary. DEV must implement it as documented, keep authorization server-side, and avoid inventing action-level permissions until a later RBAC slice is confirmed.
+- Workspace Admin manages plans in every Project.
+- Project `Admin` manages Draft/Published plans in the assigned Project.
+- Project `Viewer` can open Draft/Published plans read-only for the assigned Project.
+- Project `Editor` and `No Access` cannot open Capacity Planning.
+- Permission Model is explanatory and read-only; Capacity permissions are not customized per action.
+- DEV must enforce Project access server-side and not rely on hidden UI controls.
 
 ## 7. Cross-Module Integration Contract
 
@@ -498,8 +496,8 @@ The mockup evidence in that file proves BA behavior and visual direction only. D
 - CRUD and archive persistence.
 - Cross-screen identity.
 - Project/Team negative scope.
-- Project Admin managed/unmanaged scope.
-- Project Member read-only scope.
+- Project `Admin` assigned-Project manage scope and denied unassigned-Project scope.
+- Project `Viewer` read-only scope; `Editor`/`No Access` hidden scope.
 - Draft visibility and Published lock.
 - Split allocation atomicity.
 - Remove from Plan across all Teams.

@@ -1,5 +1,7 @@
 # Plan 0 — UI State and BA Gap Audit
 
+> **Historical discovery note (2026-08-10):** Role-model findings below describe the earlier mockup and are superseded by the current Project Access Level SRS.
+
 ## Status convention
 
 - `Present / local`: mockup can display or toggle the state using local state/mock data.

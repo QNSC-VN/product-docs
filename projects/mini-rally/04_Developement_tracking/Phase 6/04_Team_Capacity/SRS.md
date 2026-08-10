@@ -1,5 +1,7 @@
 # Phase 6 - Reports > Team Capacity
 
+> **Project Access:** Workspace Admin, assigned-Project `Admin` and `Viewer` can open this read-only report. `Editor` and `No Access` cannot open Reports.
+
 ## 1. Scope boundary
 
 Team Capacity is a read-only report for one selected Iteration. It reuses Team Status capacity and Task-hour data and does not create a second planning or capacity-editing workflow.

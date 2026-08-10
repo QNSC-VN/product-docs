@@ -2,6 +2,10 @@
 
 Date: 2026-07-24
 
+> **C1-C10 alignment notice — 2026-08-09:** Status counts below are the historical Phase 0-4 snapshot. Current results and counts are in `07_Testing Plan/02_test_phase_5_6/PHASE_0_6_AUDIT_TRACKER.xlsx`; the correction rows in this handoff remain valid only where they match the C1-C10 section.
+
+> **Project Access supersession — 2026-08-10:** The old three-global-role and editable E/R/D/H requirements in this historical handoff are replaced by `04_Developement_tracking/Phase 4/02_Roles_Permissions/SRS.md`. Current baseline: internal Workspace Admin plus Admin/Editor/Viewer/No Access independently per Project; only WA manages users, Projects, Teams and access.
+
 Source tracker: `06_Dev testing align/DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx`
 
 Scope: FE/business behavior, SRS/mockup alignment and controlled test data only. Do not treat this handoff as approval to change database schema, infrastructure, deployment setup or production data outside the tested DevInt scope.
@@ -73,7 +77,7 @@ Use these rules if the tracker recommendation text conflicts with the latest BA-
 ### Release / Milestone
 
 - Release Management belongs under `Plan > Timeboxes > Releases`, not top-level navigation.
-- Portfolio contains Release Planning as Phase 5/Future placeholder, not Release CRUD.
+- Portfolio contains Portfolio Items, Capacity Planning and Release Tracking. Release Planning remains Future Backlog and is not active Release CRUD.
 - Release progress/tracking belongs to Phase 5 Release Planning, not the current Phase 3 Release detail.
 - Work Item can have multiple Releases and multiple Milestones.
 - Release and Milestone are separate concepts; one does not parent the other.
@@ -87,19 +91,19 @@ These block BA acceptance first.
 
 | Gap ID | Phase | Area | Dev fix expected |
 |---|---|---|---|
-| GAP-P1-USER-004 | Phase 4 | Roles & Permissions | Replace legacy/persona roles with approved roles: Workspace Admin, Project Admin, Project Member. Implement screen/action E/R/D/H matrix. Workspace Admin column locked; only allowed cells editable. |
-| GAP-P1-CREATE-003 | Phase 1 | Work Item Create | Project drives Team options. Team is optional: blank = Project backlog, selected Team = Team backlog. Remove invalid/unlinked Team choices. |
+| GAP-P1-USER-004 | Phase 4 | Project Access | Replace legacy/persona/global Project roles with internal Workspace Admin plus Admin/Editor/Viewer/No Access per Project. Permission Model is read-only; no custom E/R/D/H editing. |
+| GAP-P1-CREATE-003 | Phase 1 | Work Item Create | **Closed / Not a Defect.** Team is optional: blank = Project backlog, selected Team = Team backlog; only linked Teams are listed. |
 | GAP-P1-CREATE-008 | Phase 1 | Work Item Create | New Work Item must default Schedule State and Flow State to `Idea`. Preserve verified persistence for other fields. |
 | GAP-P1-WID-003 | Phase 1 | Work Item Detail | Release field must support zero/one/many Releases, not single-select only. |
 | GAP-P1-WID-006 | Phase 1 | Work Item Detail | Schedule State and Flow State must mirror two-way and persist atomically. |
-| GAP-P1-WID-008 | Phase 1 | Work Item Detail | Apply latest Team optional rule: blank Team = Project backlog; selected Team must belong to selected Project. |
+| GAP-P1-WID-008 | Phase 1 | Work Item Detail | **Closed / Not a Defect.** Blank Team = Project backlog; selected Team must belong to selected Project. |
 | GAP-P1-TASK-006 | Phase 1 | Task Dashboard | Task Dashboard labels/catalog must be `Defined`, `In-Progress`, `Completed`; keep inline edit behavior. |
 | GAP-P1-TEAM-001 | Phase 1 | Create Team | Team Lead is optional. `No lead`/null must be accepted on Team create; lead can be assigned later. |
 | GAP-P3-REL-002 | Phase 3 | Release Artifacts | Fix Release Artifacts query/display so Work Items assigned to a Release appear after refresh. Blocks reassignment-refresh testing. |
 | GAP-P3-MS-001 | Phase 3 | Milestone Artifacts | Add Artifact control must exist on Milestone Artifacts tab following approved Backlog picker pattern. |
 | GAP-P3-QA-001 | Phase 3 | Quality / Defect | Fix Quality > Defects create flow. Current DevInt returns 405 and creates no defect. |
 | GAP-P4-RBAC-002 | Phase 4 | User Management | Workspace Admin account detail must be read-only; remove Save and block role/team/status mutations at UI and API boundary. |
-| GAP-P4-SET-002 | Phase 4 | User Management | Align list/detail with SRS/mockup: approved three roles, required fields/columns, team allocation in detail, guarded Remove User Access. |
+| GAP-P4-SET-002 | Phase 4 | Users | List is Name, Email, Phone Number, Status, Last Login. User Details separates General and Project Access; do not show one global Project role. |
 
 ## 4. P1 fix list
 
@@ -108,7 +112,7 @@ These should be fixed in the same delivery package after P0.
 | Gap ID | Phase | Area | Dev fix expected |
 |---|---|---|---|
 | GAP-P0-AUTH-001 | Phase 0 | Login | Confirm SSO-first behavior. If authorized SSO path works, align implementation/error handling to SSO-first and ignore old local-password requirement. |
-| GAP-P0-SHELL-002 | Phase 0 | Navigation | Portfolio becomes dropdown with Release Planning as Phase 5/Coming Soon. Do not expose Release CRUD under Portfolio. |
+| GAP-P0-SHELL-002 | Phase 0 | Navigation | **Closed / Not a Defect.** Portfolio dropdown is Portfolio Items, Capacity Planning, Release Tracking. Release Planning remains Future Backlog and is not an active entry. |
 | GAP-P0-PRJ-004 | Phase 0 | Create Project | Project Name validation: trim and enforce 2-255 chars with inline feedback. |
 | GAP-P0-PRJ-005 | Phase 0 | Create Project | Project Key helper/validation must say and enforce 2-10 uppercase alphanumeric; key remains immutable after create. |
 | GAP-P1-BL-001 | Phase 1 | Backlog Search | Clearing search must restore the scoped list without page reload. Cover Control+A/Delete, Backspace, blur and clear button if present. |
@@ -121,7 +125,7 @@ These should be fixed in the same delivery package after P0.
 | GAP-P1-TASK-007 | Phase 1 | Create Task | Task Owner defaults to authenticated user; Unassigned remains explicit selectable option because Task owner is not required. |
 | GAP-P1-CREATE-009 | Phase 1 | Work Item Create | Default Schedule State and Flow State to `Idea` in quick-create and create-with-details. |
 | GAP-P1-HIST-002 | Phase 1 | Task Revision History | Log task create/state/time changes and show them in Task Revision History. |
-| GAP-P2-IT-001 | Phase 2 | Timeboxes / Iterations | Add Project and Task Estimate columns to Iterations list. |
+| GAP-P2-IT-001 | Phase 2 | Timeboxes / Iterations | Add Task Estimate. Do not add Project column/search/sort in the current single-Project view. |
 | GAP-P2-BL-001 | Phase 2 | Backlog Bulk Actions | Add bulk Assign Release and Assign Iteration. Ask BA before keeping Delete/Copy in selected bar. |
 | GAP-P4-SET-003 | Phase 4 | Audit Log | Keep filters/columns, but exclude auth/session activity from administrative Audit Log or move to security log. Event copy should be business-readable with actor and changed values. |
 | GAP-P4-SET-004 | Phase 4 | Destructive Confirmations | Add explicit Deactivate/Restore Team confirmations and Remove User Access typed confirmation. Cancel must not mutate. |
@@ -132,11 +136,11 @@ These should be fixed in the same delivery package after P0.
 |---|---|---|---|
 | GAP-P0-SHELL-004 | Phase 0 | Navigation | Rename Track child from `Iteration` to `Iteration Status`. |
 | GAP-P1-HIST-001 | Phase 1 | Work Item Revision History | Log Schedule and Flow changes with correct labels; avoid duplicate rows for one mutation. |
-| GAP-P2-IS-003 | Phase 2 | Iteration Status | Add Type column. Reconcile extra columns against approved contract or make them Show Fields opt-in. |
+| GAP-P2-IS-003 | Phase 2 | Iteration Status | **Closed / Not a Defect.** Keep no dedicated Type column; retain required `US/DE` prefix and type glyph in identity cell. |
 | GAP-P2-IS-004 | Phase 2 | Iteration Status | Remove per-row Defects column; Defects remains summary metric only. |
 | GAP-P2-IS-005 | Phase 2 | Iteration Status | Hide Board toggle until Board scope is approved; Board remains Future Backlog. |
 | GAP-P3-TS-001 | Phase 3 | Team Status | Remove local Search tasks input unless BA approves deviation. |
-| GAP-P3-TS-002 | Phase 3 | Team Status | Remove Filters/Show Fields/pagination unless BA approves deviation. |
+| GAP-P3-TS-002 | Phase 3 | Team Status | Keep Filters and pagination; remove only Show Fields and any local Search Tasks. Totals cover the full Iteration, not the page. |
 | GAP-P3-TS-003 | Phase 3 | Team Status | Breadcrumb should be `[Project] > Track > Team Status`. |
 | GAP-P3-TS-004 | Phase 3 | Team Status | Reopened/incomplete child Task should recalc parent according to latest Task roll-up rule. If parent is Accepted, ask BA before introducing protection behavior. |
 | GAP-P3-TS-005 | Phase 3 | Team Status | Task State control should match approved dropdown, or at minimum display all labels clearly. |
@@ -154,8 +158,8 @@ These are not current product failures until dev/test provides the required cont
 |---|---|---|---|
 | GAP-P4-NOTIF-001 | Phase 4 | No controlled notification rows for audit user | Seed assignment/mention notifications or provide safe sender/recipient pair; then retest count, cards and filters. |
 | GAP-P4-NOTIF-002 | Phase 4 | No controlled notification rows for read-state testing | After rows exist, retest single-read, mark-all, badge/count update, reload persistence and session restore. |
-| GAP-P4-NOTIF-003 | Phase 4 | No safe recipient/sender test pair | Provide dedicated Project Member recipient and sender in test Project; retest popup/list/route/permission filtering. |
-| GAP-P4-RBAC-003 | Phase 4 | No controlled non-admin test accounts | Provide Project Admin and Project Member accounts with explicit managed/assigned Project/Team mappings and one unassigned Project for negative tests. |
+| GAP-P4-NOTIF-003 | Phase 4 | No safe recipient/sender test pair | Provide dedicated Editor recipient and sender in an accessible Project/Team; retest popup/list/route/access filtering. |
+| GAP-P4-RBAC-003 | Phase 4 | No controlled non-WA test accounts | Provide normal users with Admin, Editor, Viewer and No Access across at least two Projects; include explicit Editor Team assignments. |
 
 ## 7. Future Backlog / do not fix now
 

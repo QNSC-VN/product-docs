@@ -1,5 +1,7 @@
 # Plan 0 — UI Screen Inventory
 
+> **Inventory supersession (2026-08-10):** Former role simulation and Manage Projects labels are retained as source inventory. Current mockup uses Workspace Admin plus per-Project Access Levels and Settings > Workspaces & Projects.
+
 ## Method and source of truth
 
 Inventory read from `03_Mockup Design/src/app/App.tsx`, `components/`, `pages/`, `model.ts`, `styles/` and the phase SRS/checklists under `04_Developement_tracking`.

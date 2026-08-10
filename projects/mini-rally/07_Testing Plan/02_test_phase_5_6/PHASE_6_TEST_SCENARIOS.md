@@ -9,7 +9,7 @@ All scenarios start as `Not Run`. Evidence and BA confirmation are recorded in `
 | P6-COM-001 | P0 | Open Portfolio menu | Order is Portfolio Items, Capacity Planning, Release Tracking; Release Tracking is last |
 | P6-COM-002 | P0 | Open Reports and inspect Type | Exactly Iteration Burndown, Velocity and Team Capacity are available |
 | P6-COM-003 | P0 | Switch global Project/Team context | Every summary, row and chart uses the new scope; no duplicate page Project/Team filter |
-| P6-COM-004 | P0 | Test Workspace Admin, Project Admin and Project Member | UI and server results enforce the approved role/project/team scope |
+| P6-COM-004 | P0 | Test Workspace Admin and Project `Admin`/`Editor`/`Viewer`/`No Access` | Workspace Admin and assigned-Project `Admin` can use Release Tracking and Reports; `Viewer` is read-only; `Editor` and `No Access` cannot open these surfaces; direct URLs do not leak data |
 | P6-COM-005 | P1 | Open each Phase 6 route with empty valid scope | Explicit empty/unavailable state appears; another Project's data is never reused |
 | P6-COM-006 | P1 | Reload each selected view/filter | Selection and persisted business data remain consistent; no console error |
 
@@ -54,7 +54,7 @@ All scenarios start as `Not Run`. Evidence and BA confirmation are recorded in `
 | P6-VEL-003 | P0 | Use Accepted/Release/Completed states | Release retains During/After; Completed is Not Accepted |
 | P6-VEL-004 | P0 | Move Work Item into/out of completed Iteration | Chart recalculates from current assignment on next query |
 | P6-VEL-005 | P0 | Reopen and re-accept an item | Current acceptedDate clears/recreates; classification uses latest current outcome |
-| P6-VEL-006 | P0 | Switch Last 5/Last 10 | Bars, trend and Last/Best/Worst averages use selected window; default is Last 5 |
+| P6-VEL-006 | P0 | Switch Last 5/Last 10 | Bars, trend and Last/Best/Worst averages use selected window; default is Last 10 and the selected 5/10 window persists after reload |
 | P6-VEL-007 | P1 | Use fewer than three Iterations | Averages use available sample and expose its size |
 | P6-VEL-008 | P0 | Use Accepted/Release item without acceptedDate | Explicit data-quality error/unavailable state; system does not guess |
 | P6-VEL-009 | P0 | Select Team and All Teams | Team scope filters; All Teams aligns by stable timebox key and de-duplicates Work Items |

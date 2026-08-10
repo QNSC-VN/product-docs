@@ -3,6 +3,8 @@
 > **Authoritative source of truth for the *physical* schema.**
 > `01_DB design/mini_rally_database_design.md` remains the *business/logical* reference (entity catalogue, relationships, Vietnamese notes). Where the two differ, **this document wins** for column types, naming, tenancy, RLS, indexes, and partitioning. It is the spec that the Drizzle table definitions and `drizzle-kit` migrations must match.
 
+> **Authorization lock update (2026-08-10):** The current Mini Rally MVP has one workspace role (`workspace_admin`, assigned internally) and fixed per-Project access in `work.project_members.access_level` (`admin`, `editor`, `viewer`; no active row means `No Access`). The former six-role/custom-role R1 design is superseded for this product scope.
+
 Aligned with `ARCHITECTURE_CURRENT.md` (stack, RLS rules §4.1), `BACKEND_STRUCTURE.md` (module ownership, pagination §16), and `DOMAIN_DESIGN.md` (work-item core, outbox flow).
 
 ---
@@ -29,7 +31,7 @@ The BA's 32-table logical model (`01_DB design/`) is a sound MVP catalogue but w
 
 | # | Area | BA model | Decision (LOCKED) | Why |
 |---|---|---|---|---|
-| **R1** | Role assignment | `roles`/`permissions`/`role_permissions`, no scoped user binding | **Add `access.user_role_assignments`** (`user_id`, `role_id`, `scope_type` workspace\|project, `scope_id`). `roles` gain `scope_type` + `is_system`. Seed 6 system roles; custom roles = enterprise. | Use-cases need **scoped** authority (PM = project-scoped). Powers the RBAC+ABAC engine in `DOMAIN_DESIGN.md`. |
+| **R1** | Authorization assignment | Generic role tables without effective binding | Keep `access.user_role_assignments` only for internally assigned `workspace_admin`. Store normal-user authorization directly in `work.project_members.access_level` as `admin`/`editor`/`viewer`; no active row means `No Access`. | Matches the fixed Mini Rally Project Access model and avoids custom-role complexity. |
 | **R2** | Sprint/Release membership | junctions `sprint_items`, `release_items` | **Dropped.** `iteration_id` + `release_id` become **FK columns on `work_items`** (indexed). | An item is in **one** iteration + one release at a time — not M:N. Removes a join from every board/backlog query. Move history lives in events/`activity_logs`. |
 | **R3** | Work-item fields | minimal | Add `story_points`, `acceptance_criteria`, `is_blocked`, `blocked_reason`. | Required by Backlog/Board/WorkItem use-cases. |
 | **R4** | Reporting (burndown/velocity) | none (implied live compute) | **Add `planning.sprint_daily_snapshots`** (daily remaining/completed/scope-change), written by scheduled job + events → reporting read model. | Historical burndown **cannot** be reconstructed from current state; live event-replay is too costly at scale. |
@@ -349,9 +351,9 @@ CREATE TABLE access.user_role_assignments (
     tenant_id   UUID         NOT NULL,
     user_id     UUID         NOT NULL REFERENCES identity.users(id),
     role_id     UUID         NOT NULL REFERENCES access.roles(id),
-    scope_type  VARCHAR(20)  NOT NULL
-        CONSTRAINT chk_ura_scope CHECK (scope_type IN ('workspace','project')),
-    scope_id    UUID         NOT NULL,                 -- workspace_id or project_id
+    scope_type  VARCHAR(20)  NOT NULL DEFAULT 'workspace'
+        CONSTRAINT chk_ura_scope CHECK (scope_type = 'workspace'),
+    scope_id    UUID         NOT NULL,                 -- workspace_id
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT now(),
     created_by  UUID,
     deleted_at  TIMESTAMPTZ,
@@ -360,8 +362,8 @@ CREATE TABLE access.user_role_assignments (
 );
 CREATE INDEX ix_ura_lookup ON access.user_role_assignments (tenant_id, user_id) WHERE deleted_at IS NULL;
 CREATE INDEX ix_ura_scope  ON access.user_role_assignments (tenant_id, scope_type, scope_id) WHERE deleted_at IS NULL;
--- access.roles gains: scope_type VARCHAR CHECK(workspace|project), is_system BOOLEAN.
--- Resolved permission set is cached in Valkey, invalidated on assignment/role change (DOMAIN_DESIGN §B4).
+-- Only the internally assigned workspace_admin role is valid in this table for the MVP.
+-- Project access is stored in work.project_members.access_level and cached authorization is invalidated on change.
 -- + RLS tenant_isolation policy (§5)
 ```
 
@@ -491,7 +493,7 @@ CREATE INDEX ix_wm_user ON tenancy.workspace_members (tenant_id, user_id) WHERE 
 
 CREATE TABLE tenancy.workspace_invitations (
     id UUID NOT NULL DEFAULT uuidv7(), tenant_id UUID NOT NULL, workspace_id UUID NOT NULL REFERENCES tenancy.workspaces(id),
-    email CITEXT NOT NULL, role_id UUID NOT NULL REFERENCES access.roles(id),
+    email CITEXT NOT NULL,
     token_hash VARCHAR(255) NOT NULL, status VARCHAR(20) NOT NULL DEFAULT 'pending'
         CONSTRAINT chk_inv_status CHECK (status IN ('pending','accepted','revoked','expired')),
     expires_at TIMESTAMPTZ NOT NULL, invited_by UUID, created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -546,7 +548,7 @@ CREATE TABLE tenancy.identity_providers (
 CREATE TABLE access.roles (
     id UUID NOT NULL DEFAULT uuidv7(), tenant_id UUID,        -- NULL = built-in system role (global)
     name VARCHAR(100) NOT NULL, code VARCHAR(50) NOT NULL,
-    scope_type VARCHAR(20) NOT NULL CONSTRAINT chk_role_scope CHECK (scope_type IN ('workspace','project')),
+    scope_type VARCHAR(20) NOT NULL DEFAULT 'workspace' CONSTRAINT chk_role_scope CHECK (scope_type = 'workspace'),
     is_system BOOLEAN NOT NULL DEFAULT false,                -- seeded, immutable
     description TEXT, version INTEGER NOT NULL DEFAULT 1,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(), updated_at TIMESTAMPTZ NOT NULL DEFAULT now(), deleted_at TIMESTAMPTZ,
@@ -587,10 +589,12 @@ CREATE TABLE work.project_counters (    -- per-project item_key sequence (§10)
 
 CREATE TABLE work.project_members (
     id UUID NOT NULL DEFAULT uuidv7(), tenant_id UUID NOT NULL, project_id UUID NOT NULL REFERENCES work.projects(id),
-    user_id UUID NOT NULL REFERENCES identity.users(id), joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    user_id UUID NOT NULL REFERENCES identity.users(id),
+    access_level VARCHAR(10) NOT NULL CONSTRAINT chk_project_access CHECK (access_level IN ('admin','editor','viewer')),
+    joined_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now(), deleted_at TIMESTAMPTZ,
     PRIMARY KEY (id), CONSTRAINT uq_pm UNIQUE (project_id, user_id)
-);  -- role via user_role_assignments (scope=project). + RLS
+);  -- no active row/deleted row = No Access. Workspace Admin is excluded. + RLS
 CREATE INDEX ix_pm_user ON work.project_members (tenant_id, user_id) WHERE deleted_at IS NULL;
 
 CREATE TABLE work.project_settings (
@@ -755,24 +759,21 @@ CREATE INDEX ix_activity_object ON platform.activity_logs (tenant_id, object_typ
 
 ## 9c. Reference / Seed Data
 
-Seeded by an idempotent migration. System roles have `tenant_id = NULL`, `is_system = true`.
+Seeded by an idempotent migration. The only MVP system role has `tenant_id = NULL`, `is_system = true`.
 
 **System roles** (`access.roles`):
 
 | code | scope_type | maps to |
 |---|---|---|
 | `workspace_admin` | workspace | Workspace Admin |
-| `project_manager` | project | PM / Scrum Master |
-| `product_owner` | project | PO / BA |
-| `developer` | project | Developer |
-| `qa` | project | Tester / QA |
-| `viewer` | project | Viewer / Stakeholder |
+
+Project `admin`/`editor`/`viewer` are fixed Access Level values on `work.project_members`, not rows in `access.roles`.
 
 **Permission catalogue** (`access.permissions`, `module.action`) — seed list (extensible):
 
 ```text
-workspace.manage   workspace.invite_user   workspace.manage_roles
-project.create  project.read  project.update  project.archive  project.manage_members  project.configure
+workspace.manage   workspace.invite_user   workspace.manage_users
+project.create  project.read  project.update  project.archive  project.manage_access  project.configure
 team.manage     team.manage_members
 work_item.create  work_item.read  work_item.update  work_item.delete  work_item.assign
 work_item.change_status  work_item.set_priority  work_item.estimate  work_item.link
@@ -786,7 +787,7 @@ workflow.configure  label.manage  audit.read
 settings.workspace  settings.project
 ```
 
-`role_permissions` grants are derived directly from the use-case matrix in `00_Documents/mini_rally_usecase_role_mapping.md`.
+`role_permissions` grants the company-wide baseline to `workspace_admin`. Project capability outcomes are fixed in application policy from `work.project_members.access_level` and documented in `00_Documents/mini_rally_usecase_role_mapping.md`; there is no permission-matrix editor.
 
 ---
 

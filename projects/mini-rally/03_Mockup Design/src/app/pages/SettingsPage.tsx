@@ -1,4 +1,5 @@
 ﻿import { useState } from "react";
+import { useEffect } from "react";
 import {
   Search, ChevronDown, ChevronRight, LayoutList, LayoutGrid,
   Plus, Filter, HelpCircle, Settings, RefreshCw, Download,
@@ -17,9 +18,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
+import { type Role, type ProjectAccessLevel, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, DEMO_ACCESS_PROFILES, OWNERS, PROJECTS, SCOPE_PROJECTS, ROLE_SCOPE, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
-import { TeamsSettingsPanel } from "./ProjectsPage";
+import { WorkspaceProjectsPanel } from "./WorkspaceProjectsPanel";
 
 export const ROLE_TO_PROD_CODE: Record<Role, ProdRoleCode> = { "Workspace Admin": "WA", "Project Admin": "PA", "Project Member": "PM" };
 
@@ -50,11 +51,11 @@ export function Toggle({ on = true, disabled = false }: { on?: boolean; disabled
 
 export const AUDIT_LOG_DATA = [
   { time: "Tuesday, October 22, 2024 09:14:08", actor: "Marcus Webb", details: "Updated company name from ACME Space to ACME Space Inc." },
-  { time: "Tuesday, October 22, 2024 09:02:31", actor: "Marcus Webb", details: "Saved role permission matrix for Project Admin and Project Member." },
-  { time: "Monday, October 21, 2024 16:32:41", actor: "Marcus Webb", details: "Invited Elena Kowalski as Project Member." },
-  { time: "Monday, October 21, 2024 15:44:09", actor: "Marcus Webb", details: "Updated Priya Nair role from Project Member to Project Admin." },
+  { time: "Tuesday, October 22, 2024 09:02:31", actor: "Marcus Webb", details: "Granted Priya Nair Viewer access to Mobile App MVP." },
+  { time: "Monday, October 21, 2024 16:32:41", actor: "Marcus Webb", details: "Invited Elena Kowalski with Editor access to Infrastructure Refresh." },
+  { time: "Monday, October 21, 2024 15:44:09", actor: "Marcus Webb", details: "Changed Priya Nair access to Admin for Nexus Platform 2025." },
   { time: "Sunday, October 20, 2024 11:05:22", actor: "Marcus Webb", details: "Changed Elena Kowalski status from Invited to Active." },
-  { time: "Saturday, October 19, 2024 14:30:17", actor: "Marcus Webb", details: "Assigned James Okafor to Core Platform team." },
+  { time: "Saturday, October 19, 2024 14:30:17", actor: "Marcus Webb", details: "Assigned James Okafor to Data & Reporting team." },
   { time: "Friday, October 18, 2024 10:15:33", actor: "Marcus Webb", details: "Archived project Mobile App MVP." },
   { time: "Tuesday, October 15, 2024 09:00:02", actor: "Marcus Webb", details: "Created team Platform Operations." },
 ];
@@ -65,7 +66,8 @@ export const ROLE_ABBR: Record<Role, string> = { "Workspace Admin": "WA", "Proje
 export type ProdRoleCode = "WA" | "PA" | "PM";
 export type PermissionState = "E" | "R" | "D" | "H";
 export type RoleActionRow = { screen: string; action: string; permission: string; states: Record<ProdRoleCode, PermissionState>; locked?: boolean };
-type SettingsUser = WorkspaceUser & { phoneNumber: string };
+type UserProjectAccess = { projectKey: string; level: ProjectAccessLevel; teams: string[] };
+type SettingsUser = WorkspaceUser & { phoneNumber: string; projectAccess: UserProjectAccess[] };
 
 const PROD_ROLES: { code: ProdRoleCode; name: string; slug: string; summary: string }[] = [
   { code: "WA", name: "Workspace Admin", slug: "workspace_admin", summary: "Full workspace ownership" },
@@ -74,7 +76,77 @@ const PROD_ROLES: { code: ProdRoleCode; name: string; slug: string; summary: str
 ];
 
 const USER_PHONE_NUMBERS = ["+1 212 555 0198", "+1 415 555 0142", "+1 312 555 0167", "+1 646 555 0181", "+1 206 555 0174", "+1 503 555 0129"];
-const SETTINGS_USERS: SettingsUser[] = WORKSPACE_USERS.map((user, index) => ({ ...user, phoneNumber: USER_PHONE_NUMBERS[index] ?? "+1 555 0100" }));
+const USER_PROJECT_ACCESS: Record<string, UserProjectAccess[]> = {
+  "sarah.chen@acme.com": [{ projectKey: "NXP", level: "Editor", teams: ["Core Platform"] }],
+  "james.okafor@acme.com": [{ projectKey: "NXP", level: "Editor", teams: ["Data & Reporting"] }],
+  "priya.nair@acme.com": [
+    { projectKey: "NXP", level: "Admin", teams: ["Core Platform"] },
+    { projectKey: "MOB", level: "Viewer", teams: [] },
+  ],
+  "tom.brennan@acme.com": [
+    { projectKey: "MOB", level: "Admin", teams: ["Mobile Experience"] },
+    { projectKey: "NXP", level: "Viewer", teams: [] },
+  ],
+  "elena.kowalski@acme.com": [{ projectKey: "INF", level: "Editor", teams: ["Platform Operations"] }],
+};
+const SETTINGS_USERS: SettingsUser[] = WORKSPACE_USERS.map((user, index) => ({ ...user, phoneNumber: USER_PHONE_NUMBERS[index] ?? "+1 555 0100", projectAccess: USER_PROJECT_ACCESS[user.email] ?? [] }));
+const PROJECT_ACCESS_LEVELS: ProjectAccessLevel[] = ["Admin", "Editor", "Viewer", "No Access"];
+const ACCESS_LEVEL_ROWS = [
+  { level: "Workspace Admin", scope: "All projects", work: "Full", settings: "Full", people: "Full" },
+  { level: "Project Admin", scope: "Assigned project", work: "Full", settings: "Full", people: "None" },
+  { level: "Project Member", scope: "Assigned project / team", work: "Edit", settings: "None", people: "None" },
+  { level: "Viewer", scope: "Assigned project", work: "Read-only", settings: "None", people: "None" },
+  { level: "No Access", scope: "Hidden", work: "None", settings: "None", people: "None" },
+] as const;
+
+type FixedAccessState = "Allowed" | "Read-only" | "Hidden";
+type ScreenActionAccessRow = { screen: string; action: string; wa: FixedAccessState; paAdmin: FixedAccessState; paViewer: FixedAccessState; pm: FixedAccessState };
+const SCREEN_ACTION_ACCESS_ROWS: ScreenActionAccessRow[] = [
+  { screen: "Workspace Settings", action: "View workspace settings", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Workspace Settings", action: "Edit workspace settings", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "User Management", action: "View users", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "User Management", action: "Create invitation", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "User Management", action: "Edit user and project access", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "User Management", action: "Delete user access", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Project Management", action: "View project", wa: "Allowed", paAdmin: "Allowed", paViewer: "Read-only", pm: "Allowed" },
+  { screen: "Project Management", action: "Create project", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Project Management", action: "Edit assigned project", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Project Management", action: "Archive assigned project", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Project Management", action: "Delete project", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Backlog / Quality", action: "View US, DE and Task", wa: "Allowed", paAdmin: "Allowed", paViewer: "Read-only", pm: "Allowed" },
+  { screen: "Backlog / Quality", action: "Create US, DE and Task", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Allowed" },
+  { screen: "Backlog / Quality", action: "Edit US, DE and Task", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Allowed" },
+  { screen: "Backlog / Quality", action: "Delete US, DE and Task", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Allowed" },
+  { screen: "Iteration Status", action: "View iteration status", wa: "Allowed", paAdmin: "Allowed", paViewer: "Read-only", pm: "Allowed" },
+  { screen: "Iteration Status", action: "Update work item and task status", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Allowed" },
+  { screen: "Timebox", action: "Create, Edit and Delete Iteration", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Timebox", action: "Create, Edit and Delete Release", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Timebox", action: "Create, Edit and Delete Milestone", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Capacity / Reports", action: "View project planning and reports", wa: "Allowed", paAdmin: "Allowed", paViewer: "Read-only", pm: "Hidden" },
+  { screen: "Capacity / Reports", action: "Create and Edit capacity plan", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
+];
+
+function AccessBadge({ value }: { value: Role | ProjectAccessLevel }) {
+  const cfg = value === "Workspace Admin"
+    ? { bg: "#fef2f2", text: "#b91c1c" }
+    : value === "Admin"
+      ? { bg: "#edf2fb", text: "#2558a6" }
+      : value === "Editor"
+        ? { bg: "#eef6f0", text: "#1e6930" }
+        : value === "Viewer"
+          ? { bg: "#f0f2f5", text: "#5c6478" }
+          : { bg: "#f7f8fa", text: "#8c94a6" };
+  return <span className="inline-flex px-2 py-0.5 rounded-sm text-[10px] font-semibold" style={{ backgroundColor: cfg.bg, color: cfg.text }}>{value}</span>;
+}
+
+function FixedAccessBadge({ value }: { value: FixedAccessState }) {
+  const cfg = value === "Allowed"
+    ? { bg: "#eef6f0", text: "#1e6930", border: "#bad7c1" }
+    : value === "Read-only"
+      ? { bg: "#edf2fb", text: "#2558a6", border: "#bdd0ea" }
+      : { bg: "#f7f8fa", text: "#8c94a6", border: "#dde2ea" };
+  return <span className="inline-flex px-2 py-0.5 rounded-sm text-[9px] font-semibold" style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}` }}>{value}</span>;
+}
 
 const STATE_STYLE: Record<PermissionState, { label: string; bg: string; text: string; border: string }> = {
   E: { label: "Enabled", bg: "#eef6f0", text: "#1e6930", border: "#bad7c1" },
@@ -220,93 +292,205 @@ function ConfirmRemoveUserAccess({ user, onCancel, onConfirm }: { user: Settings
   );
 }
 
-function UserDetailModal({ user, onClose, onSave, onRemoveAccess }: { user: SettingsUser; onClose: () => void; onSave: (user: SettingsUser) => void; onRemoveAccess: (user: SettingsUser) => void }) {
+function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClose, onSave, onRemoveAccess }: { user: SettingsUser; projectTeamsByProject: Record<string, string[]>; isInvite?: boolean; onClose: () => void; onSave: (user: SettingsUser) => void; onRemoveAccess?: (user: SettingsUser) => void }) {
   const [draft, setDraft] = useState<SettingsUser>(user);
-  const readOnly = user.role === "Workspace Admin";
+  const [reviewing, setReviewing] = useState(false);
+  const [activeDetailTab, setActiveDetailTab] = useState<"general" | "permissions">("general");
+  const isWorkspaceAdmin = draft.role === "Workspace Admin";
+
+  function updateProjectAccess(index: number, patch: Partial<UserProjectAccess>) {
+    setDraft(previous => ({
+      ...previous,
+      projectAccess: previous.projectAccess.map((access, accessIndex) => {
+        if (accessIndex !== index) return access;
+        const next = { ...access, ...patch };
+        if (next.level === "Admin") next.teams = ["All Teams"];
+        if (next.level === "Viewer" || next.level === "No Access") next.teams = [];
+        if (patch.projectKey && next.level === "Editor") next.teams = [];
+        return next;
+      }),
+    }));
+  }
+
+  function addProjectAccess() {
+    const project = SCOPE_PROJECTS.find(candidate => !draft.projectAccess.some(access => access.projectKey === candidate.key));
+    if (!project) return;
+    setDraft(previous => ({ ...previous, projectAccess: [...previous.projectAccess, { projectKey: project.key, level: "No Access", teams: [] }] }));
+  }
+
+  function toggleTeam(index: number, team: string) {
+    const access = draft.projectAccess[index];
+    const teams = access.teams.includes(team) ? access.teams.filter(item => item !== team) : [...access.teams, team];
+    updateProjectAccess(index, { teams });
+  }
 
   function save() {
-    if (readOnly) return;
-    onSave({ ...draft, name: draft.name.trim() || user.name, phoneNumber: draft.phoneNumber.trim() });
+    onSave({ ...draft, name: draft.name.trim() || user.name, email: draft.email.trim(), phoneNumber: draft.phoneNumber.trim() });
   }
+
+  const hasValidTeamAssignments = draft.projectAccess.every(access => access.level !== "Editor" || access.teams.length > 0);
+  const canSave = draft.name.trim().length > 0 && draft.email.trim().length > 0 && hasValidTeamAssignments;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0" style={{ backgroundColor: "rgba(15,23,42,0.34)" }} onClick={onClose} />
-      <div className="relative w-full max-w-[520px] bg-white rounded-md shadow-2xl overflow-hidden" style={{ border: "1px solid #d4d8de" }}>
-        <div className="h-12 px-4 flex items-center justify-between" style={{ borderBottom: "1px solid #e2e6eb" }}>
+      <div className="relative w-full max-w-[780px] max-h-[88vh] bg-white rounded-md shadow-2xl overflow-hidden flex flex-col" style={{ border: "1px solid #d4d8de" }}>
+        <div className="h-14 px-5 flex items-center justify-between shrink-0" style={{ borderBottom: "1px solid #e2e6eb" }}>
           <div>
-            <p className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>User Details</p>
-            <p className="text-[10px]" style={{ color: "#8c94a6" }}>{readOnly ? "Workspace Admin is assigned internally" : user.email}</p>
+            <p className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>{isInvite ? "Invite User" : "User Details"}</p>
+            <p className="text-[10px]" style={{ color: "#8c94a6" }}>Manage account details and project-specific access</p>
           </div>
-          <button onClick={onClose} className="p-1 rounded" style={{ color: "#8c94a6" }}><X size={15} /></button>
+          <button aria-label="Close" onClick={onClose} className="p-1 rounded" style={{ color: "#8c94a6" }}><X size={15} /></button>
         </div>
-        <div className="p-5 space-y-4">
-          <div className="flex items-center gap-3 pb-3" style={{ borderBottom: "1px solid #edf0f4" }}>
-            <Avatar owner={draft.owner} size="lg" />
-            <div>
-              <p className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>{draft.name}</p>
-              <p className="text-[11px]" style={{ color: "#5c6478" }}>{draft.email}</p>
+
+        <div className="h-10 px-5 flex items-end gap-5 shrink-0" style={{ borderBottom: "1px solid #e2e6eb", backgroundColor: "#fbfcfe" }}>
+          {(["general", "permissions"] as const).map(tab => (
+            <button key={tab} onClick={() => setActiveDetailTab(tab)} className="h-10 px-1 text-[11px] font-semibold" style={{ color: activeDetailTab === tab ? "#1d3f73" : "#6b7280", borderBottom: activeDetailTab === tab ? "2px solid #1d3f73" : "2px solid transparent" }}>{tab === "general" ? "General" : "Project Access"}</button>
+          ))}
+        </div>
+
+        <div className="p-5 overflow-y-auto space-y-5">
+          <section className={activeDetailTab === "general" ? "" : "hidden"}>
+            <h3 className="text-[10px] font-semibold uppercase tracking-widest mb-3" style={{ color: "#8c94a6" }}>Basic Information</h3>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="space-y-1">
+                <span className="text-[10px] font-semibold" style={{ color: "#5c6478" }}>Name</span>
+                <input disabled={isWorkspaceAdmin} value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} className="w-full h-9 px-3 rounded text-[12px] focus:outline-none disabled:bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] font-semibold" style={{ color: "#5c6478" }}>Email</span>
+                <input disabled={!isInvite} value={draft.email} onChange={event => setDraft({ ...draft, email: event.target.value })} className="w-full h-9 px-3 rounded text-[12px] focus:outline-none disabled:bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] font-semibold" style={{ color: "#5c6478" }}>Phone number</span>
+                <input disabled={isWorkspaceAdmin} value={draft.phoneNumber} onChange={event => setDraft({ ...draft, phoneNumber: event.target.value })} className="w-full h-9 px-3 rounded text-[12px] focus:outline-none disabled:bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
+              </label>
+              <label className="space-y-1">
+                <span className="text-[10px] font-semibold" style={{ color: "#5c6478" }}>Status</span>
+                <select disabled={isInvite || isWorkspaceAdmin} value={draft.status} onChange={event => setDraft({ ...draft, status: event.target.value as WorkspaceUser["status"] })} className="w-full h-9 px-3 rounded text-[12px] bg-white focus:outline-none disabled:bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#1a2234" }}>
+                  {(["Active", "Invited", "Deactive"] as WorkspaceUser["status"][]).map(item => <option key={item} value={item}>{item === "Deactive" ? "Disabled" : item}</option>)}
+                </select>
+              </label>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <label className="space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>Name</span>
-              <input disabled={readOnly} value={draft.name} onChange={event => setDraft({ ...draft, name: event.target.value })} className="w-full px-3 py-2 rounded text-[12px] focus:outline-none disabled:bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
-            </label>
-            <label className="space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>Phone number</span>
-              <input disabled={readOnly} value={draft.phoneNumber} onChange={event => setDraft({ ...draft, phoneNumber: event.target.value })} className="w-full px-3 py-2 rounded text-[12px] focus:outline-none disabled:bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
-            </label>
-            <label className="space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>Role</span>
-              <select disabled={readOnly} value={draft.role} onChange={event => setDraft({ ...draft, role: event.target.value as Role })} className="w-full px-3 py-2 rounded text-[12px] bg-white focus:outline-none disabled:bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#1a2234" }}>
-                {ALL_ROLES.map(item => <option key={item}>{item}</option>)}
-              </select>
-            </label>
-            <label className="space-y-1">
-              <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>Status</span>
-              <select disabled={readOnly} value={draft.status} onChange={event => setDraft({ ...draft, status: event.target.value as WorkspaceUser["status"] })} className="w-full px-3 py-2 rounded text-[12px] bg-white focus:outline-none disabled:bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#1a2234" }}>
-                {(["Active", "Invited", "Deactive"] as WorkspaceUser["status"][]).map(item => <option key={item}>{item}</option>)}
-              </select>
-            </label>
-          </div>
-          <label className="space-y-1 block">
-            <span className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>Email</span>
-            <input disabled value={draft.email} className="w-full px-3 py-2 rounded text-[12px] bg-[#f4f6f9]" style={{ border: "1px solid #d9dee7", color: "#5c6478" }} />
-          </label>
+          </section>
+
+          <section className={activeDetailTab === "permissions" ? "" : "hidden"}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Project Access</h3>
+              {!isWorkspaceAdmin && <button disabled={draft.projectAccess.length >= SCOPE_PROJECTS.length} onClick={addProjectAccess} className="flex items-center gap-1 px-2.5 py-1.5 rounded text-[11px] font-semibold disabled:opacity-40" style={{ color: "#1d3f73", border: "1px solid #bdd0ea" }}><Plus size={11} /> Add Project Access</button>}
+            </div>
+
+            {isWorkspaceAdmin ? (
+              <div className="flex items-center gap-3 px-3 py-3 rounded" style={{ border: "1px solid #d9dee7" }}>
+                <Globe size={14} style={{ color: "#1d3f73" }} />
+                <div className="flex-1"><p className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>No Project Membership</p><p className="text-[10px]" style={{ color: "#8c94a6" }}>Workspace Admin authority is workspace-level and is not assigned through projects.</p></div>
+                <AccessBadge value="Workspace Admin" />
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {draft.projectAccess.map((access, index) => {
+                  const project = SCOPE_PROJECTS.find(candidate => candidate.key === access.projectKey) ?? SCOPE_PROJECTS[0];
+                  const availableTeams = projectTeamsByProject[access.projectKey] ?? project.teams;
+                  const teamSelectable = access.level === "Editor";
+                  return (
+                    <div key={`${access.projectKey}-${index}`} className="rounded p-3" style={{ border: "1px solid #d9dee7" }}>
+                      <div className="grid items-end gap-3" style={{ gridTemplateColumns: "minmax(180px,1fr) 180px 28px" }}>
+                        <label className="space-y-1">
+                          <span className="text-[10px] font-semibold" style={{ color: "#5c6478" }}>Project</span>
+                          <select value={access.projectKey} onChange={event => updateProjectAccess(index, { projectKey: event.target.value, teams: [] })} className="w-full h-8 px-2 rounded text-[11px] bg-white" style={{ border: "1px solid #d9dee7", color: "#1a2234" }}>
+                            {SCOPE_PROJECTS.map(candidate => <option key={candidate.key} value={candidate.key} disabled={draft.projectAccess.some((item, itemIndex) => itemIndex !== index && item.projectKey === candidate.key)}>{candidate.name}</option>)}
+                          </select>
+                        </label>
+                        <label className="space-y-1">
+                          <span className="text-[10px] font-semibold" style={{ color: "#5c6478" }}>Access Level</span>
+                          <select value={access.level} onChange={event => updateProjectAccess(index, { level: event.target.value as ProjectAccessLevel })} className="w-full h-8 px-2 rounded text-[11px] bg-white" style={{ border: "1px solid #d9dee7", color: "#1a2234" }}>
+                            {PROJECT_ACCESS_LEVELS.map(level => <option key={level}>{level}</option>)}
+                          </select>
+                        </label>
+                        <button aria-label={`Remove ${project.name} access row`} onClick={() => setDraft(previous => ({ ...previous, projectAccess: previous.projectAccess.filter((_, accessIndex) => accessIndex !== index) }))} className="h-8 w-7 flex items-center justify-center rounded" style={{ color: "#b91c1c", border: "1px solid #f0c7c1" }}><X size={12} /></button>
+                      </div>
+                      <div className="mt-3 pt-3" style={{ borderTop: "1px solid #edf0f4" }}>
+                        <p className="text-[10px] font-semibold mb-2" style={{ color: teamSelectable ? "#5c6478" : "#b0b8c8" }}>Teams</p>
+                        {access.level === "Admin" ? (
+                          <div className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[10px] font-semibold" style={{ color: "#1d3f73", backgroundColor: "#edf2fb", border: "1px solid #bdd0ea" }}><CheckSquare size={11} />All Teams</div>
+                        ) : teamSelectable ? (
+                          <div className="flex flex-wrap gap-2">
+                            {availableTeams.map(team => {
+                              const checked = access.teams.includes(team);
+                              return <button key={team} onClick={() => toggleTeam(index, team)} className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px]" style={{ color: checked ? "#1d3f73" : "#5c6478", backgroundColor: checked ? "#edf2fb" : "#ffffff", border: `1px solid ${checked ? "#bdd0ea" : "#d9dee7"}` }}>{checked ? <CheckSquare size={11} /> : <Square size={11} />}{team}</button>;
+                            })}
+                            {access.level === "Editor" && access.teams.length === 0 && <span className="self-center text-[10px]" style={{ color: "#b91c1c" }}>Select at least one team.</span>}
+                          </div>
+                        ) : <p className="text-[10px]" style={{ color: "#8c94a6" }}>{access.level === "Viewer" ? "Viewer access is project-wide and read-only." : "The project is hidden from this user."}</p>}
+                      </div>
+                    </div>
+                  );
+                })}
+                {draft.projectAccess.length === 0 && <div className="py-6 text-center text-[11px] rounded" style={{ color: "#8c94a6", border: "1px dashed #cbd1dc" }}>No project access assigned.</div>}
+              </div>
+            )}
+          </section>
         </div>
-        <div className="px-5 py-3 flex items-center gap-2" style={{ borderTop: "1px solid #e2e6eb" }}>
-          {!readOnly && <button onClick={() => onRemoveAccess(user)} className="px-3 py-1.5 rounded text-[11px] font-semibold" style={{ border: "1px solid #f0c7c1", color: "#b91c1c" }}>Remove User Access</button>}
-          <div className="flex-1" />
-          <button onClick={onClose} className="px-3 py-1.5 rounded text-[11px] font-semibold" style={{ border: "1px solid #d9dee7", color: "#5c6478" }}>Cancel</button>
-          {!readOnly && <button onClick={save} className="px-3 py-1.5 rounded text-[11px] font-semibold text-white" style={{ backgroundColor: "#1d3f73" }}>Save Changes</button>}
+
+        <div className="px-5 py-3 flex items-center gap-2 shrink-0" style={{ borderTop: "1px solid #e2e6eb", backgroundColor: "#fbfcfe" }}>
+          {!isWorkspaceAdmin && !isInvite && onRemoveAccess && <button onClick={() => onRemoveAccess(user)} className="px-3 py-1.5 rounded text-[11px] font-semibold" style={{ border: "1px solid #f0c7c1", color: "#b91c1c" }}>Remove User Access</button>}
+          <p className="ml-auto text-[10px]" style={{ color: "#8c94a6" }}>{isWorkspaceAdmin ? "Workspace Admin is managed internally and is view-only." : "Access changes apply on the next sign-in."}</p>
+          <button onClick={onClose} className="px-3 py-1.5 rounded text-[11px] font-semibold" style={{ border: "1px solid #d9dee7", color: "#5c6478" }}>{isWorkspaceAdmin ? "Close" : "Cancel"}</button>
+          {!isWorkspaceAdmin && <button disabled={!canSave} onClick={() => setReviewing(true)} className="px-3 py-1.5 rounded text-[11px] font-semibold text-white disabled:opacity-40" style={{ backgroundColor: "#1d3f73" }}>{isInvite ? "Review Invite" : "Review Changes"}</button>}
         </div>
       </div>
+
+      {reviewing && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <div className="absolute inset-0" style={{ backgroundColor: "rgba(15,23,42,0.45)" }} onClick={() => setReviewing(false)} />
+          <div className="relative w-full max-w-[500px] bg-white rounded-md shadow-2xl overflow-hidden" style={{ border: "1px solid #d4d8de" }}>
+            <div className="px-5 py-4" style={{ borderBottom: "1px solid #e2e6eb" }}><h3 className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>{isInvite ? "Review Invitation" : "Review Project Access"}</h3><p className="text-[10px] mt-1" style={{ color: "#8c94a6" }}>Confirm project access and team membership for {draft.name}.</p></div>
+            <div className="p-5 space-y-2 max-h-72 overflow-auto">
+              {!isWorkspaceAdmin && draft.projectAccess.map(access => {
+                const project = SCOPE_PROJECTS.find(candidate => candidate.key === access.projectKey);
+                return <div key={access.projectKey} className="flex items-center gap-3 px-3 py-2.5 rounded" style={{ backgroundColor: "#f7f8fa", border: "1px solid #e2e6eb" }}><div className="flex-1"><p className="text-[11px] font-semibold" style={{ color: "#1a2234" }}>{project?.name}</p><p className="text-[10px]" style={{ color: "#8c94a6" }}>{access.teams.length ? access.teams.join(", ") : "No team membership"}</p></div><AccessBadge value={access.level} /></div>;
+              })}
+              {isWorkspaceAdmin && <div className="flex items-center gap-3 px-3 py-2.5 rounded" style={{ backgroundColor: "#f7f8fa", border: "1px solid #e2e6eb" }}><div className="flex-1"><p className="text-[11px] font-semibold" style={{ color: "#1a2234" }}>No Project Membership</p><p className="text-[10px]" style={{ color: "#8c94a6" }}>Workspace-level authority only</p></div><AccessBadge value="Workspace Admin" /></div>}
+              {!isWorkspaceAdmin && draft.projectAccess.length === 0 && <p className="text-[11px]" style={{ color: "#8c94a6" }}>This user will have no project access.</p>}
+            </div>
+            <div className="px-5 py-3 flex justify-end gap-2" style={{ borderTop: "1px solid #e2e6eb" }}><button onClick={() => setReviewing(false)} className="px-3 py-1.5 rounded text-[11px] font-semibold" style={{ border: "1px solid #d9dee7", color: "#5c6478" }}>Back</button><button onClick={save} className="px-3 py-1.5 rounded text-[11px] font-semibold text-white" style={{ backgroundColor: "#1d3f73" }}>{isInvite ? "Send Invite" : "Confirm & Save"}</button></div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-export function SettingsPage({ role, projectReadOnly = false, permissionMatrix, onSavePermissionMatrix }: { role: Role; projectReadOnly?: boolean; permissionMatrix: RoleActionRow[]; onSavePermissionMatrix: (rows: RoleActionRow[]) => void }) {
-  const [activeTab, setActiveTab] = useState("profile");
-  const [selectedProdRole, setSelectedProdRole] = useState<ProdRoleCode>("PA");
-  // Working copy for edit mode; the saved matrix lives in App so that other
-  // screens (Capacity Planning) are actually gated by what was saved here.
-  const [permissionRows, setPermissionRows] = useState<RoleActionRow[]>(permissionMatrix);
-  const savedPermissionRows = permissionMatrix;
-  const [isPermissionEditMode, setIsPermissionEditMode] = useState(false);
-  const [permissionSaved, setPermissionSaved] = useState(false);
+export function SettingsPage({ role, projectReadOnly = false, initialTab = "profile" }: { role: Role; projectReadOnly?: boolean; initialTab?: string }) {
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [settingsUsers, setSettingsUsers] = useState<SettingsUser[]>(SETTINGS_USERS);
+  const [workspaceProjectTeams, setWorkspaceProjectTeams] = useState<Record<string, string[]>>(() => Object.fromEntries(SCOPE_PROJECTS.map(project => [project.key, project.teams])));
   const [selectedUser, setSelectedUser] = useState<SettingsUser | null>(null);
+  const [inviteUserOpen, setInviteUserOpen] = useState(false);
   const [removeUserTarget, setRemoveUserTarget] = useState<SettingsUser | null>(null);
   const [userSearch, setUserSearch] = useState("");
-  const [userFilter, setUserFilter] = useState("All");
+  const [userStatusFilter, setUserStatusFilter] = useState("All");
   const [auditNameQuery, setAuditNameQuery] = useState("");
   const [auditTimeQuery, setAuditTimeQuery] = useState("");
   const canManageProjectSettings = can.manageSettings(role) && !projectReadOnly;
   const canManageWorkspaceSettings = role === "Workspace Admin";
+  useEffect(() => setActiveTab(initialTab), [initialTab]);
+  const roleCanOpenTab = role === "Workspace Admin"
+    || (role === "Project Admin" && ["profile", "myPermissions", "workspaceProjects", "permissionModel"].includes(activeTab))
+    || (role === "Project Member" && ["profile", "myPermissions", "workspaceProjects"].includes(activeTab));
+  const visibleActiveTab = roleCanOpenTab ? activeTab : "profile";
+  const demoProfile = DEMO_ACCESS_PROFILES[role];
+  const myPermissionRows = role === "Workspace Admin"
+    ? [{ project: "All Projects", access: "Workspace Admin" as const, teams: "All Teams", capabilities: "Full workspace and project administration" }]
+    : role === "Project Admin"
+      ? [
+        ...ROLE_SCOPE.projectAdminProjectKeys.map(projectKey => ({ project: SCOPE_PROJECTS.find(project => project.key === projectKey)?.name ?? projectKey, access: "Admin" as const, teams: "All Teams", capabilities: "Manage work items, timeboxes, releases and reports" })),
+        ...ROLE_SCOPE.projectAdminViewerProjectKeys.map(projectKey => ({ project: SCOPE_PROJECTS.find(project => project.key === projectKey)?.name ?? projectKey, access: "Viewer" as const, teams: "None", capabilities: "View project data only" })),
+      ]
+      : [{ project: SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.projectMemberProjectKey)?.name ?? ROLE_SCOPE.projectMemberProjectKey, access: "Editor" as const, teams: ROLE_SCOPE.projectMemberTeams.join(", "), capabilities: "Create, edit and delete work items; update iteration status" }];
   const sections = [
-    { group: "Personal", items: [{ key: "profile", label: "Profile & Account", icon: <UserCheck size={13} /> }] },
-    { group: "Workspace", items: [{ key: "workspace", label: "Workspace Settings", icon: <Globe size={13} />, gate: can.viewAdmin(role) }, { key: "teams", label: "Teams", icon: <Users size={13} />, gate: role !== "Project Member" }, { key: "members", label: "User Management", icon: <Users size={13} />, gate: can.manageUsers(role) }, { key: "roles", label: "Roles & Permissions", icon: <Shield size={13} />, gate: can.manageRoles(role) }, { key: "audit", label: "Audit Log", icon: <FileText size={13} />, gate: can.viewAdmin(role) }] },
+    { group: "Personal", items: [{ key: "profile", label: "Profile & Account", icon: <UserCheck size={13} /> }, { key: "myPermissions", label: "My Permissions", icon: <Shield size={13} /> }] },
+    { group: "Administration", items: [{ key: "workspace", label: "Workspace Settings", icon: <Globe size={13} />, gate: can.viewAdmin(role) }, { key: "members", label: "Users", icon: <Users size={13} />, gate: can.manageUsers(role) }, { key: "workspaceProjects", label: "Workspaces & Projects", icon: <Package size={13} />, gate: true }, { key: "permissionModel", label: "Permission Model", icon: <Shield size={13} />, gate: role !== "Project Member" }, { key: "audit", label: "Audit Log", icon: <FileText size={13} />, gate: can.viewAdmin(role) }] },
   ];
 
   const fieldRow = (label: string, value: string, w = "w-36", disabled = false) => (
@@ -322,48 +506,89 @@ export function SettingsPage({ role, projectReadOnly = false, permissionMatrix, 
     </div>
   );
 
-  const usersFiltered = settingsUsers.filter(u => (userFilter === "All" || u.role === userFilter) && `${u.name} ${u.email} ${u.phoneNumber}`.toLowerCase().includes(userSearch.toLowerCase()));
+  const usersFiltered = settingsUsers.filter(user => {
+    return (userStatusFilter === "All" || user.status === userStatusFilter) && `${user.name} ${user.email} ${user.phoneNumber}`.toLowerCase().includes(userSearch.toLowerCase());
+  });
   const workspaceOwner = settingsUsers.find(u => u.role === "Workspace Admin") || settingsUsers[0];
   const auditFiltered = AUDIT_LOG_DATA.filter(item => item.actor.toLowerCase().includes(auditNameQuery.toLowerCase()) && item.time.toLowerCase().includes(auditTimeQuery.toLowerCase()));
-  const canEditPermissionMatrix = role === "Workspace Admin";
-  const hasPermissionChanges = JSON.stringify(permissionRows) !== JSON.stringify(savedPermissionRows);
-  function editPermissionState(rowIndex: number, roleCode: ProdRoleCode, state: PermissionState) {
-    if (!canEditPermissionMatrix || !isPermissionEditMode || roleCode === "WA" || permissionRows[rowIndex]?.locked) return;
-    setPermissionRows(previous => previous.map((row, index) => index === rowIndex ? { ...row, states: { ...row.states, [roleCode]: state } } : row));
-    setPermissionSaved(false);
-  }
-  function startPermissionEdit() {
-    if (!canEditPermissionMatrix) return;
-    setPermissionRows(savedPermissionRows);
-    setIsPermissionEditMode(true);
-    setPermissionSaved(false);
-  }
-  function savePermissionMatrix() {
-    if (!canEditPermissionMatrix) return;
-    onSavePermissionMatrix(permissionRows);
-    setIsPermissionEditMode(false);
-    setPermissionSaved(true);
-  }
   function saveUser(updatedUser: SettingsUser) {
     setSettingsUsers(previous => previous.map(user => user.email === updatedUser.email ? updatedUser : user));
     setSelectedUser(null);
+  }
+  function inviteUser(user: SettingsUser) {
+    setSettingsUsers(previous => [...previous, user]);
+    setInviteUserOpen(false);
   }
   function removeUserAccess(userToRemove: SettingsUser) {
     setSettingsUsers(previous => previous.filter(user => user.email !== userToRemove.email));
     setSelectedUser(null);
     setRemoveUserTarget(null);
   }
+  function changeProjectAccess(email: string, projectKey: string, level: ProjectAccessLevel, teams: string[]) {
+    setSettingsUsers(previous => previous.map(user => {
+      if (user.email !== email || user.role === "Workspace Admin") return user;
+      const otherProjects = user.projectAccess.filter(access => access.projectKey !== projectKey);
+      return { ...user, projectAccess: level === "No Access" ? otherProjects : [...otherProjects, { projectKey, level, teams }] };
+    }));
+  }
+  function addProjectTeam(projectKey: string, teamName: string) {
+    setWorkspaceProjectTeams(previous => ({ ...previous, [projectKey]: Array.from(new Set([...(previous[projectKey] ?? []), teamName])) }));
+  }
 
   const content: Record<string, React.ReactNode> = {
-    teams: <TeamsSettingsPanel role={role} />,
+    permissionModel: (
+      <div className="max-w-5xl">
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div><p className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>Project-scoped access</p><p className="mt-1 text-[10px]" style={{ color: "#8c94a6" }}>Access is assigned per project. Team membership is managed separately from permission.</p></div>
+          <span className="inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[10px] font-semibold" style={{ color: "#5c6478", backgroundColor: "#f4f6f9", borderColor: "#dde2ea" }}><Lock size={10} /> Fixed model</span>
+        </div>
+        <div className="grid grid-cols-4 overflow-hidden rounded border" style={{ borderColor: "#d9dee7" }}>
+          {[
+            { name: "Admin", tone: "#1d3f73", bg: "#e8eef8", body: "Manage delivery features in the assigned project. Project, user, access and team administration remain Workspace Admin-only." },
+            { name: "Editor", tone: "#1e6930", bg: "#eef6f0", body: "Create, edit and delete project artifacts. Required for team membership." },
+            { name: "Viewer", tone: "#5c6478", bg: "#f0f2f5", body: "View project data without changing settings or artifacts." },
+            { name: "No Access", tone: "#8c94a6", bg: "#f7f8fa", body: "Project is hidden and cannot be opened by the user." },
+          ].map((item, index) => <div key={item.name} className="min-h-32 p-4" style={{ borderRight: index < 3 ? "1px solid #e2e6eb" : undefined }}><span className="inline-flex rounded-sm px-2 py-0.5 text-[10px] font-semibold" style={{ color: item.tone, backgroundColor: item.bg }}>{item.name}</span><p className="mt-3 text-[11px] leading-5" style={{ color: "#5c6478" }}>{item.body}</p></div>)}
+        </div>
+        <div className="mt-4 rounded border" style={{ borderColor: "#d9dee7" }}>
+          {[
+            ["Workspace Admin", "Workspace-level authority; manages projects, users, access and global settings."],
+            ["Admin", "Project-level access; manages delivery features in the assigned project. Administration remains Workspace Admin-only."],
+            ["Editor", "Project-and-team access; manages delivery work without administration access."],
+            ["Viewer / No Access", "Viewer is read-only. No Access hides the project completely."],
+          ].map(([label, detail], index) => <div key={label} className="grid min-h-11 grid-cols-[170px_1fr] items-center px-3" style={{ backgroundColor: index % 2 ? "#fbfcfe" : "white", borderBottom: index < 3 ? "1px solid #edf0f4" : undefined }}><span className="text-[11px] font-semibold" style={{ color: "#1a2234" }}>{label}</span><span className="text-[11px]" style={{ color: "#5c6478" }}>{detail}</span></div>)}
+        </div>
+      </div>
+    ),
+    myPermissions: (
+      <div className="max-w-5xl">
+        <div className="flex items-center justify-between mb-4">
+          <div><p className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>ACME Space Inc.</p><p className="text-[10px] mt-1" style={{ color: "#8c94a6" }}>Your effective access is read-only. Contact a Workspace Admin to request a change.</p></div>
+          <AccessBadge value={demoProfile.label} />
+        </div>
+        <div className="rounded overflow-hidden" style={{ border: "1px solid #d9dee7" }}>
+          <div className="grid h-9 items-center" style={{ gridTemplateColumns: "minmax(190px,1fr) 140px 170px minmax(260px,1.4fr)", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
+            {["Project", "Access", "Team Membership", "Effective Capabilities"].map(label => <div key={label} className="px-3 text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{label}</div>)}
+          </div>
+          {myPermissionRows.map((item, index) => (
+            <div key={`${item.project}-${item.access}`} className="grid min-h-12 items-center" style={{ gridTemplateColumns: "minmax(190px,1fr) 140px 170px minmax(260px,1.4fr)", backgroundColor: index % 2 ? "#fbfcfe" : "#ffffff", borderBottom: index < myPermissionRows.length - 1 ? "1px solid #edf0f4" : undefined }}>
+              <div className="px-3 text-[11px] font-semibold" style={{ color: "#1a2234" }}>{item.project}</div>
+              <div className="px-3"><AccessBadge value={item.access} /></div>
+              <div className="px-3 text-[11px]" style={{ color: "#5c6478" }}>{item.teams}</div>
+              <div className="px-3 text-[11px]" style={{ color: "#3a4254" }}>{item.capabilities}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
     profile: (
       <div className="space-y-5">
         <div className="flex items-center gap-4 pb-4" style={{ borderBottom: "1px solid #e2e6eb" }}>
-          <Avatar owner={OWNERS[0]} size="lg" />
-          <div><p className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>Marcus Webb</p><p className="text-[12px]" style={{ color: "#5c6478" }}>marcus.webb@acme.com</p><div className="mt-1"><RoleBadge role={role} /></div></div>
+          <Avatar owner={demoProfile.owner} size="lg" />
+          <div><p className="text-[14px] font-semibold" style={{ color: "#1a2234" }}>{demoProfile.name}</p><p className="text-[12px]" style={{ color: "#5c6478" }}>{demoProfile.email}</p><div className="mt-1"><RoleBadge role={role} /></div></div>
           <button className="ml-auto px-3 py-1.5 text-[11px] font-medium rounded" style={{ border: "1px solid #dde2ea", color: "#5c6478" }}>Edit Profile</button>
         </div>
-        {[["Full Name", "Marcus Webb"], ["Email", "marcus.webb@acme.com"], ["Time Zone", "UTC-5 (Eastern Time)"], ["Language", "English (US)"]].map(([l, v]) => fieldRow(l, v))}
+        {[["Full Name", demoProfile.name], ["Email", demoProfile.email], ["Time Zone", "UTC-5 (Eastern Time)"], ["Language", "English (US)"]].map(([l, v]) => fieldRow(l, v))}
       </div>
     ),
     project: (
@@ -448,122 +673,55 @@ export function SettingsPage({ role, projectReadOnly = false, permissionMatrix, 
           <div className="flex items-center gap-2">
             <div className="relative">
               <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2" style={{ color: "#8c94a6" }} />
-              <input value={userSearch} onChange={event => setUserSearch(event.target.value)} placeholder="Search name, phone, email..." className="w-60 pl-7 pr-3 py-1.5 rounded text-[11px] focus:outline-none" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
+              <input value={userSearch} onChange={event => setUserSearch(event.target.value)} placeholder="Search name, phone or email..." className="w-64 pl-7 pr-3 py-1.5 rounded text-[11px] focus:outline-none" style={{ border: "1px solid #d9dee7", color: "#1a2234" }} />
             </div>
-            <span className="text-[11px] font-semibold" style={{ color: "#5c6478" }}>Filter by role:</span>
-            <select value={userFilter} onChange={e => setUserFilter(e.target.value)} className="text-[11px] px-2 py-1 rounded bg-white focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{["All", ...ALL_ROLES].map(r => <option key={r}>{r}</option>)}</select>
+            <select aria-label="Filter by status" value={userStatusFilter} onChange={event => setUserStatusFilter(event.target.value)} className="text-[11px] px-2 py-1.5 rounded bg-white focus:outline-none" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{["All", "Active", "Invited", "Deactive"].map(item => <option key={item} value={item}>{item === "All" ? "All statuses" : item === "Deactive" ? "Disabled" : item}</option>)}</select>
           </div>
-          {can.manageUsers(role) && <button className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }}><UserPlus size={12} /> Invite User</button>}
+          {can.manageUsers(role) && <button onClick={() => setInviteUserOpen(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }}><UserPlus size={12} /> Invite User</button>}
         </div>
         <div className="rounded overflow-hidden" style={{ border: "1px solid #e2e6eb" }}>
           <div className="flex items-center h-8 px-3 gap-2" style={{ backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
-            {[["w-48", "Name"], ["flex-1", "Email"], ["w-36", "Phone number"], ["w-32", "Role"], ["w-20", "Status"], ["w-40", "Last Login"]].map(([c, l], i) => <div key={i} className={cx(c, "text-[9px] font-semibold uppercase tracking-wider")} style={{ color: "#8c94a6" }}>{l}</div>)}
+            {[["w-44", "Name"], ["flex-1", "Email"], ["w-36", "Phone Number"], ["w-24", "Status"], ["w-36", "Last Login"]].map(([c, l], i) => <div key={i} className={cx(c, "text-[9px] font-semibold uppercase tracking-wider")} style={{ color: "#8c94a6" }}>{l}</div>)}
           </div>
-          {usersFiltered.map(u => { const sc = userStatusCfg(u.status); return (
+          {usersFiltered.map(u => (
             <button key={u.email} onClick={() => setSelectedUser(u)} className="w-full flex items-center h-10 px-3 gap-2 text-left hover:bg-[#f7f8fa]" style={{ borderBottom: "1px solid #f0f2f5" }}>
-              <div className="w-48 flex items-center gap-2"><Avatar owner={u.owner} size="sm" /><span className="text-[12px] font-medium truncate" style={{ color: "#1a2234" }}>{u.name}</span></div>
+              <div className="w-44 flex items-center gap-2"><Avatar owner={u.owner} size="sm" /><span className="text-[12px] font-medium truncate" style={{ color: "#1a2234" }}>{u.name}</span></div>
               <div className="flex-1 text-[11px] truncate" style={{ color: "#5c6478" }}>{u.email}</div>
-              <div className="w-36 text-[11px] truncate" style={{ color: "#5c6478" }}>{u.phoneNumber}</div>
-              <div className="w-32"><RoleBadge role={u.role} /></div>
-              <div className="w-20"><span className="px-2 py-px text-[10px] font-semibold rounded-sm" style={{ backgroundColor: sc.bg, color: sc.text }}>{u.status}</span></div>
-              <div className="w-40 text-[10px]" style={{ color: "#8c94a6" }}>{u.lastLogin}</div>
+              <div className="w-36 text-[10px]" style={{ color: "#5c6478" }}>{u.phoneNumber}</div>
+              <div className="w-24"><span className="inline-flex rounded-sm px-2 py-0.5 text-[9px] font-semibold" style={{ color: userStatusCfg(u.status).text, backgroundColor: userStatusCfg(u.status).bg }}>{u.status === "Deactive" ? "Disabled" : u.status}</span></div>
+              <div className="w-36 text-[10px]" style={{ color: "#8c94a6" }}>{u.lastLogin}</div>
             </button>
-          ); })}
+          ))}
           {usersFiltered.length === 0 && <div className="px-3 py-6 text-center text-[11px]" style={{ color: "#8c94a6" }}>No users found.</div>}
         </div>
       </div>
     ),
     roles: (
-      <div className="flex gap-4 h-full min-h-0">
-        <div className="w-64 shrink-0">
-          <p className="text-[9px] uppercase tracking-widest font-semibold mb-2" style={{ color: "#8c94a6" }}>Production roles</p>
-          <div className="space-y-1">
-            {PROD_ROLES.map(r => (
-              <button
-                key={r.code}
-                onClick={() => setSelectedProdRole(r.code)}
-                className="w-full text-left px-2.5 py-2 rounded"
-                style={{ backgroundColor: selectedProdRole === r.code ? "#edf2fb" : "transparent", border: selectedProdRole === r.code ? "1px solid #bdd0ea" : "1px solid transparent" }}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="w-7 text-center text-[10px] font-bold px-1 py-0.5 rounded" style={{ backgroundColor: selectedProdRole === r.code ? "#1d3f73" : "#f0f2f5", color: selectedProdRole === r.code ? "#ffffff" : "#5c6478" }}>{r.code}</span>
-                  <span className="text-[12px] font-semibold" style={{ color: selectedProdRole === r.code ? "#1d3f73" : "#1a2234" }}>{r.name}</span>
-                </div>
-                <p className="mt-1 text-[10px] font-mono" style={{ color: "#5c6478" }}>{r.slug}</p>
-                <p className="mt-0.5 text-[10px]" style={{ color: "#8c94a6" }}>{r.summary}</p>
-              </button>
-            ))}
-          </div>
+      <div className="max-w-6xl">
+        <div className="flex items-center justify-between mb-4">
+          <div><div className="flex items-center gap-2"><Shield size={15} style={{ color: "#1d3f73" }} /><span className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>Role Actions by Screen</span></div><p className="text-[10px] mt-1" style={{ color: "#8c94a6" }}>Permissions are evaluated by action and project scope. This reference is fixed and read-only.</p></div>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm text-[10px] font-semibold" style={{ color: "#5c6478", backgroundColor: "#f4f6f9", border: "1px solid #dde2ea" }}><Lock size={10} /> Fixed access model</span>
         </div>
-        <div className="flex-1 min-w-0 flex flex-col">
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div>
-              <div className="flex items-center gap-2">
-                <Shield size={14} style={{ color: "#1d3f73" }} />
-                <span className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>Role Action Matrix</span>
-              </div>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <div className="flex flex-wrap justify-end gap-1.5">
-                {Object.entries(STATE_STYLE).map(([key, cfg]) => (
-                  <span key={key} className="text-[10px] font-semibold px-2 py-1 rounded-sm" style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}` }}>{key} {cfg.label}</span>
-                ))}
-              </div>
-              <div className="flex items-center gap-2">
-                {permissionSaved && <span className="text-[10px] font-semibold" style={{ color: "#1e6930" }}>Saved</span>}
-                {canEditPermissionMatrix && !isPermissionEditMode && (
-                  <button onClick={startPermissionEdit} className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[11px] font-semibold" style={{ color: "#1d3f73", border: "1px solid #bdd0ea", backgroundColor: "#edf2fb" }}>
-                    <Edit3 size={12} /> Edit
-                  </button>
-                )}
-                {canEditPermissionMatrix && isPermissionEditMode && (
-                  <button onClick={savePermissionMatrix} className="flex items-center gap-1.5 px-3 py-1.5 rounded text-[11px] font-semibold text-white" style={{ backgroundColor: hasPermissionChanges ? "#1d3f73" : "#8c94a6" }}>
-                    <Save size={12} /> Save
-                  </button>
-                )}
-              </div>
-            </div>
+
+        <div className="rounded overflow-hidden" style={{ border: "1px solid #d9dee7" }}>
+          <div className="grid h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 105px 120px 120px 120px", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
+            {["Screen", "Action", "WA", "PA · Admin", "PA · Viewer", "PM · Assigned"].map(label => <div key={label} className="px-3 text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{label}</div>)}
           </div>
-          <div className="rounded overflow-auto flex-1" style={{ border: "1px solid #e2e6eb" }}>
-            <div className="grid items-center min-w-[788px] sticky top-0 z-10" style={{ gridTemplateColumns: "140px minmax(240px,1fr) 190px repeat(3,64px)", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
-              {["Screen", "Action", "Permission", ...PROD_ROLES.map(r => r.code)].map((h, idx) => (
-                <div key={h} className="px-3 py-2 text-[9px] font-semibold uppercase tracking-wider text-center" style={{ color: idx >= 3 && h === selectedProdRole ? "#1d3f73" : "#8c94a6", borderRight: idx < 5 ? "1px solid #eef1f5" : undefined }}>{h}</div>
-              ))}
+          {SCREEN_ACTION_ACCESS_ROWS.map((item, index) => (
+            <div key={`${item.screen}-${item.action}`} className="grid min-h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 105px 120px 120px 120px", backgroundColor: index % 2 ? "#fbfcfe" : "#ffffff", borderBottom: index < SCREEN_ACTION_ACCESS_ROWS.length - 1 ? "1px solid #edf0f4" : undefined }}>
+              <div className="px-3 text-[10px] font-semibold" style={{ color: "#3a4254" }}>{item.screen}</div>
+              <div className="px-3 text-[10px]" style={{ color: "#3a4254" }}>{item.action}</div>
+              {[item.wa, item.paAdmin, item.paViewer, item.pm].map((value, valueIndex) => <div key={`${item.screen}-${item.action}-${valueIndex}`} className="px-3"><FixedAccessBadge value={value} /></div>)}
             </div>
-            {permissionRows.map((row, idx) => (
-              <div key={`${row.screen}-${row.action}`} className="grid items-center min-w-[788px]" style={{ gridTemplateColumns: "140px minmax(240px,1fr) 190px repeat(3,64px)", borderBottom: "1px solid #f0f2f5", backgroundColor: idx % 2 === 0 ? "#ffffff" : "#fbfcfe" }}>
-                <div className="px-3 py-2 text-[11px] font-semibold" style={{ color: "#3a4254", borderRight: "1px solid #eef1f5" }}>{row.screen}</div>
-                <div className="px-3 py-2 text-[11px]" style={{ color: "#1a2234", borderRight: "1px solid #eef1f5" }}>{row.action}</div>
-                <div className="px-3 py-2 text-[10px] font-mono truncate" style={{ color: "#697285", borderRight: "1px solid #eef1f5" }}>{row.permission}</div>
-                {PROD_ROLES.map(r => {
-                  const state = row.states[r.code];
-                  const cfg = STATE_STYLE[state];
-                  const selected = selectedProdRole === r.code;
-                  const editable = canEditPermissionMatrix && isPermissionEditMode && r.code !== "WA" && !row.locked;
-                  return (
-                    <div key={r.code} className="h-full flex items-center justify-center px-2 py-1.5" style={{ backgroundColor: selected ? "#f3f6fb" : undefined, borderRight: r.code !== "PM" ? "1px solid #eef1f5" : undefined }}>
-                      {editable ? (
-                        <select
-                          aria-label={`${row.screen} ${row.action} ${r.code} permission state`}
-                          value={state}
-                          onChange={event => editPermissionState(idx, r.code, event.target.value as PermissionState)}
-                          className="w-12 h-6 rounded-sm text-center text-[10px] font-bold focus:outline-none"
-                          style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}` }}
-                        >
-                          {PERMISSION_STATE_OPTIONS.map(option => <option key={option} value={option}>{option}</option>)}
-                        </select>
-                      ) : (
-                        <span title={row.locked ? "System baseline permission" : r.code === "WA" ? "Workspace Admin baseline" : undefined} className="w-10 inline-flex items-center justify-center gap-0.5 text-center text-[10px] font-bold rounded-sm py-0.5" style={{ backgroundColor: cfg.bg, color: cfg.text, border: `1px solid ${cfg.border}` }}>
-                          {(row.locked || r.code === "WA") && <Lock size={8} />}
-                          {state}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
+          ))}
+        </div>
+
+        <div className="mt-4 grid grid-cols-3 gap-3">
+          {[
+            { title: "Rule source", value: "Action + scope", detail: "Screens only reflect the effective permissions" },
+            { title: "Project access", value: "Assigned explicitly", detail: "Admin, Member, Viewer or No Access per project" },
+            { title: "Permission changes", value: "Next sign-in", detail: "Removal takes effect on page refresh" },
+          ].map(item => <div key={item.title} className="px-3 py-3 rounded" style={{ border: "1px solid #d9dee7", backgroundColor: "#fbfcfe" }}><p className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{item.title}</p><p className="text-[12px] font-semibold mt-1" style={{ color: "#1a2234" }}>{item.value}</p><p className="text-[10px] mt-1" style={{ color: "#5c6478" }}>{item.detail}</p></div>)}
         </div>
       </div>
     ),
@@ -610,8 +768,8 @@ export function SettingsPage({ role, projectReadOnly = false, permissionMatrix, 
                 {sec.items.map(item => {
                   const locked = item.gate === false;
                   return (
-                    <button key={item.key} onClick={() => !locked && setActiveTab(item.key)} className={cx("w-full flex items-center gap-2 px-2 py-1.5 text-[12px] rounded text-left mb-0.5", locked && "opacity-40 cursor-not-allowed")} style={{ backgroundColor: activeTab === item.key ? "#edf2fb" : "transparent", color: activeTab === item.key ? "#1d3f73" : "#3a4254", fontWeight: activeTab === item.key ? 600 : 400 }} disabled={locked}>
-                      <span style={{ color: activeTab === item.key ? "#1d3f73" : "#8c94a6" }}>{item.icon}</span>
+                    <button key={item.key} onClick={() => !locked && setActiveTab(item.key)} className={cx("w-full flex items-center gap-2 px-2 py-1.5 text-[12px] rounded text-left mb-0.5", locked && "opacity-40 cursor-not-allowed")} style={{ backgroundColor: visibleActiveTab === item.key ? "#edf2fb" : "transparent", color: visibleActiveTab === item.key ? "#1d3f73" : "#3a4254", fontWeight: visibleActiveTab === item.key ? 600 : 400 }} disabled={locked}>
+                      <span style={{ color: visibleActiveTab === item.key ? "#1d3f73" : "#8c94a6" }}>{item.icon}</span>
                       {item.label}
                       {locked && <Lock size={10} className="ml-auto" style={{ color: "#b0b8c8" }} />}
                     </button>
@@ -622,11 +780,15 @@ export function SettingsPage({ role, projectReadOnly = false, permissionMatrix, 
           </div>
         </div>
         <div className="flex-1 overflow-auto p-6 bg-white">
-          <h2 className="text-[14px] font-semibold mb-4" style={{ color: "#1a2234" }}>{sections.flatMap(s => s.items).find(i => i.key === activeTab)?.label || "Settings"}</h2>
-          {content[activeTab] || <p className="text-[12px]" style={{ color: "#5c6478" }}>Select a section from the left menu.</p>}
+          <h2 className="text-[14px] font-semibold mb-4" style={{ color: "#1a2234" }}>{sections.flatMap(s => s.items).find(i => i.key === visibleActiveTab)?.label || "Settings"}</h2>
+          <div style={{ display: visibleActiveTab === "workspaceProjects" ? "contents" : "none" }}>
+            <WorkspaceProjectsPanel role={role} workspaceUsers={settingsUsers} onChangeProjectAccess={changeProjectAccess} onAddProjectTeam={addProjectTeam} />
+          </div>
+          {visibleActiveTab !== "workspaceProjects" && (content[visibleActiveTab] || <p className="text-[12px]" style={{ color: "#5c6478" }}>Select a section from the left menu.</p>)}
         </div>
       </div>
-      {selectedUser && <UserDetailModal key={selectedUser.email} user={selectedUser} onClose={() => setSelectedUser(null)} onSave={saveUser} onRemoveAccess={setRemoveUserTarget} />}
+      {selectedUser && <UserDetailModal key={selectedUser.email} user={selectedUser} projectTeamsByProject={workspaceProjectTeams} onClose={() => setSelectedUser(null)} onSave={saveUser} onRemoveAccess={setRemoveUserTarget} />}
+      {inviteUserOpen && <UserDetailModal isInvite user={{ name: "", email: "", phoneNumber: "", role: "Project Member", status: "Invited", lastLogin: "—", owner: { name: "New User", initials: "NU", color: "#4a7c6e" }, projectAccess: [{ projectKey: "NXP", level: "No Access", teams: [] }] }} projectTeamsByProject={workspaceProjectTeams} onClose={() => setInviteUserOpen(false)} onSave={inviteUser} />}
       {removeUserTarget && <ConfirmRemoveUserAccess user={removeUserTarget} onCancel={() => setRemoveUserTarget(null)} onConfirm={() => removeUserAccess(removeUserTarget)} />}
     </>
   );

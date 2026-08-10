@@ -1,71 +1,65 @@
 # DEV Fix Handoff — DevInt Audit Phase 0–6
 
-**Ngày audit:** 2026-08-06
-**Môi trường:** `https://rally-dev.qnsc.vn/`
-**Nguồn kết quả chính:** `PHASE_0_6_AUDIT_TRACKER.xlsx`
-**Log kiểm tra:** `../Codex_audit_06_tracker.md`
+> **Access-model supersession (2026-08-10):** Authorization findings from the 2026-08-09 re-test remain historical. Current acceptance must use Workspace Admin plus per-Project `Admin`/`Editor`/`Viewer`/`No Access` and be re-tested with controlled assignments.
 
-## 1. Phạm vi bàn giao
+**Latest re-test:** 2026-08-09
 
-- Tổng số scenario: **192**.
-- DEV cần xử lý: **24 Fail**.
-- Không tự coi **Partial**, **Blocked** hoặc **Not Run** là bug. Các trạng thái này cần thêm dữ liệu, account hoặc BA xác nhận nhánh còn lại.
-- Chỉ xử lý FE và business behavior theo SRS/mockup đã duyệt; không mở rộng sang schema, DB hoặc hạ tầng.
+**Environment:** `https://rally-dev.qnsc.vn/`
 
-## 2. Thứ tự ưu tiên
+**Primary result:** `PHASE_0_6_AUDIT_TRACKER.xlsx`
 
-| Priority | Số lỗi | Cách xử lý |
-|---|---:|---|
-| P0 | 9 | Sửa trước; đang chặn luồng chính hoặc làm sai dữ liệu/trạng thái. |
-| P1 | 7 | Sửa sau P0; ảnh hưởng thao tác và tính nhất quán. |
-| P2 | 7 | Lệch UI/contract đã duyệt. |
-| P3 | 1 | Chuẩn hóa label. |
+**Detailed log:** `../Codex_audit_06_tracker.md`
 
-## 3. Danh sách lỗi cần sửa
+## 1. Current status
 
-### Phase 0–4 carryover — 16 lỗi
+- Total scenarios: **192**.
+- Current dashboard: **84 Pass / 31 Partial / 9 Fail / 14 Blocked / 41 Not Run / 9 Future Backlog / 4 Not Required**.
+- This re-test covered all **51** scenarios that were previously `Fail` or `Partial`; existing `Blocked` scenarios were excluded.
+- Only FE and approved business behavior are in scope. Do not expand into schema, DB or infrastructure.
 
-| ID | Priority | Hiện tại | DEV cần sửa |
-|---|---:|---|---|
-| `GAP-P1-BL-001` | P1 | Clear Backlog search không ổn định; dữ liệu còn bị lọc đến khi reload. | Clear search phải cập nhật danh sách ngay, không cần reload. |
-| `GAP-P1-BL-002` | P1 | Priority `None` vẫn giữ cả Story và Defect. | Priority filter chỉ áp dụng Defect; Story hiển thị dấu gạch và không thuộc `None`. |
-| `GAP-P1-CREATE-006` | P1 | Owner mặc định Unassigned; sau khi Hieu được thêm vào Pegasus, Settings đã có Hieu nhưng Owner của US-1 vẫn chỉ có No Entry và Anh. | Giữ rule default đã duyệt; lấy allowed Owner từ membership hiện tại và refresh/invalidate cache sau khi add/remove member. |
-| `GAP-P2-IT-001` | P1 | Iteration list thiếu Project và Task Estimate. | Bổ sung đúng hai cột đã duyệt. |
-| `GAP-P2-IS-003` | P2 | Iteration Status thiếu cột Type. | Bổ sung cột Type. |
-| `GAP-P2-IS-004` | P2 | Iteration Status có cột Defects ngoài scope. | Xóa cột Defects. |
-| `GAP-P3-TS-001` | P2 | Team Status còn local Search tasks. | Xóa local search. |
-| `GAP-P3-TS-002` | P2 | Team Status còn Filters, Show Fields và rows-per-page. | Xóa các control ngoài scope. |
-| `GAP-P3-TS-003` | P2 | Thiếu breadcrumb Project > Track > Team Status. | Bổ sung breadcrumb đúng hierarchy. |
-| `GAP-P3-TS-005` | P2 | Task State là segmented control. | Dùng inline dropdown `Defined / In-Progress / Completed`. |
-| `GAP-P3-TS-007` | P3 | Label Task State bị viết tắt hoặc dùng câu lệnh hành động. | Dùng chính xác ba catalog label. |
-| `GAP-P3-TS-008` | P0 | User từng xuất hiện ở Team Status khi chưa thuộc Team; sau khi được add vào Team lại chưa xuất hiện trong Owner dropdown. | Dùng một nguồn Team membership hiện tại cho Team Status và mọi Owner selector; đồng bộ ngay sau add/remove. Cách xử lý Task đang thuộc member bị remove vẫn `Pending BA`. |
-| `GAP-P4-SET-002` | P0 | User Management thiếu Phone và thừa Teams. | Đồng nhất column/field theo SRS đã duyệt. |
-| `GAP-P4-SET-003` | P1 | Audit Log dùng technical event/ID, không có business detail trước/sau. | Hiển thị business-readable event và before/after. |
-| `GAP-P4-SET-004` | P1 | Deactive Team lưu ngay, không có confirmation theo đối tượng. | Bổ sung confirmation trước destructive status action. |
-| `GAP-P4-SET-005` | P2 | Notification Preferences vẫn còn trong Settings. | Xóa khỏi scope/navigation hiện tại. |
+## 2. Confirmed Fail — DEV must fix
 
-### Phase 5 — 4 lỗi P0
-
-| ID | Hiện tại | DEV cần sửa |
+| ID | Current evidence | Required behavior |
 |---|---|---|
-| `P5-CP-005` | Draft Team Capacity chỉ là text; chỉ Forecast mới ghi được Capacity. | Cho phép sửa Capacity thủ công khi Draft; không thay đổi allocation hoặc live Feature estimate. |
-| `P5-CP-031` | Thứ tự metrics là Dependencies, Rollup, Estimated, Complete. | Đổi thành Dependencies, Complete, Rollup, Estimated. |
-| `P5-CP-032` | Chọn Planned Team làm counters đổi nhưng selector vẫn `Not assigned`, kể cả reload. | Persist và render Planned Team từ cùng allocation ledger. |
-| `P5-CP-034` | Không thể Unassign vì Planned Team không render trạng thái đã gán. | Sửa `P5-CP-032`, sau đó Unassign phải xóa Team nhưng giữ Feature trong plan. |
+| `GAP-P1-BL-001` | Clearing Backlog search leaves the list at `1–1 of 1` until reload. | Clearing text restores the full scoped backlog immediately. |
+| `GAP-P1-CREATE-006` | Quick Create still defaults Owner to Unassigned and does not offer the current user. | Apply the approved current-user default and membership-scoped Owner options. |
+| `GAP-P3-TS-005` | Team Status counts a Task but does not render its Task row/State control. | Render the Task and provide an inline State dropdown. |
+| `GAP-P3-TS-007` | Exact Task State values cannot be selected because the Task control is absent. | Use exactly `Defined / In-Progress / Completed`. |
+| `GAP-P3-TS-008` | Settings says Pegasus contains only Anh; Team Status still groups Hieu with one Task. | Use one current Team-membership source and invalidate stale membership data. |
+| `GAP-P4-SET-003` | Audit Log still contains `auth.login.sso`, `access.role_elevated` and technical IDs. | Show approved administrative mutations with business-readable before/after detail. |
+| `P5-CP-005` | Draft Capacity remains read-only `30 points`; only Forecast is actionable. | Allow Draft-only manual Capacity editing without changing allocation or live Feature estimates. |
+| `P5-CP-032` | FE-2 is allocated under Pegasus but Planned Team still shows `Not assigned`. | Persist/render Planned Team from the shared allocation ledger. |
+| `P5-CP-034` | Unassign cannot work because the assigned Team state is not rendered. | Fix `P5-CP-032`, then let Unassign clear Team while retaining the Feature in the Plan. |
 
-### Phase 6 — 4 lỗi
+## 3. Partial scenarios
 
-| ID | Priority | Hiện tại | DEV cần sửa |
-|---|---:|---|---|
-| `P6-COM-006` | P1 | Reports và Release Tracking reset view/filter sau reload. | Persist Reports Type/window và Release Tracking Chart Unit/bucket. |
-| `P6-VEL-006` | P0 | Velocity mặc định `Last 10 sprints`. | Mặc định `Last 5 sprints` và giữ lựa chọn của user. |
-| `P6-E2E-001` | P0 | `Create with details` có thể tạo ngầm nhiều Work Item nhưng modal vẫn mở, không có xác nhận. | Mỗi submission chỉ tạo đúng một record; chống double-submit và đóng/chuyển màn hình sau thành công. |
-| `P6-E2E-002` | P0 | State không persist/mirror ổn định; reload về Idea và báo cáo không tính Accepted. | Persist atomic và mirror hai chiều Schedule State/Flow State trước khi refresh report totals. |
+`Partial` does not automatically mean a DEV bug. Most remaining Partial cases need one of these controlled conditions:
 
-## 4. Retest gate
+- a second Project, Release, Iteration or Team;
+- disposable Portfolio/Capacity records for archive, remove, split or publish branches;
+- a fully-empty Task or controlled child Work Items;
+- a no-Release Project, a Release-state Work Item, or a sign-out/sign-in cycle.
 
-1. DEV ghi commit/PR và Scenario ID cho từng fix.
-2. Không đổi Expected Result trong workbook để làm case Pass.
-3. Sau deploy, BA retest đúng row trong `PHASE_0_6_AUDIT_TRACKER.xlsx`.
-4. Chỉ đổi `Fail` thành `Pass` khi toàn bộ Expected Result đúng và reload vẫn giữ kết quả.
-5. Những case cần data/account vẫn giữ nguyên `Partial`, `Blocked` hoặc `Not Run` đến khi đủ điều kiện.
+Two Partial areas still require follow-up implementation/regression attention:
+
+- `GAP-P4-SET-002`: list columns now align, but User Detail, role behavior and guarded Remove User Access remain incomplete.
+- `GAP-P4-SET-004`: Team Deactive confirmation now passes; typed confirmation for Remove User Access must be tested after User Detail is available.
+
+## 4. Fixes confirmed in this re-test
+
+- Backlog Priority `None` filters Defects only.
+- Iteration list includes Task Estimate; Iteration Status removed per-row Defects.
+- Team Status removed local Search and Show Fields, retained Filters/pagination and shows full-Iteration Totals.
+- Team Status breadcrumb is correct.
+- Workspace Settings shows single-company scope.
+- Notification Preferences is hidden.
+- Feature `Create with details` created one FE-4 and opened its detail.
+- Reports Type/window and Release Tracking Chart Unit/bucket persist after reload.
+- Work Item `Create with details` created exactly one US-7; Flow/Schedule State mirroring persisted after save and reload.
+
+## 5. DEV completion gate
+
+1. Reference the Scenario ID in each commit/PR.
+2. Deploy the fix to DevInt.
+3. BA re-tests the same row in `PHASE_0_6_AUDIT_TRACKER.xlsx`.
+4. Change `Fail`/`Partial` to `Pass` only when the full Expected Result is met and still correct after reload.

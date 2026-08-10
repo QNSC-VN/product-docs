@@ -1,5 +1,7 @@
 # Plan 6 — Live Progress
 
+> **Historical Figma log (2026-08-10):** `SCR-09`, Permission State Chip and Project Admin/Project Member findings below predate the current authorization model. Use `P6_SCREEN_CONTRACTS.md` plus Phase 4 `02_Roles_Permissions/SRS.md` for current behavior.
+
 ## Current item
 
 Plan 6 confirmed by the user (`2026-07-21`). Plan 7 (QA, Dev Mode and handoff) is now unblocked — see `CONVERSION_PROGRESS.md`.

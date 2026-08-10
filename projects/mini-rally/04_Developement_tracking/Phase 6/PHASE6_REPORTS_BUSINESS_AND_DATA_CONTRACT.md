@@ -1,5 +1,7 @@
 # Phase 6 Reports - Business and Data Contract
 
+> **Authorization baseline (2026-08-10):** Reports are available to Workspace Admin plus assigned-Project `Admin` and `Viewer`; they remain read-only. `Editor` and `No Access` cannot open Reports. Server-side queries must enforce the selected Project boundary.
+
 ## 1. Document control
 
 | Attribute | Value |

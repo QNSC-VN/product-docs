@@ -192,7 +192,7 @@ Included:
 
 Follow-up notes to avoid scope loss:
 
-- Define permissions for PO/PM/Developer/Tester/Viewer.
+- Apply the approved Project Access model: WA/Admin edit; Editor edits assigned-Team Iteration Status; Viewer read-only; No Access hidden.
 - Move existing backlog items into an Iteration by updating the Work Item Iteration field from Backlog list or Work Item Detail.
 - Keep Team Board and Team Status out of Phase 2.
 - Keep Iteration Status Board view/toggle and Board drag/drop in Future Backlog; Phase 0-4 uses List only. Dedicated Start/Close and carry-over workflow is not required by the confirmed baseline.

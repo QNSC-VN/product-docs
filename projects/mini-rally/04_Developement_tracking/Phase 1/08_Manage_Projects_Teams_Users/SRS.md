@@ -1,450 +1,362 @@
-# SRS - Phase 1.8 Manage Projects and Workspace Teams/Users
+# SRS - Phase 1.8 Project Management
 
 ## 0. Document Control
 
 | Attribute | Value |
 |---|---|
-| Module ID | `P1-MANAGE-ORG` |
-| Status | Draft for Development |
-| Scope | Project Management entry point under the Settings gear; Settings gear owns Teams and User Management |
+| Module ID | `P1-PROJECT-MANAGEMENT` |
+| Status | BA/Mockup Ready |
+| Updated date | 2026-08-10 |
+| Scope | Project, Project Team and Project-user administration under the top-right Settings gear |
 | Priority | P1 - required |
-| Depends on | Phase 0 App Shell, Auth/Role, Project/Team/User DB |
-| Mockup source | `03_Mockup Design/src/app/pages/ProjectsPage.tsx` |
-| Not included | Team capacity planning, velocity management, advanced RBAC designer, audit admin screen |
+| Depends on | Phase 0 App Shell, company Users and Phase 4 Project Access |
+| Mockup source | `03_Mockup Design/src/app/pages/WorkspaceProjectsPanel.tsx` |
+| Permission source | `Phase 4/02_Roles_Permissions/SRS.md` |
+| Replaces | Old standalone Manage Projects and separate Team administration journeys |
 
-## 1. Objective
+## 1. Goal
 
-Phase 1 needs a clean Project Management area so Workspace Admin can maintain the organization structure used by Backlog, Work Item Create, Work Item Detail, and later Iteration flows.
-
-`Settings gear > Workspace > Project Management` contains the `Projects` list only. The same Settings gear also owns `Teams` and `User Management`. The three surfaces together maintain the organization structure used by work management.
-
-## 2. Actors
-
-| Actor | Access |
-|---|---|
-| Workspace Admin | Full access to Project Management and Settings Teams/User Management |
-| Project Admin | Project-scoped access only when granted by permission |
-| Project Member | No organization administration access |
-
-Backend permission must be enforced even if the FE hides buttons.
-
-## 2A. Business Rules / Business Flow
-
-Manage is the administration surface for the organization structure used by all later work flows.
-
-Business flow:
+Project Management provides one structural administration journey:
 
 ```text
-Workspace Admin opens top-right Settings gear
--> Opens Workspace > Project Management and creates or maintains Projects
--> Opens Settings gear > Teams and creates Teams/links them to Projects
--> Opens Settings gear > User Management and invites/maintains Users
--> Grants Users workspace role and team membership
--> Backlog/Create/Detail/Iteration screens use only valid Project-Team-User relationships
+Company Workspace
+-> Project
+   -> Details
+   -> Users & Permissions
+   -> Teams
 ```
 
-Business rules:
+The screen consolidates Project CRUD, Project Teams and Project-user access under `Settings gear > Workspaces & Projects`.
 
-- A Workspace contains Projects, Teams and Users.
-- Project is the delivery container for Backlog, Work Items, Releases and Iterations.
-- Team is the delivery group used for assignment and planning. In Phase 1, a Team must be linked to at least one active Project before it can be selected in Backlog/Create/Detail flows.
-- User is a workspace member who may have a workspace role and team membership.
-- User project access is derived from team membership. The User management screen must not assign projects directly to a user.
-- Work Item Project and Team must be a valid pair. If a user selects Project `NXP`, the Team dropdown can only show teams linked to `NXP`.
-- Owner/Assignee fields should only allow active users who belong to the selected Team, unless BA later allows broader workspace assignment.
-- Team Lead must be an active or invited workspace user, depending final backend policy.
-- Team Members are managed in Create/Edit Team because membership affects assignment/access, but members are not displayed as a Teams list column.
-- Archived Projects and Deactive Teams remain for history but must be excluded from new create selectors by default.
-- Deactive Users remain in history but cannot be newly assigned to work items.
-- Capacity and Velocity are not Team management fields in Phase 1; they belong to future iteration planning/reporting decisions.
+This SRS defines business flow and mockup behavior. API payloads and database implementation remain development-owned. Effective permissions come from the Phase 4 Project Access SRS.
 
-## 3. Navigation and Screen Structure
+## 2. Scope Boundary
 
-| UI area | Requirement |
+### 2.1 Included
+
+- Open Project Management from the top-right Settings gear.
+- View the company Workspace, Projects and Teams in one tree according to effective access.
+- Create, view, edit, archive, restore and delete Projects as Workspace Admin.
+- Configure Project Details, Preliminary Estimate values and point-to-hour conversion.
+- Add existing company users to a Project and set per-Project Access Level.
+- Create, view, edit, deactivate and restore Teams as Workspace Admin.
+- Add users and Access Levels while creating a Team.
+- Keep User, Project and Team access journeys synchronized.
+- Confirm destructive or high-impact Project, Team and Project-user actions.
+
+### 2.2 Not Included
+
+- Company-user invitation, disable or removal. These remain in `Settings > Users`.
+- Editable custom role/permission matrices.
+- API request/response design and database mapping.
+- Capacity Planning and Report calculations. This module stores only the Project estimation configuration they consume.
+- Configurable Workflow Status and Labels. These remain Future Backlog.
+
+## 3. Navigation And Access-Aware Journey
+
+### 3.1 Entry Point
+
+```text
+Top navigation
+-> Click Settings gear
+-> Select Workspaces & Projects
+```
+
+The old `Workspace dropdown > Manage Projects` entry is removed. Project Management has one entry point.
+
+### 3.2 Screen Layout
+
+| Area | Behavior |
 |---|---|
-| Top-right Settings gear | `Workspace > Project Management` opens the Projects page |
-| Breadcrumb | Shows `ACME Space Inc. > Project Management` |
-| Page title | `Project Management` |
-| Tabs | Projects only |
-| Primary action | `Create Project`; Team/User actions live under Settings gear |
-| Style | Same dense list design language as Backlog and Timeboxes; no marketing/hero layout |
+| Left tree | Displays only Projects and Teams accessible to the current user |
+| Workspace node | Workspace Admin opens the Project overview |
+| Project node | Opens the selected Project and allowed tabs |
+| Team node | Opens Team Details for the selected Team |
+| Main content | Changes according to selected Workspace, Project or Team |
 
-## 4. Projects Tab
+Access-aware navigation:
 
-Projects tab keeps the existing Phase 1 mockup behavior.
+- Workspace Admin sees every Project and Team and all structural actions.
+- Admin sees only assigned Projects and automatically sees `All Teams`; Project structure is read-only.
+- Editor sees only assigned Projects and explicitly assigned Teams; Project structure is read-only.
+- Viewer sees assigned Projects project-wide and Project structure is read-only.
+- No Access Projects and Teams are hidden.
+- Selecting another Project resets the main content to `Details`.
+- A non-WA Project header shows contextual `Admin`, `Editor` or `Viewer` access so the user understands the current Project scope.
+- No global Project role badge is shown in the top navigation because access can differ by Project.
+
+## 4. Workspace Project Overview
+
+The Workspace overview is the Workspace Admin's company-level Project list.
 
 ### 4.1 List Columns
 
-| Column | Notes |
+| Column | Rule |
 |---|---|
-| Key | Project key, unique in workspace |
-| Project | Name + description |
-| Status | Active/Archived |
-| Owner | Project owner |
-| Teams | Linked teams summary |
-| Members | Count summary |
-| Start Date | Project start date |
-| Updated | Last updated |
-| Actions | Edit, Archive, Restore |
+| Key | Unique Project key |
+| Project | Project name and description |
+| Status | `Active` or `Archived` |
+| Owner | Business owner of the Project |
+| Teams | Number of Teams inside the Project |
 
-### 4.2 Create/Edit Project Fields
+The list does not show Access, Members, Start Date, Updated or row-level Actions columns. Clicking a row opens the Project.
 
-| Field | Required | Notes |
-|---|---:|---|
-| Project name | Yes | Trim and validate unique by name policy if required |
-| Project key | Yes | 2-10 uppercase letters/numbers, immutable after create |
-| Description | No | Text field |
-| Project owner | No | User selector |
-| Start date | No | Date |
-| Teams | No | Multi-select existing teams |
+### 4.2 Create Project
 
-## 5. Settings > Teams
-
-Teams represent delivery teams under a project. Teams are used by Backlog, Work Item Create, Work Item Detail, and later Timebox/Iteration flows.
-
-### 5.1 Team Metrics
-
-| Metric | Rule |
-|---|---|
-| Total Teams | Count all teams in current workspace |
-| Active | Count teams with status `Active` |
-| Deactive | Count teams with status `Deactive` |
-
-Do not show `Projects Covered`, team member count, capacity, or velocity metrics in the Phase 1 `Settings > Teams` screen.
-
-### 5.2 Team List Columns
-
-| Column | Source | Notes |
-|---|---|---|
-| Key | `teams.team_key` | Short team key, unique in workspace or project by backend rule |
-| Team | `teams.name`, `teams.description` | Name and short description |
-| Project | `project_teams.project_id -> projects` | Primary/linked project shown as `KEY / Project name` |
-| Status | `teams.status` | `Active`, `Deactive` |
-| Lead | `teams.lead_user_id -> users` | Avatar + name |
-| Updated | `teams.updated_at` | Relative or formatted date |
-
-The Teams list must not contain `Members`, `Capacity`, `Velocity`, or `Actions` columns. User opens Team detail/edit by clicking the Team row.
-
-### 5.3 Team Filters
-
-| Filter | Rule |
-|---|---|
-| Search | Search by team key, team name, project name, lead name |
-| Project | `All projects` or one project |
-| Status | `All`, `Active`, `Deactive`; default `Active` |
-
-### 5.4 Create/Edit Team Fields
+Only Workspace Admin sees `Create Project`.
 
 | Field | Required | Rule |
 |---|---:|---|
-| Project | Yes | Must be an active project user can manage |
-| Team lead | No | User selector; must be active or invited user depending backend policy |
-| Team name | Yes | Trim, max length defined by backend |
-| Team key | Yes | Auto-suggest from name; uppercase; unique by backend rule |
-| Description | No | Short team purpose/ownership text |
-| Status | Yes | `Active` or `Deactive`; default `Active` |
-| Members | No | Multi-select workspace users assigned to this team |
+| Project name | Yes | Trimmed non-empty name |
+| Project key | Yes | 2-10 uppercase letters/numbers; immutable after creation |
+| Description | No | Short Project description |
+| Project owner | No | Business owner selected from existing company users |
+| Start date | No | Project start date |
+| Preliminary Estimate | Yes | Fixed T-shirt labels mapped to positive point values |
+| Hours per point | Yes | Positive value used by Capacity Planning and Reports |
 
-Create/Edit Team must not include capacity or velocity fields in Phase 1.
+After save, the new Project is added to the tree and list and becomes selected. All normal users remain No Access until Workspace Admin grants Project access.
 
-Create/Edit Team modal uses fixed-size modal tabs:
+## 5. Project Header And Tabs
 
-1. `Team Info`: Project, Team Lead, Team Name, Team Key, Description, Status.
-2. `Members`: searchable vertical list of workspace users; selected users become Team members.
+The Project header shows:
 
-### 5.5 Team Behavior
+- Project name.
+- Project key.
+- Project status.
+- Team count.
+- Contextual Access Level for Admin, Editor or Viewer.
+- Workspace Admin-only Project action icons.
 
-| ID | Requirement |
+Tabs by access:
+
+| Access | Details | Users & Permissions | Teams |
+|---|---:|---:|---:|
+| Workspace Admin | Edit | Edit | Edit |
+| Admin | Read-only | Read-only | Read-only |
+| Editor | Read-only | Hidden | Read-only, assigned Teams only |
+| Viewer | Read-only | Hidden | Read-only |
+| No Access | Hidden | Hidden | Hidden |
+
+## 6. Project Details
+
+### 6.1 Display Fields
+
+| Field | Display behavior |
 |---|---|
-| TEAM-FR-001 | User clicks `Create Team` from Manage > Teams. |
-| TEAM-FR-002 | System opens Create Team modal using the shared Manage modal style. |
-| TEAM-FR-003 | Project, Team name and Team key are required. |
-| TEAM-FR-004 | Team key is normalized uppercase and validated unique. |
-| TEAM-FR-005 | Members can be selected during create/edit but are not shown as a list column. |
-| TEAM-FR-006 | Saving creates team and links it to selected project. |
-| TEAM-FR-007 | Clicking a Team row opens Edit Team modal. |
-| TEAM-FR-008 | Deactive makes team unavailable for new selectors but preserves history. |
-| TEAM-FR-009 | Reactivating a team is done by setting status back to `Active`. |
+| Project name | Saved Project name |
+| Project key | Immutable key |
+| Status | `Active` or `Archived` |
+| Start date | Saved Project start date |
+| Project owner | Business ownership information; not an access assignment |
+| Description | Saved Project description |
 
-## 6. Users Tab
+### 6.2 Estimation Settings
 
-Users tab provides the minimum workspace user management needed for Phase 1.
+Estimation Settings are configured independently for each Project.
 
-### 6.1 User Metrics
-
-| Metric | Rule |
-|---|---|
-| Total Users | Count all users in workspace |
-| Active | Count users with status `Active` |
-| Admins | Count users with role `Workspace Admin` |
-
-Do not show an `Invited` metric card in the Users tab. Invited remains available as a user status value, but it is not a top summary metric or a segmented list filter.
-
-### 6.2 User List Columns
-
-| Column | Source | Notes |
-|---|---|---|
-| User | `users.full_name`, avatar initials | Primary visible identity |
-| Email | `users.email` | Unique login/contact |
-| Workspace Role | Workspace membership role | Badge |
-| Status | User status | `Active`, `Invited`, `Deactive` |
-| Teams | Team memberships summary | Team names |
-| Last Login | Auth/audit source | `-` for invited users |
-
-The Users list must not show `Project Access` or `Actions` columns. User detail/edit opens by clicking the user row.
-
-### 6.2A User Filters
-
-| Filter | Rule |
-|---|---|
-| Search | Search by user name, email, workspace role |
-| Role | `All roles` or one workspace role |
-| Status | Segmented filter: `All`, `Active`, `Deactive` |
-
-Invited users can appear in the list, but the current mockup does not provide a dedicated `Invited` filter chip.
-
-### 6.3 Invite/Edit User Fields
-
-| Field | Required | Rule |
-|---|---:|---|
-| Full name | No for invite | If blank, derive display name from email until profile is completed |
-| Email | Yes | Valid email, unique in workspace |
-| Workspace role | Yes | `Workspace Admin`, `Project Manager`, `Product Owner`, `Developer`, `Tester`, `Viewer` |
-| Status | Yes | `Active`, `Invited`, `Deactive` |
-| Team membership | No | Multi-select active teams; project access is derived from selected teams |
-
-Invite/Edit User modal uses fixed-size modal tabs:
-
-1. `Info`: Full name, Email, Workspace role, Status.
-2. `Teams`: searchable list of active teams.
-
-There is no `Projects` tab in the User modal.
-
-### 6.4 User Invite Business Flow
-
-Target business flow:
+The mockup uses sample data:
 
 ```text
-Workspace Admin opens Manage > Users
--> Clicks Invite User
--> Enters email, optional full name, workspace role, status and team membership
--> System creates an invited workspace user
--> System sends invitation email to the user
--> User opens invitation email and clicks confirmation/join link
--> System validates invitation token
--> User completes account setup or signs in
--> User status becomes Active and user can access permitted team/project data
-```
-
-Phase 1 implementation note:
-
-- Email sending and invitation token confirmation can be implemented later if it is not ready in the first development slice.
-- For the initial backend implementation, dev may create/invite users directly through DB/API records and set status manually, while preserving the API shape for future email invite flow.
-- The SRS still defines the full business flow so later implementation does not need to reinterpret the product requirement.
-
-### 6.5 User CRUD Behavior
-
-| ID | Requirement |
-|---|---|
-| USER-FR-001 | Workspace Admin opens Manage > Users. |
-| USER-FR-002 | System shows user list with User, Email, Workspace Role, Status, Teams, Last Login. |
-| USER-FR-003 | User list supports search by name/email/role, role filter and status filter. |
-| USER-FR-004 | Workspace Admin clicks `Invite User` to open Invite User modal. |
-| USER-FR-005 | Email is required, must be valid and unique in workspace. |
-| USER-FR-006 | Workspace Role is required. |
-| USER-FR-007 | Status is required and supports `Active`, `Invited`, `Deactive`. |
-| USER-FR-008 | Admin can assign zero or more active Teams to the user. |
-| USER-FR-009 | Admin cannot assign Projects directly to the user. Project access is derived from selected Teams. |
-| USER-FR-010 | Saving an invited user creates user/workspace membership and team membership records. |
-| USER-FR-011 | Clicking a user row opens the same modal in edit mode. |
-| USER-FR-012 | In edit mode, email is read-only unless backend explicitly supports email change. |
-| USER-FR-013 | Admin can update full name, workspace role, status and team membership. |
-| USER-FR-014 | Setting status to `Deactive` prevents future assignment/login access according to backend auth policy, but preserves history. |
-| USER-FR-015 | Re-activating a user is done by setting status back to `Active`. |
-
-## 7. API Contracts
-
-Suggested endpoints:
-
-```text
-GET    /api/v1/manage/projects
-POST   /api/v1/manage/projects
-PATCH  /api/v1/manage/projects/:projectId
-POST   /api/v1/manage/projects/:projectId/archive
-POST   /api/v1/manage/projects/:projectId/restore
-
-GET    /api/v1/manage/teams
-POST   /api/v1/manage/teams
-PATCH  /api/v1/manage/teams/:teamId
-POST   /api/v1/manage/teams/:teamId/deactivate
-POST   /api/v1/manage/teams/:teamId/reactivate
-
-GET    /api/v1/manage/users
-POST   /api/v1/manage/users/invite
-PATCH  /api/v1/manage/users/:userId
-POST   /api/v1/manage/users/:userId/deactivate
-POST   /api/v1/manage/users/:userId/reactivate
-```
-
-### 7.1 Create Team Request
-
-```json
-{
-  "projectId": "uuid",
-  "teamKey": "CP",
-  "name": "Core Platform",
-  "description": "Core product platform team.",
-  "leadUserId": "uuid",
-  "status": "Active",
-  "memberUserIds": ["uuid-1", "uuid-2"]
-}
-```
-
-Team `status` accepts `Active` and `Deactive`.
-
-### 7.2 Team List Response Item
-
-```json
-{
-  "id": "uuid",
-  "teamKey": "CP",
-  "name": "Core Platform",
-  "description": "Core product platform team.",
-  "project": { "id": "uuid", "key": "NXP", "name": "Nexus Platform 2025" },
-  "status": "Active",
-  "lead": { "id": "uuid", "fullName": "Marcus Webb", "initials": "MW" },
-  "updatedAt": "2026-06-28T09:00:00Z"
-}
-```
-
-### 7.3 Invite User Request
-
-```json
-{
-  "email": "alex.morgan@acme.com",
-  "fullName": "Alex Morgan",
-  "workspaceRole": "Developer",
-  "status": "Invited",
-  "teamIds": ["team-uuid-1", "team-uuid-2"]
-}
+XS = 1 pt
+S = 2 pts
+M = 3 pts
+L = 5 pts
+XL = 8 pts
+1 point = 8 hours
 ```
 
 Rules:
 
-- `email`, `workspaceRole` and `status` are required.
-- `fullName` can be blank/null for invite; display name can be derived from email until the user completes profile.
-- `teamIds` can be empty, but each selected team must be active and belong to the workspace.
-- Request must not contain `projectIds` or direct project access.
+- Labels `XS`, `S`, `M`, `L` and `XL` are fixed and cannot be added, removed or renamed.
+- Each point value must be greater than zero and is editable only by Workspace Admin.
+- `Hours per point` must be greater than zero and is editable only by Workspace Admin.
+- Sample values are mock data, not product-mandated defaults.
+- Read view displays labels vertically in the format `XS = 1 pt`.
+- Point-to-hour conversion is consumed only by Capacity Planning and Reports.
+- Saving configuration does not populate or change Task Estimate hours.
 
-### 7.4 Update User Request
+### 6.3 Edit Project
 
-```json
-{
-  "fullName": "Alex Morgan",
-  "workspaceRole": "Developer",
-  "status": "Active",
-  "teamIds": ["team-uuid-1", "team-uuid-2"]
-}
-```
+Only Workspace Admin can edit a Project.
+
+- Project key remains disabled and immutable.
+- Project name, description, owner, start date and Estimation Settings can change.
+- Invalid values prevent save and show validation.
+- Save updates the Project Details read view.
+
+## 7. Users & Permissions
+
+This tab associates existing company users with the selected Project. It never creates or invites a company account.
+
+### 7.1 Visibility And Toolbar
+
+- Workspace Admin can search, add, change and remove Project users.
+- Admin can view the tab and current assignments but cannot mutate them.
+- Editor and Viewer do not see the tab.
+
+| Control | Behavior |
+|---|---|
+| Search | Filters by user name or email |
+| User count | Shows current Project users in the result |
+| Add Existing User | WA-only selector of eligible company users not already in the Project |
+
+Workspace Admin is excluded from the Project list and candidate selector. Disabled company users cannot be newly added.
+
+### 7.2 List Columns
+
+| Column | Behavior |
+|---|---|
+| User | Name, avatar and email |
+| Status | Company account status |
+| Access Level | `Admin`, `Editor` or `Viewer`; dropdown for Workspace Admin and read-only for Admin |
+| Action | `Remove` for Workspace Admin; dash for read-only users |
 
 Rules:
 
-- Email is immutable in Phase 1 edit flow unless backend explicitly supports account email change.
-- Updating `teamIds` replaces the current user-team memberships.
-- Project access for read/filter selectors is derived from the user's current teams.
+- Admin automatically displays `All Teams`.
+- Changing a user to Editor opens Team selection and requires at least one active Team.
+- Viewer has no Team membership.
+- `Remove` opens a confirmation modal, sets the user to No Access for the Project and removes Team memberships in that Project.
+- Project access changes take effect for the affected user on next sign-in.
 
-### 7.5 User List Response Item
-
-```json
-{
-  "id": "user-uuid",
-  "fullName": "Alex Morgan",
-  "email": "alex.morgan@acme.com",
-  "workspaceRole": "Developer",
-  "status": "Active",
-  "teams": [
-    { "id": "team-uuid-1", "key": "CP", "name": "Core Platform", "project": { "id": "project-uuid", "key": "NXP", "name": "Nexus Platform 2025" } }
-  ],
-  "lastLoginAt": "2026-06-28T09:00:00Z"
-}
-```
-
-UI displays Team names in the list. Project data can be returned as nested context for validation/debugging, but it is not displayed as a separate Users list column in the current mockup.
-
-## 8. DB Mapping
-
-| Concept | Suggested DB source |
-|---|---|
-| Project | `projects` |
-| Team | `teams` |
-| Project-Team link | `project_teams` or `teams.project_id` if one team belongs to one project |
-| Team lead | `teams.lead_user_id` |
-| Team members | `team_members` |
-| User | `users` |
-| Workspace role | `workspace_members.role` or equivalent |
-| User team membership | `team_members` |
-| Derived user project access | `team_members -> teams -> project_teams/projects` |
-| User status | `users.status` or membership status |
-
-If current DB design uses different table names, dev should map these concepts to the existing schema and keep API DTO names stable.
-
-## 9. Permission Rules
-
-| Action | Required permission |
-|---|---|
-| View Manage | `manage.view` |
-| Create/Edit Project | `project.manage` |
-| Archive/Restore Project | `project.archive` |
-| Create/Edit Team | `team.manage` |
-| Deactivate/Reactivate Team | `team.manage` |
-| Invite/Edit User | `user.manage` |
-| Deactivate/Reactivate User | `user.manage` |
-
-Workspace Admin has all permissions in current mockup. More granular permission policy can be refined later.
-
-## 10. Acceptance Criteria
-
-1. Top-right Settings gear `Workspace > Project Management` opens Project management with the `Projects` view only; the same Settings gear contains `Teams` and `User Management` as workspace administration sections.
-2. `Settings > Teams` shows only columns: Key, Team, Project, Status, Lead, Updated.
-3. `Settings > Teams` does not show Members, Capacity or Velocity columns; its Actions area is limited to permitted administration actions.
-4. `Create Team` modal includes Team Info and Members tabs.
-5. `Team Info` tab includes Project, Team lead, Team name, Team key, Description, Status.
-6. `Members` tab includes searchable user list for selecting team members.
-7. `Create Team` modal does not include capacity or velocity fields.
-8. Creating a team links it to the selected project.
-9. Deactive teams are excluded from active selectors used by create/edit flows.
-10. Clicking a Team row opens Edit Team modal.
-11. Users tab supports Invite/Edit User with role and team membership.
-12. Viewer/non-admin cannot mutate Manage data through UI or API.
-13. All create/edit/deactivate/reactivate actions write activity/audit logs if audit logging exists in Phase 1 implementation.
-14. Users list does not show Project Access or Actions columns.
-15. User modal does not show a Projects tab; user project access is derived from selected Teams.
-
-## 11. Implementation Breakdown
+### 7.3 Add Existing User
 
 ```text
-MNG-T01 Manage page route/tab shell
-MNG-T02 Projects API integration with existing mock behavior
-MNG-T03 Teams list/filter API
-MNG-T04 Create/Edit Team modal + validation
-MNG-T05 Team deactivate/reactivate behavior
-MNG-T06 Users list/filter API
-MNG-T07 Invite/Edit User modal + team membership updates
-MNG-T08 Permission guards and API tests
-MNG-T09 E2E smoke: Manage -> Teams -> Create Team -> Backlog team selector
+Select existing company user
+-> Select Admin / Editor / Viewer
+-> Select Teams when Editor
+-> Add User
 ```
 
-## 12. Decisions
+The same assignment must appear in `Settings > Users > User Details > Project Access`.
 
-| ID | Decision | Dev note |
+## 8. Teams
+
+Teams belong to exactly one parent Project in this MVP.
+
+### 8.1 Team List
+
+| Column | Rule |
+|---|---|
+| Key | Team key |
+| Team | Team name |
+| Lead | Current Team lead |
+| Status | `Active` or `Deactive` |
+| Members | Number of Team members |
+| Actions | Workspace Admin-only Edit, Deactivate or Restore |
+
+Admin, Editor and Viewer receive read-only Team presentation in their allowed scope. Only Workspace Admin can add, edit, deactivate or restore a Team.
+
+### 8.2 Add/Edit Team Fields
+
+| Field | Required | Rule |
+|---|---:|---|
+| Team name | Yes | Trimmed non-empty name |
+| Team key | Yes | 2-10 uppercase letters/numbers; immutable after creation |
+| Team lead | No | Selected from eligible existing company users |
+| Status | Yes for edit | `Active` or `Deactive` |
+| Members & Access | No | Select existing users and set Admin or Editor |
+
+Member and access rules:
+
+- Admin sets Project Access Level to Admin and automatically uses All Teams.
+- Editor grants Project Editor access and adds the user to the new Team.
+- Existing higher access is not reduced by adding a Team.
+- Disabled users and Workspace Admin are not selectable as Team members.
+- Newly created Team and assignments appear in both User Project Access and Project Users & Permissions.
+
+### 8.3 Team Details
+
+Selecting a Team shows:
+
+- Team key.
+- Status.
+- Team lead.
+- Member count.
+- Member name and email list.
+
+## 9. Project And Team Lifecycle
+
+| Action | Authority | Mockup behavior |
 |---|---|---|
-| P1-DC-008 | Manage is the admin entry for Projects, Teams and Users | Route can stay under current `projects` mock route, but product language is `Manage` |
-| P1-DC-009 | Team list is intentionally lightweight | Do not show members/capacity/velocity/actions in Teams list |
-| P1-DC-010 | Team members are selected in Create/Edit Team | Membership matters for assignment/access, but is not a table column |
-| P1-DC-011 | Capacity/Velocity are not Team management fields in Phase 1 | Iteration planning may define capacity/velocity later |
-| P1-DC-012 | User is assigned to Teams, not directly to Projects | Project access is derived from Team -> Project relationship |
-| P1-DC-013 | Invite email confirmation is target business flow | Initial implementation may add invited users through DB/API first; email token join flow can be implemented later |
-| P1-DC-014 | User status uses `Active`, `Invited`, `Deactive` | Replace old `Suspended` language in User management |
-| P1-DC-015 | Team status uses `Active`, `Deactive` | Replace old Team `Archived` language; deactive team remains for history but is excluded from active selectors |
-| P1-DC-016 | Teams list has no Actions column | Click Team row to open edit modal |
-| P1-DC-017 | Team modal has `Team Info` and `Members` tabs | Members tab provides searchable member selection |
+| Create Project | Workspace Admin | Opens Project form and adds the saved Project |
+| Edit Project | Workspace Admin | Opens current Project fields and estimation settings |
+| Archive Project | Workspace Admin | Confirmation; Project becomes read-only and leaves active selectors |
+| Restore Project | Workspace Admin | Returns Archived Project to Active |
+| Delete Project | Workspace Admin | Typed Project-key confirmation, then removes Project from administration tree |
+| Add/Edit Team | Workspace Admin | Maintains Team and optional member access |
+| Deactivate/Restore Team | Workspace Admin | Confirmation; history remains available |
+
+Archived Project and deactivated Team history must be preserved. Dependency rules may block an action and must explain the blocker before confirmation.
+
+## 10. Shared-State Synchronization
+
+Three administration journeys use one source of truth:
+
+1. `Users > User Details > Project Access`.
+2. `Workspaces & Projects > Project > Users & Permissions`.
+3. `Workspaces & Projects > Project > Teams > Add/Edit Team`.
+
+Required behavior:
+
+- Adding Project access from User Details adds the user to the Project list.
+- Adding an existing user from Project Users & Permissions adds a Project Access row in User Details.
+- Creating a Team with an Editor adds that Team to the Editor's Project Access.
+- Admin always resolves to All Teams in every journey.
+- Removing Project access clears that Project's Team memberships everywhere.
+- The mockup demonstrates shared session state; refresh/API persistence remains development-owned.
+
+## 11. Changes From Previous Mockup
+
+| Area | Previous mockup | Current approved mockup |
+|---|---|---|
+| Entry point | Workspace dropdown > Manage Projects | Settings gear > Workspaces & Projects |
+| Structure | Separate Project, Team and User administration | Workspace -> Project -> Team tree |
+| Access model | One global Project Admin/Member role | Admin/Editor/Viewer/No Access independently per Project |
+| Header badge | Global-looking role badge or no access context | Contextual per-Project badge for non-WA users |
+| Project user columns | Disabled, Permission, Team Member | User, Status, Access Level, Action |
+| Access editing | Unclear or separate | Access Level dropdown plus Editor Team selection |
+| WA in Project users | Included as Admin | Excluded; WA has workspace authority and no Project membership |
+| Team management | Separate workspace Teams page | Teams managed inside selected Project by WA only |
+| Add Team | Team fields only | Team fields plus existing user and Admin/Editor assignment |
+| Estimation | No Project estimation setup | Fixed T-shirt labels with editable points and Hours per point |
+
+## 12. Functional Requirements
+
+| ID | Requirement |
+|---|---|
+| PM-FR-001 | Settings gear opens `Workspaces & Projects`. |
+| PM-FR-002 | Tree and selectors expose only accessible Projects and Teams. |
+| PM-FR-003 | Workspace Admin alone can Create/Edit/Archive/Restore/Delete Projects. |
+| PM-FR-004 | Workspace Admin alone can Add/Edit/Deactivate/Restore Teams. |
+| PM-FR-005 | Project opens on Details and shows a contextual access badge for non-WA users. |
+| PM-FR-006 | Project Details displays general and project-specific Estimation Settings. |
+| PM-FR-007 | Preliminary labels are fixed; only positive point values are editable. |
+| PM-FR-008 | Point-to-hour conversion is used only by Capacity Planning and Reports. |
+| PM-FR-009 | Users & Permissions uses User, Status, Access Level and Action columns. |
+| PM-FR-010 | Add Existing User never invites or creates a company user. |
+| PM-FR-011 | Admin resolves to All Teams, Editor requires Team selection, Viewer has no Team membership. |
+| PM-FR-012 | Workspace Admin is excluded from Project membership and candidate lists. |
+| PM-FR-013 | Admin views Project structure and Users & Permissions read-only. |
+| PM-FR-014 | Editor sees only assigned Projects/Teams and no Users & Permissions tab. |
+| PM-FR-015 | Remove Project user and destructive structure actions require confirmation. |
+| PM-FR-016 | User, Project and Team access journeys remain synchronized. |
+
+## 13. Acceptance Criteria
+
+1. Project Management has one entry point under the Settings gear.
+2. Workspace Admin sees all Projects/Teams and all structural actions.
+3. Admin sees only assigned Projects with All Teams and cannot mutate Project/Team/access structure.
+4. Editor sees only assigned Projects/Teams and cannot view Users & Permissions.
+5. Viewer is project-wide read-only.
+6. Workspace Admin is not listed as a Project user.
+7. Project access can be added or changed from User Details and Project Users & Permissions.
+8. Add Team can assign existing users as Admin or Editor.
+9. Changes from every access journey appear in the other journeys in the same session.
+10. Confirmation is required before removing a Project user or applying a destructive structure action.
+11. Project-specific estimation settings are saved and displayed consistently.
+
+## 14. Open Questions
+
+No open business question remains for the Project Management and Project Access mockup baseline.

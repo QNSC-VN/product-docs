@@ -1,5 +1,9 @@
 # P1-USER-01 - User Management list, search and detail
 
+> **Current access note (2026-08-10):** Role-list observations below predate the current model. Company role is Workspace Admin only; normal users receive per-Project Access Levels. Current Users columns and journeys are defined in Phase 4 Settings & Audit SRS.
+
+> **C5 reconciliation — 2026-08-09:** User list is Name, Email, Role, Status, Last Login. Phone remains in User Detail/Profile; Team membership is shown in User Detail/Team Members. Historical list-column comparisons below are evidence only.
+
 ## Audit state
 
 - Date: 2026-07-19

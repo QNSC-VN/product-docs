@@ -40,7 +40,7 @@ Release Management is Project-level, not Team-level. A Release may still display
 | P3-REL-DC-015 | Release has an Artifacts view that shows assigned US/DE work items using the Backlog table presentation | Decided |
 | P3-REL-DC-016 | Release detail includes a `Release Notes` rich text area for readiness notes gathered from assigned US/DE notes | Decided |
 | P3-REL-DC-017 | Reassigning a US/DE from one Release to another replaces the old Release assignment and refreshes old/new Release artifact views | Decided |
-| P3-REL-DC-018 | Release Progress/Tracking is not Phase 3.2 scope; it belongs to `Portfolio > Release Planning` Future Backlog | Decided |
+| P3-REL-DC-018 | Release Progress/Tracking is not Phase 3.2 scope; it belongs to `Portfolio > Release Tracking`. Release Planning remains separate Future Backlog scope. | Decided |
 
 ## 3. Business Flow
 
@@ -72,7 +72,7 @@ Backlog / Work Item Detail or Release detail assigns Story/Defect items to a Rel
 | ID | Requirement |
 |---|---|
 | P3-REL-FR-001 | User can open `Plan > Timeboxes` and select `Releases`. |
-| P3-REL-FR-002 | `Plan > Timeboxes > Releases` is the only Phase 3 Release management surface. Top-level `Releases` is absent; `Portfolio > Release Planning` is Future Backlog Phase 5 and not a second create/edit source. |
+| P3-REL-FR-002 | `Plan > Timeboxes > Releases` is the only Release create/edit surface. Top-level `Releases` is absent; `Portfolio > Release Tracking` is read-only tracking/reporting, while Release Planning remains Future Backlog. |
 | P3-REL-FR-003 | Release list is filtered by current Project context. |
 | P3-REL-FR-004 | Release list columns use the Timeboxes dashboard template: Name, Theme, Start Date, End/Release Date, Project, Planned Velocity, Task Estimate, State. |
 | P3-REL-FR-005 | Release dashboard supports inline edit for Name, Theme, Start Date, Release Date, Project, Planned Velocity, Task Estimate and State. |
@@ -107,7 +107,7 @@ Backlog / Work Item Detail or Release detail assigns Story/Defect items to a Rel
 | P3-REL-FR-034 | Release detail includes a `Release Notes` rich text area separate from Theme and Notes. |
 | P3-REL-FR-035 | Release readiness is user-managed from assigned US/DE release notes and the Release Notes field; system does not calculate readiness in Phase 3.2. |
 | P3-REL-FR-036 | After Release reassignment, the moved item disappears from the previous Release Artifacts view after refresh/refetch. |
-| P3-REL-FR-037 | Phase 3 Release list/detail must not add a Release Progress column/widget; Progress is deferred to Phase 5 `Portfolio > Release Planning`. |
+| P3-REL-FR-037 | Phase 3 Release list/detail must not add a Release Progress column/widget; progress/tracking belongs to `Portfolio > Release Tracking`. |
 | P3-REL-FR-038 | After Release reassignment, old and new Release counters/roll-ups are recalculated and the user sees success or error feedback. |
 
 ## 5. Screen Mapping With Mockup
@@ -294,13 +294,13 @@ Rules:
 
 ## 8. Permissions
 
-| Role/permission | Read Release | Create Release | Inline Edit | Detail Edit |
+| Authority / Project Access | Read Release | Create Release | Inline Edit | Detail Edit |
 |---|---:|---:|---:|---:|
 | Workspace Admin | Yes | Yes | Yes | Yes |
-| Project Manager | Yes | Yes | Yes | Yes |
-| Product Owner / BA | Yes | Yes if configured | Yes if configured | Yes if configured |
-| Developer / QA | Yes | No by default | No by default | No by default |
-| Viewer | Yes | No | No | No |
+| Admin in assigned Project | Yes | Yes | Yes | Yes |
+| Editor in assigned Project | Hidden | No | No | No |
+| Viewer in assigned Project | Yes | No | No | No |
+| No Access | No | No | No | No |
 
 ## 9. Acceptance Criteria
 

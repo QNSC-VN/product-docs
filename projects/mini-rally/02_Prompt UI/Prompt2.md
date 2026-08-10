@@ -1,5 +1,7 @@
 # Prompt 2 — Rally-inspired App Shell + Role-based Layout Rules
 
+> **Historical UI prompt:** Role names and Settings navigation below are superseded by the 2026-08-10 Project Access model. Do not use this prompt as current authorization requirements.
+
 Create a Rally-inspired enterprise Agile Work Management web app layout based on the existing global design system.
 
 Do not copy Rally pixel by pixel. Use Rally as layout inspiration only:

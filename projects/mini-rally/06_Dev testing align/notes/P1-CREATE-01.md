@@ -1,5 +1,7 @@
 # P1-CREATE-01 - Quick Create / Cancel
 
+> **C1/C10 reconciliation — 2026-08-09:** Team is optional; blank Team means Project backlog, and a selected Team must belong to the Project. Owner defaults to current user, keeps explicit Unassigned, and uses current Project/Team membership. Historical required-Team wording below is superseded.
+
 ## Scope
 
 Compare Mini Rally Phase 1 Work Item Create SRS/mockup against DevInt Backlog quick-create behavior.

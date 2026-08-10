@@ -6,195 +6,202 @@
 |---|---|
 | Module ID | `P4-SETTINGS-AUDIT` |
 | Status | BA/Mockup Ready |
-| Updated date | 2026-07-17 |
-| Scope | Workspace settings, Phase 1 project settings entry-point alignment, user management, audit log and destructive confirmations |
+| Updated date | 2026-08-10 |
+| Scope | Workspace settings, Users, Workspaces & Projects, Permission Model, Audit Log and destructive confirmations |
 | Priority | P4.3 - required for Governance |
-| Depends on | P4.2 Roles & Permissions |
-| Mockup source | `03_Mockup Design/src/app/pages/SettingsPage.tsx` |
-| Not included | API payloads, persistence design, advanced compliance reports, retention policies, external audit exports |
+| Depends on | P4.2 Project Access & Permissions |
+| Mockup sources | `SettingsPage.tsx`, `WorkspaceProjectsPanel.tsx` |
+| Not included | API payloads, persistence design, retention policy, external audit export, Workflow Status and Labels |
 
 ## 1. Goal
 
-Settings & Audit gives administrators controlled configuration surfaces and traceability for important mutations. Phase 4.3 is a BA/mockup baseline only; developers will define payload and implementation contracts separately.
+The top-right Settings gear is the single entry point for personal access information and company administration.
 
-Entry-point rule: top-right gear is only for company/workspace-level settings. Project-level settings must live in one place only: `Manage Projects > Projects`.
+```text
+Personal
+- Profile & Account
+- My Permissions
 
-This feature follows the Phase 4 working rule: complete one task, wait for BA confirmation, then continue to the next task.
+Administration
+- Workspace Settings
+- Users
+- Workspaces & Projects
+- Permission Model
+- Audit Log
+```
+
+Visibility depends on Workspace authority and the current Project Access Level. This feature defines business and mockup behavior only.
 
 ## 2. Feature Task Breakdown
 
 | ID | Task | Output | Status |
 |---|---|---|---|
-| P4-SET-01 | Workspace Settings | Single-company workspace settings business rules and mockup baseline | Done / BA confirmed |
-| P4-SET-02 | Project Settings | Reuse Phase 1 Manage > Projects baseline; document single entry point and Phase 4 RBAC context | Done / BA confirmed |
-| P4-SET-03 | Workflow Status | Project-specific workflow status configuration | Deferred |
-| P4-SET-04 | Labels | Label management and work-item tagging | Deferred |
-| P4-SET-05 | User Management | Move user administration to top-right Settings gear and keep it WA-only | Done / BA confirmed |
-| P4-SET-06 | Audit Log | Audit list columns, search by actor/time and governance/settings mutation event coverage | Done / BA confirmed |
-| P4-SET-07 | Destructive Confirmations | Confirmation behavior for delete/archive/deactivate/remove actions | Done / BA confirmed |
+| P4-SET-01 | Workspace Settings | Single-company settings and internal WA display | Done / BA confirmed |
+| P4-SET-02 | Workspaces & Projects | One Project/Team/access administration journey | Done / BA confirmed |
+| P4-SET-03 | Workflow Status | Project-specific workflow configuration | Deferred |
+| P4-SET-04 | Labels | Label management and Work Item tagging | Deferred |
+| P4-SET-05 | Users | Company user directory, details, invitation and Project Access | Done / BA confirmed |
+| P4-SET-06 | Permission Model | Read-only explanation of fixed access levels | Done / BA confirmed |
+| P4-SET-07 | Audit Log | Administrative/settings event list and filters | Done / BA confirmed |
+| P4-SET-08 | Destructive Confirmations | Guardrail for remove, archive, deactivate and delete actions | Done / BA confirmed |
 
-## 3. P4-SET-01 Workspace Settings
+## 3. Settings Navigation By Access
 
-### 3.1 Purpose
+| Entry | Workspace Admin | Admin | Editor | Viewer / No Access |
+|---|---:|---:|---:|---:|
+| Profile & Account | View/Edit own profile | View/Edit own profile | View/Edit own profile | View/Edit own profile |
+| My Permissions | View all effective access | View own assigned Projects | View own assigned Projects/Teams | View own access or no-access state |
+| Workspace Settings | View/Edit | Hidden | Hidden | Hidden |
+| Users | View/Edit | Hidden | Hidden | Hidden |
+| Workspaces & Projects | Full administration | Assigned Projects read-only | Assigned Projects/Teams read-only | Assigned Project read-only / hidden when No Access |
+| Permission Model | View | View | Hidden | Hidden |
+| Audit Log | View | Hidden | Hidden | Hidden |
 
-Workspace Settings represents the company-level configuration for the single company/workspace used by this MVP. The top-right gear opens this workspace-wide Settings area; it is not the same as the workspace dropdown `Manage Projects` entry.
+Admin does not receive Project, Team or user-access administration controls. Only Workspace Admin changes company structure and access.
 
-### 3.2 Access Rules
+## 4. Workspace Settings
 
-| Role | View Workspace Settings | Edit Workspace Settings |
-|---|---:|---:|
-| Workspace Admin | Yes | Yes |
-| Project Admin | No | No |
-| Project Member | No | No |
+Workspace Settings represents the fixed company workspace.
 
-Rules:
+### 4.1 Access
 
-- Only `workspace_admin` can view and edit Workspace Settings.
-- Project Admin can manage assigned Project Settings later in `P4-SET-02`, but cannot open company-level Workspace Settings.
-- Project Member cannot access Workspace Settings.
+- Workspace Admin alone can open and save Workspace Settings.
+- Other users do not see the entry.
 
-### 3.3 Fields
+### 4.2 Fields
 
-| Field | Behavior | Notes |
-|---|---|---|
-| Workspace Name | Editable by Workspace Admin | Display name for the fixed Workspace |
-| Workspace Slug | Read-only | System identifier; shown for reference, not edited from the mockup |
-| Workspace Scope | Read-only | Shows that this MVP has one fixed Workspace |
-| Workspace Admin | Read-only | Internal/dev setup assigns the primary admin account; Workspace Settings only displays it |
+| Field | Behavior |
+|---|---|
+| Workspace Name | Editable by Workspace Admin |
+| Workspace Slug | Read-only system identifier |
+| Workspace Scope | Read-only; displays single-company scope |
+| Workspace Admin | Read-only; assigned by internal/dev setup |
 
-### 3.4 Save Behavior
+Workspace Admin is labelled consistently with the permission model. There is no Owner selector, Workspace Admin count, Company Status field or Last Saved row in this mockup.
+
+### 4.3 Save
 
 - `Save Changes` is visible only to Workspace Admin.
-- Saving Workspace Settings updates company-level settings.
-- Saving Workspace Settings creates an audit event with actor, changed fields and timestamp.
-- Permission-effect timing remains aligned with RBAC rules: role or membership changes apply on next login; removing a user from company access applies on next page refresh.
+- A successful save creates an administrative Audit Log event.
 
-### 3.5 Mockup Acceptance
+## 5. Workspaces & Projects
 
-- Workspace Settings screen uses company language, not generic multi-workspace language.
-- Workspace slug is read-only.
-- Company scope is explicitly single-company.
-- Workspace Admin is display-only and comes from internal/dev setup.
-- Save button appears only for Workspace Admin.
-- Phase 4 docs record Workspace Settings as company-level and WA-only.
+Project and Team configuration has one location:
 
-## 4. P4-SET-02 Project Settings - Entry Point Decision
+```text
+Settings gear
+-> Workspaces & Projects
+```
 
-Phase 1 already defines Manage Projects create/edit/archive/restore behavior in `Phase 1/08_Manage_Projects_Teams_Users/SRS.md`. Phase 4 must not redefine those CRUD fields or create a second Project Settings surface.
+The old Workspace dropdown `Manage Projects` entry and separate Teams page are removed.
 
-Project Settings will not appear in the top-right gear Settings sidebar.
+The detailed journey, fields, Project estimation settings, access tabs and synchronization rules are governed by:
 
-Approved entry point:
+- `Phase 1/08_Manage_Projects_Teams_Users/SRS.md`
+- `Phase 4/02_Roles_Permissions/SRS.md`
 
-- Open workspace dropdown.
-- Click `Manage Projects`.
-- Use the `Projects` tab.
-- Edit a Project row to manage that Project's settings.
+Only Workspace Admin can:
 
-This avoids having two Project Settings locations in the mockup.
+- Create, edit, archive, restore or delete a Project.
+- Create, edit, deactivate or restore a Team.
+- Add/remove Project users or change Access Level and Team membership.
 
-### 4.1 Phase 1 Baseline Reused
+## 6. Users
 
-Phase 1 owns the Project management baseline:
+Users is the company account directory and is available only to Workspace Admin.
 
-- Phase 1 originally defined Manage page with `Projects`, `Teams` and `Users` tabs.
-- The reconciled navigation keeps only Project management under `Manage Projects`; Team and User administration live under the top-right Settings gear.
-- Projects tab keeps list/create/edit/archive/restore project behavior.
-- Create/Edit Project fields are Project name, Project key, Description, Project owner, Start date and Teams.
-- Project key is required and immutable after create.
-- Project row actions cover Edit, Archive and Restore.
+### 6.1 User List
 
-### 4.2 Phase 4 Additions Only
+Approved entry:
 
-Phase 4 only clarifies permission/context behavior over the Phase 1 baseline:
+```text
+Settings gear
+-> Users
+```
 
-- Workspace Admin can use the full Phase 1 Project management behavior.
-- Project Admin can edit Project Settings only for assigned managed projects.
-- Project Admin can view other projects read-only.
-- Project Member does not access Manage Projects or Project Settings.
-- Top-right gear remains company/workspace-level only.
+List columns:
 
-## 5. P4-SET-03 Workflow Status - Deferred
-
-Project-specific Workflow Status configuration is moved to Future Backlog.
-
-Reason:
-
-- Current MVP assumes all Projects run Agile.
-- Iteration, Release, Milestone and Work Item statuses already have approved default definitions.
-- Phase 4 does not need a configurable workflow designer or project-level workflow status CRUD.
-
-Decision:
-
-- Do not add Workflow Status configuration to Workspace Settings.
-- Do not add Workflow Status configuration to Project Settings in Phase 4.
-- Existing default status behavior remains the baseline for Backlog, Work Item Detail, Iteration Status, Release and Milestone surfaces.
-
-## 6. P4-SET-04 Labels - Deferred
-
-Label management is moved to Future Backlog.
-
-Reason:
-
-- Phase 0-4 mockup does not currently have a required flow for assigning labels to US/DE/Task.
-- Backlog and Work Item workflows already use Project, Team, Type, Priority, Schedule/Flow State, Release and Iteration for MVP categorization.
-- Adding Label CRUD without a confirmed tagging/filtering workflow would create configuration surface without clear business value.
-
-Decision:
-
-- Do not add Label management to Workspace Settings.
-- Do not add Label management to Project Settings in Phase 4.
-- Do not add Label field/filter to Backlog or Work Item Detail in Phase 4.
-- Revisit labels when there is a concrete need for tagging, cross-cutting grouping, or label-based reporting/filtering.
-
-## 7. P4-SET-05 User Management
-
-User Management is a company/workspace-level administration surface, not a project-management surface.
-
-Approved entry point:
-
-- Open top-right gear.
-- Click `User Management`.
-
-Rejected entry point:
-
-- `Workspace dropdown > Manage Projects > Users`
+- `Name`
+- `Email`
+- `Phone Number`
+- `Status`
+- `Last Login`
 
 Rules:
 
-- `Manage Projects` keeps only `Projects`; `Teams` is a workspace administration section under the top-right Settings gear.
-- User invite, role assignment, status changes, team allocation and company access removal are under Settings > User Management.
-- User Management list does not show inline row action buttons such as `Change Role` or `Remove`.
-- User Management list columns are Name, Email, Phone number, Role, Status and Last Login.
-- Workspace Admin appears in the User Management list like other users.
-- Workspace Admin account is assigned by internal/dev setup.
-- Clicking Workspace Admin opens User Details in read-only mode.
-- Workspace Admin User Details dialog must not allow editing any field and must not show `Save Changes`.
-- User Management provides search by name, phone number and email.
-- Search bar is placed beside the role filter.
-- Clicking a user row opens a User Details dialog.
-- User Details dialog allows Workspace Admin to update Name, Role, Status and Phone number.
-- Email is displayed read-only in the User Details dialog.
-- Workspace Admin is the only role that can access User Management.
-- Project Admin and Project Member do not see User Management.
-- Role/matrix/project-team allocation changes still take effect on the affected user's next login.
-- Removing/deactivating a user from company access takes effect on that user's next page refresh.
+- Search matches name, phone number or email.
+- Status filter supports All, Active, Invited and Disabled.
+- Clicking a row opens User Details.
+- Workspace Admin remains in the company list, but its detail is read-only.
+- Do not show a single global Project role column because access may differ by Project.
 
-## 8. P4-SET-06 Audit Log
+### 6.2 User Details - General
 
-Audit Log is a Workspace Admin governance surface for administrative and settings changes only.
+| Field | Normal user | Workspace Admin |
+|---|---|---|
+| Name | Editable by WA | Read-only |
+| Email | Read-only after invitation | Read-only |
+| Phone Number | Editable by WA | Read-only |
+| Status | Editable by WA | Read-only |
 
-Approved entry point:
+Workspace Admin is assigned internally and cannot be changed, disabled or removed from this mockup.
 
-- Open top-right gear.
-- Click `Audit Log`.
+### 6.3 User Details - Project Access
 
-Access rules:
+For a normal user, Workspace Admin can:
 
-- Workspace Admin can view Audit Log.
-- Project Admin and Project Member do not see Audit Log.
-- Audit Log is read-only.
-- No role can edit, delete or manually create audit rows from the mockup.
+- Add more than one Project Access row.
+- Select `Admin`, `Editor`, `Viewer` or `No Access` independently per Project.
+- Assign one or more Teams only when the level is Editor.
+- Review all changed Project access before confirming save.
+
+Rules:
+
+- Admin automatically displays All Teams.
+- Editor requires at least one Team.
+- Viewer is project-wide read-only and has no Team membership.
+- No Access hides the Project and has no Team membership.
+- Removing a Project Access row is equivalent to No Access for that Project.
+- The same Project cannot be added twice for one user.
+- Saving must update `Workspaces & Projects > Project > Users & Permissions` in the same session.
+
+Workspace Admin detail instead displays `No Project Membership` because its authority is workspace-level.
+
+### 6.4 Invite User
+
+- `Invite User` is Workspace Admin-only.
+- Invitation captures basic user information and optional initial Project Access.
+- Review Invitation shows Project, Access Level and Team assignment before Send Invite.
+- Invitation does not create a Workspace Admin account.
+
+### 6.5 Effective Time
+
+- Project Access and Team membership changes apply to the affected user at next sign-in.
+- Company disable/removal applies at the affected user's next page refresh.
+
+## 7. Permission Model
+
+Permission Model is a read-only business reference.
+
+- It explains Workspace Admin and the four Project Access Levels.
+- It describes action outcomes as Allowed, Read-only or Hidden.
+- Disabled is a temporary UI state caused by validation, dependency or lifecycle rules, not an assignable permission.
+- It does not expose an editable E/R/D/H role matrix.
+- Workspace Admin cannot override the fixed capability baseline in this MVP.
+
+The complete capability baseline lives in `Phase 4/02_Roles_Permissions/SRS.md`.
+
+## 8. Workflow Status And Labels
+
+Both areas remain Future Backlog.
+
+- All Projects use the approved default Agile status definitions.
+- Phase 4 does not include a workflow designer or Project-specific status CRUD.
+- Phase 4 does not include Label CRUD, Work Item Label fields or Label filtering/reporting.
+
+## 9. Audit Log
+
+Audit Log is Workspace Admin-only and read-only.
 
 List columns:
 
@@ -202,90 +209,70 @@ List columns:
 - `Actor`
 - `Detail`
 
-Column rules:
+Rules:
 
-- `Time` displays weekday, month, day, year, hour, minute and second.
-- `Actor` displays the user who performed the administrative/settings action.
-- `Detail` is the only action description column and must be written as a clear business sentence.
-- Do not show separate `Action` or `Entity` columns.
+- Time displays weekday, day, month, year, hour, minute and second.
+- Search supports Actor name and Time text.
+- Detail is one clear business sentence describing the completed action.
+- Separate Action and Entity columns are not shown.
 
-Filtering rules:
-
-- Search by actor name.
-- Search/filter by time text.
-- Filtering is mockup-local; payload and persistence behavior are dev-owned.
-
-Included event scope:
+Included events:
 
 - Workspace Settings save.
-- User invitation.
-- User basic information update.
-- User role update.
-- User status update.
-- User team/resource allocation update.
-- User company access removal/deactivation.
-- Role permission matrix save.
-- Project administrative changes handled from `Manage Projects`; team administrative changes handled from `Settings > Teams`.
+- User invitation and company status change.
+- User basic-information update.
+- Project Access Level and Team membership change.
+- Project-user removal.
+- Project create/edit/archive/restore/delete.
+- Team create/edit/deactivate/restore.
 
-Excluded event scope:
+Excluded events:
 
-- Work item create/edit/delete.
-- User Story, Defect or Task field changes.
-- Note, mention, attachment and watcher activity.
-- Iteration Status execution updates.
-- Sprint/release/milestone execution activity.
-- Reporting and portfolio activity; these are Phase 5 or later.
+- Work Item, Task, Note, attachment or execution-status activity.
+- Those events belong to item Activity/Revision History, not administrative Audit Log.
 
-## 9. P4-SET-07 Destructive Confirmations
+## 10. Destructive Confirmations
 
-Destructive Confirmations defines the required guardrail before the system applies a high-impact administrative or deletion action.
+Required pattern:
 
-Required confirmation pattern:
+1. User starts a destructive or high-impact action.
+2. System opens a modal naming the target and consequence.
+3. User may cancel without changing data.
+4. The primary button uses the exact action name.
+5. System applies the action only after confirmation.
 
-- User clicks a destructive or high-impact action.
-- System opens a confirmation modal before applying the change.
-- The modal names the target object clearly.
-- The modal explains the main consequence in business language.
-- The primary button uses the exact action label, not a generic `OK`.
-- The user can cancel without changing data.
-- The confirmed action executes only after the modal primary button is clicked.
+Actions requiring confirmation include:
 
-Actions requiring confirmation:
-
-- Archive Project.
-- Restore Project.
-- Deactivate Team.
-- Restore Team.
+- Archive or restore Project.
 - Delete Project.
-- Delete work item.
-- Delete task.
-- Delete iteration/release/milestone/defect.
-- Remove user access from the company.
-- Deactivate user access.
+- Deactivate or restore Team.
+- Remove user from Project.
+- Remove or disable company user access.
+- Delivery-item deletes on their owning screens.
 
-High-risk confirmation rule:
+High-risk rules:
 
-- `Delete Project` and `Remove User Access` should require typing the target name before the confirm button is enabled.
-- Other destructive actions use a clear modal without typed confirmation unless the implementation team decides the action carries equivalent risk.
+- Delete Project requires typing the Project key.
+- Remove company user access requires typing the user name.
+- Remove user from Project requires a clear confirmation but no typed text.
+- A blocked action shows the dependency reason and does not allow confirmation.
+- Successful administrative actions create Audit Log entries.
 
-Dependency blocking rule:
+## 11. Acceptance Criteria
 
-- If business dependencies prevent the action, the modal must not allow confirmation.
-- The modal should show the blocking reason in read-only form.
-- Examples: project has active teams or active delivery items; release/milestone has linked artifacts; user is the only Workspace Admin.
+1. Settings gear is the single Project Management and company administration entry point.
+2. Settings navigation changes according to Workspace authority and Project Access.
+3. Workspace Settings is WA-only and the Workspace Admin field is read-only.
+4. Users list does not imply one global Project role.
+5. User Details separates General and Project Access.
+6. Workspace Admin User Details is fully read-only and has no Project membership.
+7. A normal user can hold different access levels in different Projects.
+8. Project access changed in Users is synchronized with Workspaces & Projects.
+9. Permission Model is explanatory and read-only.
+10. Audit Log contains only administrative/settings events with Time, Actor and Detail.
+11. Destructive Project, Team and access actions require the approved confirmation pattern.
+12. Workflow Status, Labels and Notification Preferences remain outside active Phase 4 settings.
 
-Audit rule:
+## 12. Open Questions
 
-- Administrative/settings destructive actions create an Audit Log entry after success.
-- Delivery item deletes are not included in the Phase 4 Audit Log because Audit Log is scoped to administrative/settings actions only.
-
-Current mockup coverage:
-
-- `Manage Projects > Projects` uses confirmation modals for Archive Project and Restore Project.
-- `Settings > Teams` uses confirmation modals for Deactivate Team and Restore Team.
-- `Settings > User Management > User Details` uses a typed confirmation modal for Remove User Access.
-- The reusable modal pattern supports typed confirmation for the high-risk actions when those actions are surfaced.
-
-## 10. Open Questions
-
-No open business question remains for the Phase 4.3 BA/mockup baseline. Phase 4.3 is closed for BA/mockup scope; production implementation remains development-owned.
+No open business question remains for the Phase 4.3 BA/mockup baseline.

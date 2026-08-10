@@ -204,16 +204,20 @@ function BoardCard({
 
 export function TeamBoardPage({
   role,
+  readOnly = false,
+  projectKey,
   activeItem,
   onItemClick,
   onOpenFull,
 }: {
   role: Role;
+  readOnly?: boolean;
+  projectKey: string;
   activeItem: WorkItem | null;
   onItemClick: (item: WorkItem) => void;
   onOpenFull?: (item: WorkItem) => void;
 }) {
-  const iterations = useMemo(() => [...ITERATIONS_DATA].sort((a, b) => a.startDate.localeCompare(b.startDate)), []);
+  const iterations = useMemo(() => [...ITERATIONS_DATA].filter(iteration => iteration.projectKey === projectKey).sort((a, b) => a.startDate.localeCompare(b.startDate)), [projectKey]);
   const [items, setItems] = useState<WorkItem[]>(WORK_ITEMS);
   const [selectedIterationId, setSelectedIterationId] = useState("IT-24-3");
   const [iterationOpen, setIterationOpen] = useState(false);
@@ -226,9 +230,13 @@ export function TeamBoardPage({
   const [dropTarget, setDropTarget] = useState<StatusType | null>(null);
   const [showModal, setShowModal] = useState(false);
 
+  if (iterations.length === 0) {
+    return <div className="flex flex-1 items-center justify-center bg-white"><div className="text-center"><p className="text-[13px] font-semibold" style={{ color: "#1a2234" }}>No iteration board available</p><p className="text-[11px] mt-1" style={{ color: "#8c94a6" }}>There is no iteration in the selected project.</p>{readOnly && <span className="inline-flex mt-3 px-2 py-1 rounded-sm text-[10px] font-semibold" style={{ color: "#5c6478", backgroundColor: "#f0f2f5" }}>View only</span>}</div></div>;
+  }
+
   const selectedIteration = iterations.find(iteration => iteration.id === selectedIterationId) ?? iterations[0];
   const selectedIterationIndex = iterations.findIndex(iteration => iteration.id === selectedIteration.id);
-  const editable = can.dragBoard(role);
+  const editable = !readOnly && can.dragBoard(role);
   const selectedProject = SCOPE_PROJECTS.find(project => project.key === selectedIteration.projectKey) || SCOPE_PROJECTS[0];
 
   const iterationItems = items.filter(item =>
@@ -329,7 +337,7 @@ export function TeamBoardPage({
           <input type="text" placeholder="Filter cards..." value={search} onChange={event => setSearch(event.target.value)} className="pl-7 pr-3 py-1 text-[12px] rounded focus:outline-none" style={{ backgroundColor: "#f4f6f9", border: "1px solid #dde2ea", color: "#1a2234", width: 180 }} />
         </div>
         <button onClick={() => setShowFilters(previous => !previous)} className="flex items-center gap-1.5 px-2 py-1 text-[11px] rounded" style={{ border: "1px solid #bdd0ef", color: "#2558a6", backgroundColor: showFilters ? "#edf2fb" : "#fff" }}><Filter size={11} /> {showFilters ? "Hide filter" : "Show filter"}</button>
-        {can.create(role) && <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }}><Plus size={12} /> Add Item</button>}
+        {editable && <button onClick={() => setShowModal(true)} className="flex items-center gap-1.5 px-3 py-1 text-[11px] font-semibold text-white rounded" style={{ backgroundColor: "#1d3f73" }}><Plus size={12} /> Add Item</button>}
         <div className="flex-1" />
         {!editable && <span className="text-[10px] px-2 py-0.5 rounded-sm" style={{ backgroundColor: "#f1f5f9", color: "#8c94a6" }}>View only</span>}
       </div>
@@ -373,7 +381,7 @@ export function TeamBoardPage({
                   </span>
                   <span className="text-[10px]" style={{ color: "#8c94a6" }}>{estimate} pts</span>
                 </div>
-                {can.create(role) && <button aria-label={`Add item to ${statusLabel(status)}`} title={`Add item to ${statusLabel(status)}`} onClick={() => { setShowModal(true); }} className="p-0.5 rounded" style={{ color: "#8c94a6" }}><Plus size={13} /></button>}
+                {editable && <button aria-label={`Add item to ${statusLabel(status)}`} title={`Add item to ${statusLabel(status)}`} onClick={() => { setShowModal(true); }} className="p-0.5 rounded" style={{ color: "#8c94a6" }}><Plus size={13} /></button>}
               </div>
               <div
                 onDragOver={event => { if (editable) { event.preventDefault(); setDropTarget(status); } }}
@@ -412,7 +420,7 @@ export function TeamBoardPage({
           <DetailPanel item={activeItem} onClose={() => onItemClick(activeItem)} role={role} onOpenFull={onOpenFull} />
         </div>
       )}
-      {showModal && <BoardAddItemModal iteration={selectedIteration} onClose={() => setShowModal(false)} onCreate={addItem} onCreateWithDetails={onOpenFull} />}
+      {showModal && editable && <BoardAddItemModal iteration={selectedIteration} onClose={() => setShowModal(false)} onCreate={addItem} onCreateWithDetails={onOpenFull} />}
     </div>
   );
 }

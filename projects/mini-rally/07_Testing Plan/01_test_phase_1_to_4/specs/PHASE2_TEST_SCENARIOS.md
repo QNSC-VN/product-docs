@@ -37,7 +37,7 @@ Important scope rules:
 | P2-BL-010 | P1 | Bulk iteration assignment | Select multiple valid rows; assign Iteration | Selected rows receive Iteration and appear in Iteration Status | Not Run |
 | P2-BL-011 | P1 | Bulk release assignment boundary | If visible, bulk release should be gated/deferred per scope | Phase 2 must not force Release Management to complete P2 delivery | Not Run |
 | P2-BL-012 | P1 | Rank reorder | Move item up/down or reorder | Rank changes persist; order remains stable after refresh | Not Run |
-| P2-BL-013 | P1 | Out-of-scope Project Admin read-only | Open Backlog as Project Admin outside managed Project | Inline edit, bulk assign and reorder are disabled/rejected | Not Run |
+| P2-BL-013 | P1 | Viewer Backlog read-only | Open Backlog as Viewer in assigned Project | Rows are readable; inline edit, bulk assign and reorder are absent/rejected | Not Run |
 
 ## P2-IT - Timeboxes / Iterations
 
@@ -59,7 +59,7 @@ Important scope rules:
 | P2-IT-014 | P1 | Detail fields persist | Edit Theme, Notes, State, Planned Velocity | Values persist after refresh | Not Run |
 | P2-IT-015 | P0 | Assign valid existing Story/Defect | Assign item from same Project and matching Team scope to Iteration | Item appears in Iteration Status | Not Run |
 | P2-IT-016 | P0 | Reject cross-team assignment | Assign item from another Project or mismatched Team scope | Validation rejects assignment | Not Run |
-| P2-IT-017 | P1 | Out-of-scope Project Admin cannot create/edit Iteration | Open as Project Admin outside managed Project | Create/edit controls are hidden/disabled; API rejects direct mutation | Not Run |
+| P2-IT-017 | P1 | Viewer cannot create/edit Iteration | Open Timeboxes as Viewer in assigned Project | Iterations are readable; create/edit controls are absent and API rejects mutation | Not Run |
 | P2-IT-018 | P0 | Auto-Accept non-empty Iteration | Set the last assigned Story/Defect to Accepted | Iteration automatically changes to Accepted only when at least one item is assigned and all assigned US/DE are Accepted | Pass (M4 runtime: Sprint 24.3) |
 | P2-IT-019 | P0 | Manual Iteration override | Move Planning to Committed; after auto-Accept, manually choose Committed | Authorized user change is allowed; assignment never auto-commits and the auto-Accept rule does not immediately reverse a manual value | Not Run |
 | P2-IT-020 | P0 | Shared Iteration State | Change Iteration State on Iteration Status or Timeboxes | The same Planning/Committed/Accepted value appears on both screens | Not Run |
@@ -90,7 +90,7 @@ Important scope rules:
 | P2-IS-020 | P0 | Add Item creates into selected Iteration | Create Story/Defect from Add Item | New item appears in Iteration Status and also in Backlog with same source item | Pass (M5.2 runtime: one US-4823 in Track and Backlog) |
 | P2-IS-021 | P0 | Create with details from Add Item | Use Create with details | Full Work Item Detail opens using Backlog detail flow | Not Run |
 | P2-IS-022 | P1 | Empty/no iteration states | Open context with no Iterations or empty Iteration | Clear empty state and CTA/link to Timeboxes when permitted | Not Run |
-| P2-IS-023 | P1 | Out-of-scope Project Admin read-only | Open Iteration Status as Project Admin outside managed Project | Inline edit and Add Item hidden/disabled; API rejects mutation | Not Run |
+| P2-IS-023 | P1 | Viewer Iteration Status read-only | Open Iteration Status as Viewer in assigned Project | Inline edit and Add Item are absent; API rejects mutation | Not Run |
 | P2-IS-024 | P0 | Child Task inherits Iteration | Assign or move a parent Story/Defect to another Iteration | All child Tasks contribute to the new Iteration metrics without an independent Task iteration assignment | Not Run |
 | P2-IS-025 | P0 | No standalone Task rows | Open Iteration Status for an Iteration with child Tasks | List contains only Story/Defect rows; child Tasks affect metrics and totals but are not rendered as rows | Pass (mockup: 5 US/DE rows, no Task row) |
 | P2-IS-026 | P0 | Totals row | Inspect the line immediately under the table title/header | Totals show sums for scoped US/DE Plan Estimate, child Task Estimate (`To Do + Actual`) and child Task To Do | Pass (M2 baseline: 21 / 34 / 14; M4 live To Do recalculation observed) |

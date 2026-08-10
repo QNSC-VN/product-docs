@@ -30,7 +30,7 @@ Login
 -> Apply Notifications / RBAC / Settings / Audit governance
 ```
 
-`Team Board`, `Iteration Status Board` and `Portfolio > Release Planning` are intentionally preserved in Future Backlog only. Release Progress is not required for the Phase 0-4 Agile management MVP test pass.
+`Team Board`, `Iteration Status Board` and `Release Planning` are intentionally preserved in Future Backlog only. `Portfolio > Release Tracking` is the active tracking surface outside the Phase 0-4 Agile management MVP test pass.
 
 ## Files in this folder
 
@@ -41,7 +41,7 @@ Login
 | `PHASE1_TEST_SCENARIOS.md` | Phase 1 scenarios: Manage, Backlog, Work Item, Task, Time, Content, Activity. |
 | `PHASE2_TEST_SCENARIOS.md` | Phase 2 scenarios: Backlog Enhancement, Timeboxes/Iterations, Iteration Status. |
 | `PHASE3_TEST_SCENARIOS.md` | Phase 3 scenarios: Team Status, Release Management, Milestones, Quality/Defect. |
-| `PHASE4_TEST_SCENARIOS.md` | Phase 4 scenarios: Notifications, Roles & Permissions, Settings/User Management and Audit. |
+| `PHASE4_TEST_SCENARIOS.md` | Phase 4 scenarios: Notifications, Project Access & Permissions, Settings/User Management and Audit. |
 | `E2E_BUSINESS_FLOW_COVERAGE.md` | Cross-phase E2E flows proving the product operates correctly as one business chain. |
 | `E2E_AGILE_LIFECYCLE_RECONCILIATION.md` | Canonical end-to-end flow and metric assertions for the reconciled Phase 0-4 Agile lifecycle. |
 | `TRACEABILITY_MATRIX.md` | Matrix linking phase/module/source document/test scenarios/out-of-scope notes. |
@@ -64,4 +64,4 @@ Login
 - If production does not allow self-service Workspace create/switch because the MVP is single-company, that is an expected Phase 0 result.
 - For Phase 2, `All Teams` is a valid context; permission-specific restrictions are deferred to the permissions/governance phase.
 - For Phase 3, `Team Board` is Future Backlog; missing board implementation is not a Phase 3 failure.
-- Release Progress is Phase 5 `Portfolio > Release Planning`; its absence from Phase 3 is expected.
+- Release Progress belongs to `Portfolio > Release Tracking`; its absence from Phase 3 is expected.

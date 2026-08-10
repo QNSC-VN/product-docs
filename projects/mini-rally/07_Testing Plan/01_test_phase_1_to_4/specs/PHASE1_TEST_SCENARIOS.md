@@ -13,9 +13,9 @@ Phase 1 validates the core work management slice: Project Management, Settings T
 | P1-MANAGE-005 | P1 | Edit Team | Update Team Info fields | Changes persist and updated timestamp changes | Not Run |
 | P1-MANAGE-006 | P1 | Team Members tab | Open Create/Edit Team modal Members tab; add/remove/search member | Searchable member selector works; membership persists | Not Run |
 | P1-MANAGE-007 | P1 | No capacity/velocity fields in Create Team | Inspect Create/Edit Team modal | Capacity and Velocity are not present in Phase 1 team create/edit | Not Run |
-| P1-MANAGE-008 | P0 | Invite User with role and team membership | Open Users tab; invite user with role/team | User invitation/member record is created; project access derives from Team, not direct project assignment | Not Run |
-| P1-MANAGE-009 | P1 | Deactivate/reactivate user | Deactivate user; verify access; reactivate | Deactivated user loses access; reactivated user can access again per role | Not Run |
-| P1-MANAGE-010 | P1 | Permission guard on manage mutations | Attempt create/edit/deactivate as Project Admin outside managed Project | UI hides/disables action and backend rejects direct mutation | Not Run |
+| P1-MANAGE-008 | P0 | Add existing user with Project Access | Project > Users & Permissions; add user as Admin/Editor/Viewer | Project list and User Details show the same Access Level; Editor Teams match | Not Run |
+| P1-MANAGE-009 | P1 | Disable/reactivate company user | Disable user; refresh affected session; reactivate and sign in | Disabled user loses access on refresh; reactivated access follows saved Project assignments | Not Run |
+| P1-MANAGE-010 | P0 | WA-only structure guard | Attempt Project/Team/access mutation as Admin/Editor/Viewer | UI hides/disables action and backend rejects direct mutation | Not Run |
 
 ## P1-BACKLOG - Backlog List
 
@@ -55,7 +55,7 @@ Phase 1 validates the core work management slice: Project Management, Settings T
 | P1-WID-005 | P1 | Release/Iteration nullable | Set Release/Iteration to Unscheduled/null | Field saves as unassigned without deleting item | Not Run |
 | P1-WID-006 | P1 | Defect-only priority | Open Story and Defect detail | Priority is editable/visible only where Defect rules require | Not Run |
 | P1-WID-007 | P1 | Summary/collapse panel | Toggle full detail and summary/collapsed panel | UI keeps selected item and does not lose unsaved/saved state unexpectedly | Not Run |
-| P1-WID-008 | P0 | Out-of-scope Project Admin read-only | Open detail as Project Admin outside managed Project | Fields render read-only/disabled; backend rejects direct update | Not Run |
+| P1-WID-008 | P0 | Viewer Work Item read-only | Open detail as Viewer in assigned Project | Fields render read-only; mutation controls are absent and backend rejects direct update | Not Run |
 | P1-WID-009 | P0 | Schedule/Flow mirror | Change Schedule State six-box control, then change Flow State dropdown | Changing either field immediately persists the same value to the other field | Pass |
 | P1-WID-010 | P0 | Defect State stays independent | Change Defect State, then change Schedule/Flow State | Defect State uses `Submitted/Open/Fixed/Closed/Closed Declined` and does not mirror Schedule/Flow State | Not Run |
 

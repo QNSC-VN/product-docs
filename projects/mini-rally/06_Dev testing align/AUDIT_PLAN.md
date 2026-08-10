@@ -3,6 +3,8 @@
 **Created:** 2026-07-23 · **Environment:** `https://rally-dev.qnsc.vn/` (Microsoft SSO, `hieuvbm@qnsc.vn`)
 **Follows:** `README.md` working rule + same discipline as `RETEST_PLAN.md`. First-time audit (not retest).
 
+> **Historical plan notice (2026-08-10):** Replace former Project Admin/Project Member and editable matrix assumptions with the current Project Access Level scenarios when re-testing authorization.
+
 > **Status 2026-07-24:** Phase 0–3 regression is complete. Phase 4 first audit is also complete across Notifications, Roles & Permissions and Settings & Audit. Results are recorded in `DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx`; BA confirmed the classifications and fix directions, so SRS/mockup reconciliation is now proceeding by approved alignment package.
 
 ## Objective

@@ -1,5 +1,7 @@
 # Mini Rally / Agile Work Management Tool - Database Design
 
+> **Authorization model update (2026-08-10):** Mini Rally has one system role, `workspace_admin`, assigned internally. Normal-user authorization is stored per Project as `admin`, `editor` or `viewer`; absence/removed Project access means `No Access`. PM/BA/Developer/QA are personas, not authorization rows. Permission Model is read-only.
+
 ## 1. Mục tiêu thiết kế DB
 
 Tài liệu này mô tả bộ database cho hệ thống **Mini Rally / Agile Work Management Tool**.
@@ -227,7 +229,6 @@ Mapping user vào workspace.
 | id | UUID / BIGINT | Primary key |
 | workspace_id | UUID | FK → workspaces.id |
 | user_id | UUID | FK → users.id |
-| role_id | UUID | FK → roles.id |
 | status | VARCHAR(50) | active, invited, suspended, removed |
 | joined_at | TIMESTAMP | Nullable |
 | created_at | TIMESTAMP |  |
@@ -250,7 +251,6 @@ Lưu vòng đời lời mời thành viên vào Company/Workspace cố định.
 | id | UUID / BIGINT | Primary key |
 | workspace_id | UUID | FK → workspaces.id |
 | email | VARCHAR(255) | Email đã normalize lowercase/trim |
-| role_id | UUID | FK → roles.id |
 | token_hash | TEXT | Unique; không lưu raw token |
 | status | VARCHAR(30) | pending, accepted, expired, cancelled |
 | invited_by | UUID | FK → users.id |
@@ -284,29 +284,24 @@ Lưu cấu hình Company/Workspace singleton, tách khỏi identity row `workspa
 
 ## 5.1. `roles`
 
-Lưu role ở cấp workspace hoặc project.
+Lưu system role cấp Workspace. Project authorization không dùng bảng này; nó dùng `project_members.access_level`.
 
 | Field | Type | Note |
 |---|---|---|
 | id | UUID / BIGINT | Primary key |
 | workspace_id | UUID | FK → workspaces.id |
-| name | VARCHAR(100) | Workspace Admin, PM, BA, Dev, QA, Viewer |
-| code | VARCHAR(100) | workspace_admin, project_manager, developer... |
-| scope | VARCHAR(50) | workspace, project |
+| name | VARCHAR(100) | Workspace Admin |
+| code | VARCHAR(100) | workspace_admin |
+| scope | VARCHAR(50) | workspace |
 | description | TEXT | Nullable |
 | is_system | BOOLEAN | Role mặc định hay custom |
 | created_at | TIMESTAMP |  |
 | updated_at | TIMESTAMP |  |
 
-Role mặc định:
+Role MVP duy nhất:
 
 ```text
 workspace_admin
-project_manager
-product_owner_ba
-developer
-tester_qa
-viewer
 ```
 
 ---
@@ -328,12 +323,11 @@ Ví dụ permission:
 ```text
 workspace.manage
 user.invite
-role.manage
-permission.manage
 project.create
 project.update
 project.delete
-project.member.manage
+project.access.manage
+team.member.manage
 work_item.create
 work_item.update
 work_item.delete
@@ -352,7 +346,7 @@ audit_log.view
 
 ## 5.3. `role_permissions`
 
-Mapping role với permission.
+Mapping system role với permission. Không expose CRUD/matrix editing trong MVP.
 
 | Field | Type | Note |
 |---|---|---|
@@ -365,6 +359,28 @@ Unique constraint:
 
 ```text
 UNIQUE(role_id, permission_id)
+```
+
+---
+
+## 5.4. `user_role_assignments`
+
+Internal binding for the only company-level role, `workspace_admin`. Mini Rally does not expose CRUD for this table.
+
+| Field | Type | Note |
+|---|---|---|
+| id | UUID / BIGINT | Primary key |
+| workspace_id | UUID | FK → workspaces.id; fixed company scope |
+| user_id | UUID | FK → users.id |
+| role_id | UUID | FK → roles.id; must resolve to `workspace_admin` |
+| assigned_by | UUID | Internal operator/service identity |
+| created_at | TIMESTAMP | Assignment time |
+| revoked_at | TIMESTAMP | Nullable; revoked by internal/dev only |
+
+Active uniqueness:
+
+```text
+UNIQUE(workspace_id, user_id, role_id) WHERE revoked_at IS NULL
 ```
 
 ---
@@ -411,14 +427,14 @@ HOTEL-1
 
 ## 6.2. `project_members`
 
-Mapping user vào project.
+Mapping normal user vào Project và lưu Access Level hiện hành.
 
 | Field | Type | Note |
 |---|---|---|
 | id | UUID / BIGINT | Primary key |
 | project_id | UUID | FK → projects.id |
 | user_id | UUID | FK → users.id |
-| role_id | UUID | FK → roles.id |
+| access_level | VARCHAR(20) | admin, editor, viewer; removed/no row = No Access |
 | status | VARCHAR(50) | active, removed |
 | joined_at | TIMESTAMP |  |
 | created_at | TIMESTAMP |  |
@@ -510,7 +526,7 @@ Unique constraint:
 UNIQUE(team_id, user_id)
 ```
 
-`team_members` không thay thế `project_members`. User phải là active Workspace Member trước khi được thêm vào Team. Khi thao tác trong một Project, backend vẫn kiểm tra Project membership/permission; Team membership dùng để xác định phạm vi dữ liệu, filter và assignment.
+`team_members` không thay thế `project_members`. User phải là active company user có Project Access trước khi được thêm vào Team. Project `Admin` tự động có All Teams và không cần Team membership row; `Editor` cần explicit Team membership; `Viewer` không phải Team member.
 
 ---
 
@@ -587,7 +603,6 @@ Quy định trạng thái nào có thể chuyển sang trạng thái nào.
 | project_id | UUID | FK → projects.id |
 | from_status_id | UUID | FK → workflow_statuses.id |
 | to_status_id | UUID | FK → workflow_statuses.id |
-| role_id | UUID | Nullable, role nào được chuyển |
 | created_at | TIMESTAMP |  |
 
 Ví dụ:
@@ -599,6 +614,8 @@ Code Review → Testing
 Testing → Done
 Done → Accepted
 ```
+
+Transition configuration is Project-scoped. Authorization to update a Work Item is enforced separately by the fixed Project Access Level policy; it does not reference a global Project role row.
 
 ---
 
@@ -1347,8 +1364,7 @@ workspaces 1--1 workspace_settings
 workspaces 1--n projects
 workspaces 1--n teams
 
-roles 1--n workspace_members
-roles 1--n project_members
+roles 1--n user_role_assignments (workspace_admin only)
 roles n--n permissions through role_permissions
 
 projects 1--n project_members

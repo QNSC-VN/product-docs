@@ -34,10 +34,9 @@ P2.1 không biến Backlog thành Sprint Planning. Iteration assignment trong Ba
 ## 3. Actor
 
 - Workspace Admin.
-- Project Manager / Scrum Master.
-- Product Owner / BA.
-- Developer / QA.
-- Viewer.
+- Project `Admin`.
+- Project `Editor` in assigned Teams.
+- Project `Viewer` (read-only).
 
 ## 3A. Business Rules / Business Flow
 
@@ -92,7 +91,7 @@ Nghiệp vụ chính:
 | P2-BL-FR-015 | User có quyền edit có thể bulk assign Release cho selected items. |
 | P2-BL-FR-015A | User có quyền edit có thể bulk assign Iteration cho selected items. |
 | P2-BL-FR-016 | User có quyền manage backlog có thể reorder backlog; production cập nhật `rank`. |
-| P2-BL-FR-017 | Project Admin ngoài managed Project chỉ được xem/search/filter/pagination/open detail; không được inline edit, bulk assign hoặc reorder. |
+| P2-BL-FR-017 | Admin được chỉnh Backlog trong assigned Project; Editor được chỉnh trong assigned Teams; Viewer chỉ xem; No Access không thấy Project. |
 | P2-BL-FR-018 | Sprint summary và Sprint planning không xuất hiện trong Backlog P2.1; Iteration assignment chỉ là field của Work Item. |
 | P2-BL-FR-019 | KPI/metric summary strip không hiển thị trong Backlog; pattern này giữ lại cho Iteration Status, Dashboard hoặc Reports. |
 | P2-BL-FR-020 | Manage Filters nằm bên trái trong filter banner; user chọn nhiều column bằng checkbox và Apply để combine filter. |
@@ -202,7 +201,7 @@ Allowed fields from Backlog:
 | `title` | Required after trim |
 | `priority` | Defect only |
 | `storyPoints` | Number >= 0 |
-| `assigneeId` | User must be project/workspace member |
+| `assigneeId` | User must be active and able to work in the target Project/Team: Workspace Admin is excluded; `Admin` access is valid for all Teams; Editor must belong to the target Team |
 | `scheduleState` or `statusId` | Must be valid project workflow/status |
 | `releaseId` | Release must belong to same project |
 | `iterationId` | Iteration must belong to same project/team context; nullable/unassigned allowed |
@@ -290,7 +289,12 @@ Rules:
 | Reorder backlog | `backlog:prioritize` or `work_item:rank_update` |
 | Create item | `work_item:create` |
 
-Viewer role must render read-only controls and must be blocked by API if direct mutation is attempted.
+Access baseline:
+
+- Workspace Admin and Admin may manage Backlog in allowed Project scope.
+- Editor may manage US/DE/Task only in explicitly assigned Teams and cannot assign Release.
+- Viewer renders read-only values and direct mutations are blocked.
+- No Access Project/items are absent from list/search and direct access is rejected safely.
 
 ## 9. Validation Rules
 
@@ -330,7 +334,7 @@ Viewer role must render read-only controls and must be blocked by API if direct 
 13. Inline title edit persists and is visible after refresh.
 14. Inline Defect Priority edit persists; Story priority remains unavailable.
 15. Inline Plan Estimate rejects negative values.
-16. Inline Owner validates project/workspace membership.
+16. Inline Owner validates active Project Access and Team scope; Viewer, No Access and Workspace Admin are not assignable delivery owners.
 17. Inline Release validates same-project release.
 18. Inline Iteration validates same-project/team iteration and updates `iterationId`.
 19. Work Item Detail right panel shows Iteration and allows the same assignment rule.

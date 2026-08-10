@@ -1,5 +1,7 @@
 # Mini Rally — UI Runtime & Business Coverage Review
 
+> **Historical runtime review:** This 2026-06-20 evidence predates the current Project Access Level model and Settings navigation. Use it only for historical UI evidence; current business truth is `04_Developement_tracking/RECONCILED_SOURCE_OF_TRUTH.md`.
+
 > Cập nhật 2026-06-20: `Plan` đã trở lại navigation như parent của `Backlog`; Backlog được đơn giản thành danh sách US/DE và không còn Sprint planning. Đã bổ sung Login Workspace Admin, hierarchy Company/Workspace → Project → Team, resizable columns, pagination và refactor frontend theo page/component. BUG-01 và BUG-02 vẫn ở trạng thái resolved.
 
 ## 1. Phạm vi review

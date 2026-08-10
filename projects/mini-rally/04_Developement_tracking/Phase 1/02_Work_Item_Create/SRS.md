@@ -42,7 +42,7 @@ BA confirmed Work Item create team policy:
 | WIC-FR-003 | Field `Title/Name` là required. |
 | WIC-FR-004 | Project required, default current project. |
 | WIC-FR-005 | Team optional; default blank/Project backlog unless current Team context is explicitly selected and valid for the Project. |
-| WIC-FR-006 | Owner nullable; default current user hoặc Unassigned theo config. |
+| WIC-FR-006 | Owner defaults to the authenticated current user as an intentional Mini Rally product rule. User can explicitly choose `Unassigned`; named Owner options must come from current Project/Team membership. |
 | WIC-FR-007 | Plan Estimate nullable, không âm. |
 | WIC-FR-008 | `Create` tạo item và quay lại Backlog/list refresh. |
 | WIC-FR-009 | `Create with details` tạo item rồi mở Work Item Detail của item vừa tạo. |
@@ -60,7 +60,7 @@ BA confirmed Work Item create team policy:
 | Project select | Project dropdown | Lấy project user có quyền |
 | Team select | Team dropdown | Optional; blank = Project backlog; selected options filter by selected Project |
 | Title | Input placeholder | Required |
-| Owner | Dropdown | User list theo project/team membership |
+| Owner | Dropdown | Default authenticated current user; explicit `Unassigned`; named users filtered by current Project/Team membership |
 | Plan Estimate | Number input | Map story points |
 | Cancel | Button | Đóng modal, không mutate |
 | Create | Button | POST rồi refresh list |
@@ -75,7 +75,7 @@ BA confirmed Work Item create team policy:
 | Workspace | Server-derived | `work_items.workspace_id` | Tenant isolation/query | Derived from session/project |
 | Team | `teamId` | `work_items.team_id` | Team owner | Nullable; null = Project backlog; if provided, must exist in active `project_teams` for selected Project |
 | Title/Name | `title` | `work_items.title` | Item name | Required, trim, max 500 |
-| Owner | `assigneeId` | `work_items.assignee_id` | Responsible user | Nullable; user must belong to project/team policy |
+| Owner | `assigneeId` | `work_items.assignee_id` | Responsible user | Default authenticated current user; nullable only when user explicitly chooses `Unassigned`; named user must belong to Project/Team policy |
 | Plan Estimate | `planEstimate` | `work_items.story_point` | Story point estimate | Nullable; decimal >= 0 |
 | Schedule State | Server default | `work_items.schedule_state` | Initial schedule state | Default `Idea`; mirror Flow State trong MVP |
 | Flow State | Server default | `work_items.flow_state` | Initial flow state | Default `Idea`; mirror Schedule State trong MVP |
@@ -144,6 +144,7 @@ Response:
 7. Activity log có `work_item.created`.
 8. Creating without Team succeeds and places the item in the Project backlog.
 9. Creating with a Team validates that Team belongs to the selected Project.
+10. Owner defaults to the authenticated current user, `Unassigned` remains selectable, and membership changes refresh the available named Owner options.
 
 ## 10. Implementation Breakdown
 

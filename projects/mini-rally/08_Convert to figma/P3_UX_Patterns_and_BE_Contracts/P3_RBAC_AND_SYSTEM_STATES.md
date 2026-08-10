@@ -1,150 +1,148 @@
-# Plan 3 — RBAC and System States
+# Plan 3 - Project Access and System States
 
-## Scope and authority
+## Scope And Authority
 
-This document is the **design-side** contract for how permission decisions and server states surface in the UI. It does not invent business rules.
+This is the design-side contract for permission outcomes. It follows the BA source:
 
-| Layer | Owner | Where it is decided |
+`04_Developement_tracking/Phase 4/02_Roles_Permissions/SRS.md`
+
+Figma and frontend visibility are not security. Backend/service guards must enforce the same Project, Team and action scope.
+
+## Access Model
+
+Mini Rally has one company-level authority:
+
+| Authority | Scope |
+|---|---|
+| Workspace Admin | Full company, Project, Team, user-access and delivery authority; assigned internally |
+
+Every normal user receives one level independently for each Project:
+
+| Access Level | Scope |
+|---|---|
+| Admin | Assigned Project and All Teams; full delivery management; structure/access read-only |
+| Editor | Assigned Project and explicit Teams; edits approved delivery work |
+| Viewer | Assigned Project; project-wide read-only; no Team membership |
+| No Access | Project hidden and direct access rejected |
+
+Workspace Admin is not a Project member and must not appear in Project Users & Permissions or Team-member candidates.
+
+## UI Outcomes
+
+| Outcome | UI behavior | Figma representation |
 |---|---|---|
-| Which role may perform which action | BA | `04_Developement_tracking/Phase 4/02_Roles_Permissions/SRS.md` — BA-confirmed |
-| What the UI renders for each permission outcome | This document + the Figma `RBAC Outcome` pattern | Plan 3 |
-| Enforcement | Backend | `P4-RBAC-03` / `P4-RBAC-04`, both still **Pending** in the SRS |
+| Allowed | Control is visible and actionable | Normal component state |
+| Read-only | Data is visible; mutation control is absent | Plain value/detail field, not a disabled input |
+| Hidden | Project, screen or action does not render | Node hidden; direct route uses Forbidden/Not Found |
+| Disabled | Control is visible but temporarily unavailable because of validation, dependency or lifecycle state | Disabled component state |
 
-> **Figma visibility is not security.** Every rule below describes user experience only. The backend must guard every route, action and field regardless of what the UI shows. This restates P1 rule 9 and SRS §3.3.
+Disabled is not an assignable access level. It must not be used as a replacement for Viewer or No Access.
 
-Plan 3 fills SRS task **`P4-RBAC-05` — Define frontend route/action/field gating**, which the SRS lists as Pending. It does not close `P4-RBAC-03`, `P4-RBAC-04` or `P4-RBAC-06`.
+## Navigation Presentation
 
-## The four permission outcomes
-
-Defined by the BA in SRS §2 and §3.3. The Figma pattern is `RBAC` / `RBAC Outcome`.
-
-| Code | State | UI behaviour | Figma representation |
-|---|---|---|---|
-| `E` | Enabled | Control is shown and actionable. | The component's normal Default/Hover states. |
-| `R` | Read-only | Data is visible; no create/edit/delete control is rendered. | Value rendered as plain text via `Detail Field`, with no Text Input / Select / Button. |
-| `D` | Disabled | Control is visible but inert. | The component's `State=Disabled` variant. |
-| `H` | Hidden | Nothing renders. Direct URL access resolves to Access Denied or Not Found. | Node `visible = false`; the surface falls back to `System State` `Type=Forbidden` or `Type=Not Found`. |
-
-### Selection rules (SRS §2, verbatim intent)
-
-1. `View` permissions resolve to `E` for editable users or `R` for read-only users.
-2. `Create`, `Edit` and `Delete` **must not** be represented as `R` — use `E`, `D` or `H`.
-3. Use `D` only when the product deliberately wants to reveal that an action exists but is unavailable in the current role/context.
-4. Use `H` for sensitive administrative, destructive or security-related actions: role matrix changes, user removal, project deletion.
-5. Direct URL/API access must still be guarded when the UI state is `H`.
-
-### Why `R` is not "a disabled input"
-
-`R` means the mutation control is **absent**, not greyed out. A disabled Text Input still communicates "there is a field here you might edit"; read-only means the user is simply viewing data. Use `Detail Field` with a plain-text value, not `Text Input` `State=Disabled`. This distinction is the most common way an RBAC design goes wrong.
-
-## Role baseline
-
-Three technical roles only (SRS §2, §6 of `RECONCILED_SOURCE_OF_TRUTH.md`). `workspace_member`, `project_viewer` and `guest` are removed from the Phase 4 baseline.
-
-| Code | Role | Scope |
+| Demo access | Navigation and scope | Settings gear |
 |---|---|---|
-| `WA` | `workspace_admin` | Full workspace administration across all projects and teams. |
-| `PA` | `project_admin` | Full delivery access in **assigned managed** projects; read-only in every other project. |
-| `PM` | `project_member` | Works only inside the assigned project and assigned teams. |
+| Workspace Admin | All Projects/Teams and all delivery features | Full Administration |
+| Admin | Assigned Project, All Teams and delivery planning/execution | My Permissions, Workspaces & Projects, Permission Model |
+| Editor | Assigned Project/Teams; Backlog, Iteration Status and Quality | My Permissions and Workspaces & Projects |
+| Viewer | Assigned Project delivery in read-only form | My Permissions and read-only Project context |
+| No Access | No Project navigation | Personal only |
 
-### Already demonstrated in Figma
+Normal users may show a contextual Admin/Editor/Viewer badge in the selected Project header. Do not present it as one global account role.
 
-`App Shell` / `TopNav` carries a `Role` variant axis proving the `H` outcome at navigation level:
+## Project Structure Gating
 
-| Role | Navigation items | Workspace settings gear |
-|---|---|---|
-| Workspace Admin | Home, Plan, Track, Quality, Portfolio, Reports | Visible (`E`) |
-| Project Admin | Home, Plan, Track, Quality, Portfolio, Reports | **Hidden** (`H`) |
-| Project Member | Home, Plan, Track | **Hidden** (`H`) |
+| Surface / action | WA | Admin | Editor | Viewer | No Access |
+|---|---:|---:|---:|---:|---:|
+| View assigned Project Details/Teams | Allowed | Read-only | Read-only, scoped | Read-only | Hidden |
+| View Project Users & Permissions | Allowed | Read-only | Hidden | Hidden | Hidden |
+| Create/Edit/Archive/Delete Project | Allowed | Hidden | Hidden | Hidden | Hidden |
+| Add/Edit/Deactivate/Restore Team | Allowed | Hidden | Hidden | Hidden | Hidden |
+| Add/change/remove Project user | Allowed | Hidden | Hidden | Hidden | Hidden |
 
-Source for the gear rule: `model.ts` `can.viewAdmin = r === "Workspace Admin"`, consistent with SRS §3.1 ("Only `workspace_admin` manages company users, project membership, team membership and resource allocation").
+## Pilot Surface Gating - Backlog And Work Item Detail
 
-Source for Project Member navigation: SRS §3.6 — "Project Member navigation contains Home, Backlog and Iteration Status only, plus personal Notifications."
+| Surface / action | WA | Admin | Editor | Viewer | No Access |
+|---|---:|---:|---:|---:|---:|
+| View rows, search, filter, sort and detail | Allowed | Allowed | Allowed in assigned Teams | Read-only | Hidden |
+| Create US/DE | Allowed | Allowed | Allowed in assigned Teams | Hidden | Hidden |
+| Edit fields, notes, relations and rank | Allowed | Allowed | Allowed in assigned Teams | Hidden | Hidden |
+| Create/Edit/Delete child Task | Allowed | Allowed | Allowed in assigned Teams | Hidden | Hidden |
+| Delete US/DE/Task | Allowed | Allowed | Allowed in assigned Teams | Hidden | Hidden |
+| Assign to Iteration | Allowed | Allowed | Allowed in assigned Teams | Hidden | Hidden |
+| Assign to Release | Allowed | Allowed | Hidden | Hidden | Hidden |
 
-## Pilot-surface gating (Backlog → Work Item Detail)
+## Access Management Presentation
 
-The D-003 pilot surfaces, resolved from SRS §3.1 and §4. Permission codes are the SRS's own.
+### User Details
 
-| Surface + action | Permission code | WA | PA (assigned) | PA (other project) | PM |
-|---|---|:--:|:--:|:--:|:--:|
-| Backlog — view rows/search/filter/sort/page | `work_item:view` | E | E | R | E |
-| Backlog — create US/DE | `work_item:create` | E | E | H | E |
-| Backlog — edit fields / rank | `work_item:edit` | E | E | H | E |
-| Backlog — delete work item | `work_item:delete` | E | E | H | E |
-| Backlog — assign to Iteration | `iterations:assign_work_item` | E | E | H | E |
-| Backlog — assign to Release | `releases:edit` | E | E | H | **H** |
-| Work Item Detail — view fields/history | `work_item:view` | E | E | R | E |
-| Work Item Detail — edit fields/notes/relations/watchers | `work_item:edit` | E | E | H | E |
-| Work Item Detail — create/edit/delete child Tasks | `work_item:edit` | E | E | H | E |
-| Work Item Detail — delete work item | `work_item:delete` | E | E | H | E |
+- General and Project Access are separate tabs.
+- Each Project row has Project, Access Level and Teams.
+- Admin shows All Teams automatically.
+- Editor requires Team selection.
+- Viewer/No Access show explanatory read-only text instead of Team controls.
+- Review Changes summarizes every Project assignment before confirmation.
 
-Two rows carry business weight and are worth calling out to dev:
+### Project Users & Permissions
 
-- **Release assignment is `H` for Project Member.** SRS §3.1: "Cannot assign a Work Item to a Release." The Backlog table's Release cell must render as text for PM, not a Select.
-- **Project Admin outside assigned projects is `R`, not `D`.** SRS §3.2: "in every other Project allow read-only viewing and block all mutations." The row still renders; every mutation control is absent.
+Use exactly:
 
-Governance rows (User, Team, Project lifecycle, Workspace Settings, Role Matrix, Audit) default to `H` for PA and PM and are **not** system-locked — Workspace Admin may override them through the matrix (SRS §2, "Governance override decision"). Only Auth, App Shell, Personal and Notification rows are locked at `E` for all roles.
+`User | Status | Access Level | Action`
 
-## Access Denied vs Not Found
+- Workspace Admin receives editable Access Level dropdown and Remove action.
+- Admin receives read-only Access Level and no Remove action.
+- Remove opens confirmation before changing access to No Access.
 
-From SRS §3.4. Figma pattern: `System States` / `System State`.
+### Add Team
+
+- Workspace Admin may select existing users and set Admin or Editor.
+- Admin resolves to All Teams.
+- Editor joins the new Team.
+- The result must be visible in User Details and Project Users & Permissions.
+
+## Access Denied Vs Not Found
 
 | Scenario | Outcome |
 |---|---|
-| Direct URL to an existing but inaccessible project/team/item | `Access Denied` — unless the surface is sensitive enough to mask existence |
-| Direct URL to a missing record | `Not Found` |
-| Sensitive or security-relevant record existence | Prefer `Not Found`, to avoid confirming the record exists |
-| List / search / dropdown data | Return and display only records the user can access |
-| Notification target after access is revoked | Safe Access Denied or Not Found, without exposing restricted details |
+| Known route, insufficient action permission | Access Denied unless existence must be masked |
+| Missing or inaccessible sensitive record | Not Found |
+| List/search/selector | Return only accessible records |
+| Notification target after access revoke | Access Denied or Not Found without target metadata |
 
-### Safety rules the design must honour
+Neither state may reveal restricted title, owner, Project, Team or other business data. Both provide a safe navigation action.
 
-- Neither state may display the restricted item's **title, owner, project name, team name or any other metadata**.
-- Search must not reveal inaccessible records.
-- Project and team selectors must not reveal inaccessible projects/teams. Project Member selectors must not expose unassigned Teams or the `All Teams` option.
-- Both states provide a safe `Back to Backlog` action.
+## Effective Time
 
-The Figma `System State` `Type=Forbidden` and `Type=Not Found` variants are deliberately written with generic copy only. **Do not** parameterise them with the record's name.
-
-## Effective time of permission changes
-
-From SRS §3.5. This matters for design because it determines whether the UI must react live.
-
-| Change | When it takes effect | UI consequence |
+| Change | Effective time | UI consequence |
 |---|---|---|
-| Role changed | Next login | No live re-render required. |
-| Project/team membership changed | Next login | No live re-render required. |
-| Role matrix saved | Next login | Matrix returns to read-only display mode after save. |
-| User deactivated / removed from company | **Next page refresh** | On refresh, do not restore company data — route to sign-in or Access Denied. |
+| Project Access Level | Next sign-in | No forced live role switch required |
+| Team membership | Next sign-in | New Team scope appears after sign-in |
+| Company disable/removal | Next refresh | Do not restore company data; route to sign-in or denied state |
 
-Phase 4 does not require the UI to force-close the current page at the moment an admin saves a deactivation.
+## System States
 
-## System states (non-permission)
+| State | Component | Recovery |
+|---|---|---|
+| Loading | Table Skeleton / Skeleton Row | None |
+| Empty | System State `Empty` | Clear filters or primary create action when authorized |
+| Error | System State `Error` | Retry while preserving query state |
+| Forbidden | System State `Forbidden` | Safe navigation |
+| Not Found | System State `Not Found` | Safe navigation |
+| Destructive confirmation | Dialog `Destructive Confirmation` | Cancel or exact action confirmation |
 
-Figma pattern: `System States` page.
+## Current Design Decisions
 
-| State | Component | Recovery action | Notes |
-|---|---|---|---|
-| Loading | `Table Skeleton` / `Skeleton Row` | — | Structure-preserving skeleton, not a spinner, so layout does not jump. |
-| Empty | `System State` `Type=Empty` | Clear filters | Must distinguish "no records exist" from "no records match your filters" in the description. |
-| Error | `System State` `Type=Error` | Retry | Filters and query state are preserved across the retry. |
-| Forbidden | `System State` `Type=Forbidden` | Back to Backlog | See safety rules above. |
-| Not Found | `System State` `Type=Not Found` | Back to Backlog | Also used to mask existence of sensitive records. |
-| Destructive confirmation | `Dialog` `Type=Destructive Confirmation` | Cancel / confirm | Confirm button starts disabled until the typed name matches, mirroring `ConfirmRemoveUserAccess`. |
+- Permission Model is read-only; no editable E/R/D/H role matrix.
+- Workspace Admin is the only account with structural administration.
+- Admin is not allowed to Create/Edit Project or Add/Edit Team.
+- Access in one Project never creates read-only access to another Project.
+- Editor has no All Teams option.
+- Viewer has no Team membership.
+- Internal TypeScript names retained for demo compatibility are not product-facing role definitions.
 
-## Discrepancy found during Plan 3 — needs BA/dev awareness
+## Not Decided Here
 
-`03_Mockup Design/src/app/model.ts` exports a `PERMISSIONS_MATRIX` of 14 rows with simple role arrays. It **does not match** the SRS matrix in three ways:
-
-1. **Granularity.** The mockup array has one row per coarse action ("Edit Work Items"); the SRS requires one independent permission code per Screen + Action row, explicitly forbidding a generic `*:manage` permission.
-2. **No E/R/D/H.** The mockup expresses permission as a boolean role list; the SRS requires a four-valued state per role cell.
-3. **Content drift.** The mockup grants "View Reports" and "Export Reports" to WA and PA, but the SRS defers Reports entirely to Phase 5 with RBAC to be revisited. It also grants "Delete Work Items" to all three roles without the project-scope qualifier the SRS attaches.
-
-`model.ts` is mock data — under the Plan 0 source-precedence rule it is "example content only; never an authority for API behaviour/security" (rank 4). The SRS matrix governs. This is recorded so nobody implements the mockup array as if it were the permission model. It extends P0 findings G-001 and G-005.
-
-## What Plan 3 does not decide
-
-- Backend enforcement design (`P4-RBAC-03`, `P4-RBAC-04`) — owned by dev.
-- Verification scenarios (`P4-RBAC-06`) — owned by QA, though the Figma `RBAC Outcome` pattern gives them the expected UI per state.
-- Project-level audit visibility for `project_admin` — SRS defers this to P4.3.
-- RBAC for Portfolio, Reports and top-level Release Tracking — SRS defers all three to Phase 5.
+- API payload and persistence shape.
+- Database schema or policy-engine implementation.
+- Production authorization proof.
+- Audit retention/export policy.

@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { ArrowUpDown, Check, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowUpDown, Check, ChevronDown, ChevronLeft, ChevronRight, Filter, X } from "lucide-react";
 import { type IterationItem, type Owner, type Role, type StatusType, type TaskItem, type TaskState, type WorkItem, can, ITERATIONS_DATA, OWNERS } from "../model";
 import { Avatar, TypeBadge } from "../components/shared";
 
@@ -183,6 +183,11 @@ export function TeamStatusPage({ role, readOnly = false, items, tasks, onUpdateT
   const [expandedOwners, setExpandedOwners] = useState<Set<string>>(new Set(OWNERS.map(owner => owner.name)));
   const [capacityByOwner, setCapacityByOwner] = useState<Record<string, number>>(DEFAULT_CAPACITY);
   const [columnWidths, setColumnWidths] = useState<Record<TeamStatusColumnKey, number>>(DEFAULT_COLUMN_WIDTHS);
+  const [showFilters, setShowFilters] = useState(false);
+  const [ownerFilter, setOwnerFilter] = useState("All");
+  const [stateFilter, setStateFilter] = useState<"All" | TaskState>("All");
+  const [pageSize, setPageSize] = useState(10);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const iterations = ITERATIONS_DATA;
   const selectedIteration = iterations.find(iteration => iteration.id === selectedIterationId) ?? iterations[0];
@@ -192,27 +197,38 @@ export function TeamStatusPage({ role, readOnly = false, items, tasks, onUpdateT
   const tableWidth = Object.values(columnWidths).reduce((sum, width) => sum + width, 0);
   const parentById = useMemo(() => new Map(items.map(item => [item.id, item])), [items]);
 
-  const groups = useMemo<MemberGroup[]>(() => {
-    const scopedTasks = tasks.filter(task => parentById.get(task.parentWorkItemId)?.iteration === selectedIteration.name);
+  const scopedTasks = useMemo(
+    () => tasks.filter(task => parentById.get(task.parentWorkItemId)?.iteration === selectedIteration.name),
+    [parentById, selectedIteration.name, tasks],
+  );
+  const filteredTasks = useMemo(
+    () => scopedTasks.filter(task => (ownerFilter === "All" || task.owner.name === ownerFilter) && (stateFilter === "All" || task.state === stateFilter)),
+    [ownerFilter, scopedTasks, stateFilter],
+  );
+  const totalPages = Math.max(1, Math.ceil(filteredTasks.length / pageSize));
+  const activePage = Math.min(currentPage, totalPages);
+  const pageStart = (activePage - 1) * pageSize;
+  const paginatedTasks = filteredTasks.slice(pageStart, pageStart + pageSize);
 
+  const groups = useMemo<MemberGroup[]>(() => {
     return OWNERS.map(owner => {
-      const ownerItems = scopedTasks.filter(item => item.owner.name === owner.name);
+      const ownerItems = paginatedTasks.filter(item => item.owner.name === owner.name);
       const estimate = ownerItems.reduce((sum, item) => sum + item.estimate, 0);
       const todo = ownerItems.reduce((sum, item) => sum + item.todo, 0);
       const actuals = ownerItems.reduce((sum, item) => sum + item.actuals, 0);
       return { owner, items: ownerItems, capacity: capacityByOwner[owner.name] ?? DEFAULT_CAPACITY[owner.name] ?? 40, estimate, todo, actuals };
     }).filter(group => group.items.length > 0);
-  }, [capacityByOwner, parentById, selectedIteration.name, tasks]);
+  }, [capacityByOwner, paginatedTasks]);
 
-  const totals = groups.reduce((acc, group) => ({
-    capacity: acc.capacity + group.capacity,
-    estimate: acc.estimate + group.estimate,
-    todo: acc.todo + group.todo,
-    actuals: acc.actuals + group.actuals,
-    items: acc.items + group.items.length,
-    blocked: acc.blocked + group.items.filter(item => item.blocked).length,
-    defects: acc.defects + group.items.filter(item => item.type === "Defect").length,
-  }), { capacity: 0, estimate: 0, todo: 0, actuals: 0, items: 0, blocked: 0, defects: 0 });
+  const totals = useMemo(() => {
+    const ownersInIteration = new Set(scopedTasks.map(task => task.owner.name));
+    return {
+      capacity: [...ownersInIteration].reduce((sum, ownerName) => sum + (capacityByOwner[ownerName] ?? DEFAULT_CAPACITY[ownerName] ?? 40), 0),
+      estimate: scopedTasks.reduce((sum, task) => sum + task.estimate, 0),
+      todo: scopedTasks.reduce((sum, task) => sum + task.todo, 0),
+      actuals: scopedTasks.reduce((sum, task) => sum + task.actuals, 0),
+    };
+  }, [capacityByOwner, scopedTasks]);
 
   function toggleOwner(name: string) {
     setExpandedOwners(previous => {
@@ -274,6 +290,22 @@ export function TeamStatusPage({ role, readOnly = false, items, tasks, onUpdateT
         <div className="flex-1" />
       </div>
 
+      <div className="flex items-center gap-2 px-4 py-1.5 bg-white shrink-0" style={{ borderBottom: "1px solid #e2e6eb" }}>
+        <button onClick={() => setShowFilters(previous => !previous)} className="flex items-center gap-1.5 px-2 py-1 text-[11px] rounded" style={{ border: "1px solid #bdd0ef", color: "#2558a6", backgroundColor: showFilters ? "#edf2fb" : "#fff" }}><Filter size={11} /> {showFilters ? "Hide Filters" : "Filters"}</button>
+        <span className="text-[11px]" style={{ color: "#8c94a6" }}>{filteredTasks.length} Tasks in result · Totals use all {scopedTasks.length} Tasks in the Iteration</span>
+      </div>
+      {showFilters && (
+        <div className="flex items-center gap-3 px-4 py-2 shrink-0" style={{ backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
+          <label className="flex items-center gap-2 text-[11px] font-semibold" style={{ color: "#5c6478" }}>Owner
+            <select value={ownerFilter} onChange={event => { setOwnerFilter(event.target.value); setCurrentPage(1); }} className="px-2 py-1 rounded bg-white font-normal" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}><option>All</option>{OWNERS.map(owner => <option key={owner.name}>{owner.name}</option>)}</select>
+          </label>
+          <label className="flex items-center gap-2 text-[11px] font-semibold" style={{ color: "#5c6478" }}>State
+            <select value={stateFilter} onChange={event => { setStateFilter(event.target.value as "All" | TaskState); setCurrentPage(1); }} className="px-2 py-1 rounded bg-white font-normal" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}><option>All</option>{TEAM_STATUS_OPTIONS.map(state => <option key={state}>{state}</option>)}</select>
+          </label>
+          {(ownerFilter !== "All" || stateFilter !== "All") && <button onClick={() => { setOwnerFilter("All"); setStateFilter("All"); setCurrentPage(1); }} className="flex items-center gap-1 text-[11px]" style={{ color: "#5c6478" }}><X size={11} /> Clear filters</button>}
+        </div>
+      )}
+
       <div className="flex-1 overflow-auto">
         <div style={{ width: tableWidth, minWidth: "100%" }}>
           <div className="grid h-8 sticky top-0 z-10" style={{ gridTemplateColumns: gridTemplate, backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
@@ -321,6 +353,18 @@ export function TeamStatusPage({ role, readOnly = false, items, tasks, onUpdateT
               })}
             </div>
           ))}
+        </div>
+      </div>
+      <div className="h-10 shrink-0 flex items-center justify-between px-4 bg-white" style={{ borderTop: "1px solid #e2e6eb" }}>
+        <div className="flex items-center gap-2 text-[11px]" style={{ color: "#5c6478" }}>
+          <span>Rows per page</span>
+          <select value={pageSize} onChange={event => { setPageSize(Number(event.target.value)); setCurrentPage(1); }} className="px-2 py-1 rounded bg-white" style={{ border: "1px solid #dde2ea", color: "#1a2234" }}>{[10, 25, 50, 100].map(size => <option key={size}>{size}</option>)}</select>
+          <span style={{ color: "#8c94a6" }}>{filteredTasks.length === 0 ? "0 records" : `${pageStart + 1}-${Math.min(pageStart + pageSize, filteredTasks.length)} of ${filteredTasks.length}`}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] tabular-nums" style={{ color: "#5c6478" }}>Page {activePage} of {totalPages}</span>
+          <button aria-label="Previous Team Status page" disabled={activePage === 1} onClick={() => setCurrentPage(activePage - 1)} className="p-1.5 rounded disabled:opacity-35" style={{ border: "1px solid #dde2ea", color: "#5c6478" }}><ChevronLeft size={13} /></button>
+          <button aria-label="Next Team Status page" disabled={activePage === totalPages} onClick={() => setCurrentPage(activePage + 1)} className="p-1.5 rounded disabled:opacity-35" style={{ border: "1px solid #dde2ea", color: "#5c6478" }}><ChevronRight size={13} /></button>
         </div>
       </div>
     </div>
