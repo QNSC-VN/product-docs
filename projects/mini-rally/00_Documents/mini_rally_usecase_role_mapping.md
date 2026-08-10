@@ -1,241 +1,110 @@
-# Mini Rally / Agile Work Management Tool - Role Mapping Use Case Matrix
+# Mini Rally - Project Access Use Case Matrix
 
-## 1. Tổng quan
+## 1. Purpose
 
-Tài liệu này mô tả danh sách **Use Case** theo từng module của hệ thống **Mini Rally / Agile Work Management Tool**, kèm bảng mapping quyền sử dụng theo từng role.
+This document is the business-facing authorization map for Mini Rally. It uses the approved 2026-08-10 model and supersedes the former PM/BA/Developer/QA role matrix.
 
-Thay vì dùng Use Case Diagram nhiều mũi tên gây rối, tài liệu này trình bày theo dạng **Role Mapping Use Case Matrix** để dễ đọc, dễ review và dễ chuyển thành yêu cầu phân quyền khi phát triển hệ thống.
+## 2. Authorization Model
 
----
+- `Workspace Admin` is the only company-level role. It is assigned internally and has company-wide authority.
+- Workspace Admin is not a Project member and does not appear in Project user or Team-member candidates.
+- Every normal user receives one Access Level independently in each Project: `Admin`, `Editor`, `Viewer` or `No Access`.
+- Access in one Project never grants access to another Project.
+- Business personas such as PM, BA, Developer or QA do not grant permissions.
 
-## 2. Danh sách Actor / Role
+## 3. Access Levels
 
-| Role | Mô tả |
+| Level | Scope | Meaning |
+|---|---|---|
+| Workspace Admin | Company | Manage all users, Projects, Teams, access and delivery data |
+| Admin | Assigned Project, All Teams | Manage delivery features; Project/Team/user-access structure remains read-only |
+| Editor | Assigned Project and explicit Teams | Manage Backlog Work Items/Tasks, Quality Defects and Iteration Status in assigned Teams |
+| Viewer | Assigned Project, all Teams read-only | View Project delivery data; no mutations |
+| No Access | None | Project is hidden and direct URLs are denied safely |
+
+## 4. Company And Structure
+
+| Use Case | Workspace Admin | Admin | Editor | Viewer | No Access |
+|---|---:|---:|---:|---:|---:|
+| Sign in/out and manage own profile | Yes | Yes | Yes | Yes | Yes |
+| View accessible Project/Team context | All | Assigned Project / All Teams | Assigned Project / assigned Teams | Assigned Project / all Teams | No |
+| Edit Workspace Settings | Yes | No | No | No | No |
+| Invite/disable/remove company user | Yes | No | No | No | No |
+| Create/edit/archive/restore/delete Project | Yes | No | No | No | No |
+| Create/edit/deactivate/restore Team | Yes | No | No | No | No |
+| Assign Project Access Level | Yes | No | No | No | No |
+| Assign Team membership | Yes | No | No | No | No |
+| View Project Details/Teams | Yes | Read-only | Scoped read-only | Read-only | No |
+| View Project Users & Permissions | Yes | Read-only | No | No | No |
+| View Permission Model | Yes | Own permissions only | Own permissions only | Own permissions only | Own permissions only |
+| View Audit Log | Yes | No | No | No | No |
+
+## 5. Delivery Features
+
+| Feature / Action | Workspace Admin | Admin | Editor | Viewer | No Access |
+|---|---:|---:|---:|---:|---:|
+| Backlog / Work Item / Task - View | All | Project | Assigned Teams | Project read-only | No |
+| Backlog / Work Item / Task - Create/Edit/Delete | All | Project | Assigned Teams | No | No |
+| Iteration Status - View | All | Project | Assigned Teams | Project read-only | No |
+| Iteration Status - Edit | All | Project | Assigned Teams | No | No |
+| Timeboxes: Iteration/Release/Milestone - View | All | Project | No | Project read-only | No |
+| Timeboxes: Create/Edit/Archive | All | Project | No | No | No |
+| Team Status - View | All | Project | No | Project read-only | No |
+| Team Status - Edit | All | Project | No | No | No |
+| Quality Defects - View | All | Project | Assigned Teams | Project read-only | No |
+| Quality Defects - Create/Edit/Delete | All | Project | Assigned Teams | No | No |
+| Portfolio Items - View | All | Project | No | Project read-only | No |
+| Portfolio Items - Manage | All | Project | No | No | No |
+| Capacity Planning - View | All | Project | No | Project read-only | No |
+| Capacity Planning - Manage | All | Project | No | No | No |
+| Release Tracking / Reports - View | All | Project | No | Project read-only | No |
+| Release Tracking controls, where provided | All | Project | No | No | No |
+
+## 6. Notifications
+
+- A user receives a notification when a US/DE is assigned to that user.
+- A user receives a notification when mentioned in the Notes of a US/DE.
+- Clicking the notification opens the related Work Item.
+- Current Project access is checked again before showing target data.
+- If access was removed, no restricted Project or Work Item metadata is leaked.
+
+## 7. Access Management Journeys
+
+### User-centric
+
+`Settings > Users > User Details > Project Access`
+
+- One user can join many Projects.
+- Each Project row has its own Access Level.
+- `Admin` automatically shows `All Teams`.
+- `Editor` requires one or more explicit Teams.
+- `Viewer` has Project-wide read-only access and no Team membership.
+
+### Project-centric
+
+`Settings > Workspaces & Projects > Project > Users & Permissions`
+
+- List columns: User, Status, Access Level, Action.
+- Workspace Admin can add an existing company user, change Access Level or remove the user from the Project.
+- Remove requires confirmation.
+
+### Team creation/edit
+
+- Workspace Admin can select existing users while creating/editing a Team.
+- Selecting `Admin` grants Project Admin access and therefore All Teams.
+- Selecting `Editor` grants Project Editor access and membership in that Team.
+- All three journeys update the same Project access and Team membership data.
+
+## 8. Effective Time
+
+- Project Access Level and Team membership changes take effect on the user's next sign-in.
+- Company disable/removal takes effect on the user's next page refresh.
+
+## 9. UI Outcomes
+
+| Outcome | Meaning |
 |---|---|
-| **Workspace Admin** | Quản trị toàn bộ workspace/system |
-| **Project Manager / Scrum Master** | Quản lý project, sprint, release, board |
-| **Product Owner / BA** | Quản lý backlog, requirement, user story |
-| **Developer** | Nhận task, cập nhật tiến độ, xử lý work item |
-| **Tester / QA** | Tạo defect, verify bug, cập nhật trạng thái test |
-| **Viewer / Stakeholder** | Chỉ xem thông tin, dashboard, report |
-
----
-
-## 3. Account & Workspace
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Đăng nhập | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Đăng xuất | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Quản lý hồ sơ cá nhân | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Đổi mật khẩu | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Quản lý Workspace | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Mời người dùng vào Workspace | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Quản lý vai trò & phân quyền | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-
----
-
-## 4. Project Management
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Tạo Project | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Xem danh sách Project | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Xem chi tiết Project | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Cập nhật thông tin Project | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Xóa / Archive Project | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Quản lý thành viên Project | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Cấu hình Project | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Tạo/Cập nhật/Archive Team | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Quản lý Team members | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Link/Unlink Team với Project | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Chuyển Project/Team context | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
----
-
-## 5. Work Item Management
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Tạo Work Item | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-| Xem danh sách Work Item | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Xem chi tiết Work Item | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Cập nhật Work Item | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Xóa Work Item | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Assign người phụ trách | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Cập nhật trạng thái Work Item | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Cập nhật Priority | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Cập nhật Story Point | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Liên kết Epic / Story / Task / Defect | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Bình luận Work Item | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Upload Attachment | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Xem Activity Log của Work Item | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
----
-
-## 6. Backlog Management
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Xem Backlog | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Tạo item trong Backlog | ✅ | ✅ | ✅ | ❌ | ✅ | ❌ |
-| Grooming Backlog | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Sắp xếp Priority | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Filter / Search Backlog | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Resize cột / đổi page size | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
----
-
-## 7. Sprint / Iteration Management
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Tạo Sprint | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Cập nhật Sprint | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Start Sprint | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Close Sprint | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Xem Sprint hiện tại | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Xem Sprint Progress | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Move unfinished item sang Sprint khác | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-
----
-
-## 8. Board Management
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Xem Scrum / Kanban Board | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Kéo thả trạng thái Work Item | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Filter Board | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Xem item theo Assignee | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Xem item bị Blocked | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-
----
-
-## 9. Release Management
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Tạo Release | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Cập nhật Release | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Gán Work Item vào Release | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Xem danh sách Release | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Xem Release Progress | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Close Release | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-
----
-
-## 10. Dashboard & Reports
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Xem Dashboard | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Xem Burndown Chart | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Xem Velocity Chart | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Xem Defect Summary | ✅ | ✅ | ✅ | ❌ | ✅ | ✅ |
-| Xem Workload Report | ✅ | ✅ | ✅ | ❌ | ❌ | ✅ |
-| Xem Release Progress Report | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Export Report | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-
----
-
-## 11. Notification
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Nhận notification khi được assign | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Nhận notification khi bị mention | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Nhận notification khi item đổi trạng thái | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Gửi email notification | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Cấu hình notification cá nhân | ✅ | ✅ | ✅ | ✅ | ✅ | ❌ |
-
----
-
-## 12. Admin / Settings
-
-| Use Case | Workspace Admin | PM / Scrum Master | PO / BA | Developer | QA | Viewer |
-|---|---:|---:|---:|---:|---:|---:|
-| Quản lý User | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Quản lý Role | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Quản lý Permission | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Cấu hình Workflow Status | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Quản lý Label | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Xem Activity Log / Audit Log | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Cấu hình Workspace | ✅ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Cấu hình Project Settings | ✅ | ✅ | ❌ | ❌ | ❌ | ❌ |
-
----
-
-## 13. Tóm tắt quyền theo Role
-
-### Workspace Admin
-
-Toàn quyền quản lý workspace, user, role, permission, project, workflow, audit log, dashboard và toàn bộ dữ liệu trong hệ thống.
-
-### Project Manager / Scrum Master
-
-Quản lý project, member, backlog, sprint, board, release và report. Có quyền cấu hình workflow và project settings ở mức project.
-
-### Product Owner / BA
-
-Quản lý requirement, work item, backlog, priority, acceptance criteria và hỗ trợ sprint planning. Có quyền xem dashboard/report liên quan đến product delivery.
-
-### Developer
-
-Xem work item được assign, cập nhật trạng thái công việc, bình luận, upload attachment và thao tác trên board.
-
-### Tester / QA
-
-Tạo defect, cập nhật defect/test status, bình luận, upload attachment và xem defect report.
-
-### Viewer / Stakeholder
-
-Chỉ xem project, backlog, board, dashboard và report. Không có quyền chỉnh sửa dữ liệu.
-
----
-
-## 14. Ghi chú phân quyền
-
-- **Workspace Admin** có quyền cao nhất trong toàn bộ workspace.
-- **PM / Scrum Master** có quyền quản lý trong phạm vi project được phân quyền.
-- **PO / BA** có quyền quản lý backlog và work item nhưng không nên có quyền cấu hình user/role ở cấp workspace.
-- **Developer** và **QA** có quyền cập nhật work item phục vụ delivery nhưng không có quyền quản trị project.
-- **Viewer / Stakeholder** chỉ có quyền xem, không có quyền tạo, sửa hoặc xóa dữ liệu.
-- Với các chức năng nhạy cảm như xóa project, xóa work item, cấu hình permission, hệ thống nên yêu cầu quyền admin hoặc project admin rõ ràng.
-
----
-
-## 15. Gợi ý áp dụng khi phát triển
-
-Có thể chuyển bảng mapping này thành permission code theo dạng:
-
-```text
-module.action
-```
-
-Ví dụ:
-
-```text
-workspace.manage
-workspace.invite_user
-project.create
-project.update
-project.archive
-work_item.create
-work_item.update
-work_item.delete
-work_item.assign
-backlog.groom
-sprint.create
-sprint.start
-sprint.close
-board.update_status
-release.create
-report.view
-report.export
-admin.manage_user
-admin.manage_role
-admin.manage_permission
-```
-
-Sau đó mỗi role sẽ được gán một danh sách permission tương ứng.
+| Allowed | Action is available and can be executed |
+| Read-only | Data is visible; mutation controls are absent |
+| Hidden | Feature, Project or action is not shown |
+| Disabled | Temporary validation/dependency/lifecycle state; not an Access Level |

@@ -37,7 +37,7 @@ Project/Team context
 - Direct Feature, Derived Feature and Unparented Story/Defect examples.
 - Story/Defect examples in `Completed`, `Accepted` and `Release` states with Plan Estimate.
 - Tasks with Estimate, ToDo and Actual values; member capacity records.
-- One Workspace Admin, one Project Admin with a managed and an unmanaged Project, and one Project Member.
+- One Workspace Admin plus normal users assigned `Admin`, `Editor`, `Viewer` and `No Access` across at least two Projects. Include one user with different levels in different Projects.
 - Notification rows and a safe sender/recipient pair for carried Phase 4 checks.
 
 Use the prefix `P56-AUDIT-` for records created during this audit. Do not delete or alter pre-existing business records. Destructive cleanup, role changes and workspace-wide changes require BA approval at action time.
@@ -48,7 +48,7 @@ Use the prefix `P56-AUDIT-` for records created during this audit. Do not delete
 |---|---|---|---|
 | 0 | Setup | Confirm URL/build, account, Project/Team scope, seed data and evidence folder | Dependencies are known; blockers recorded |
 | 1 | Carryover Phase 0-4 | Re-run every Still Open, Partial, Failed, Blocked and Deferred case | Every carried case has a current result |
-| 2 | Phase 5 navigation/RBAC | Portfolio menu, route access, global context and three-role matrix | Navigation and access boundary confirmed |
+| 2 | Phase 5 navigation/access | Portfolio menu, route access, global context and per-Project `Admin`/`Editor`/`Viewer`/`No Access` outcomes | Navigation and access boundary confirmed |
 | 3 | Portfolio Items | Epic/Feature CRUD, hierarchy, inline edit, filters, children, archive and Work Item Feature link | Same IDs and values remain consistent across screens |
 | 4 | Capacity Planning | Plan uniqueness, Draft editing, Team/Feature allocation, calculations, Publish variants, Revert and RBAC | Lifecycle and calculations confirmed after reload |
 | 5 | Release Tracking | Buckets, scope, unit, sorting, issues, totals, history and empty states | RT acceptance checklist passes or gaps are logged |
@@ -71,7 +71,7 @@ For each screen/function group:
 The new tracker carries every unresolved Phase 0-4 row, including:
 
 - notification filters/read persistence and assignment/mention events blocked by missing data;
-- Project Admin, Project Member and denied-route checks blocked by missing accounts;
+- per-Project `Admin`, `Editor`, `Viewer`, `No Access` and denied-route checks blocked until controlled users and assignments are available;
 - the deferred Invite flow;
 - all previous Still Open, Partial and Failed rows that require regression after the Phase 5-6 deployment;
 - Future Backlog rows retained for visibility but not treated as current failures.
@@ -79,3 +79,12 @@ The new tracker carries every unresolved Phase 0-4 row, including:
 ## 7. Initial deployed-product inventory
 
 On 2026-08-05 the signed-in environment exposed `Portfolio Items`, `Capacity Planning`, `Release Tracking` and `Reports`. The active Project contained no Release, Iteration, Portfolio Item or Capacity Plan data, so data-driven calculations and RBAC flows are not yet certified. See `INITIAL_DEPLOYED_INVENTORY_2026-08-05.md`.
+
+## 8. Current authorization baseline
+
+- Workspace Admin is assigned internally and has company-wide access. The account is not added to Project membership lists.
+- Every normal user's access is set independently per Project: `Admin`, `Editor`, `Viewer` or `No Access`.
+- Project `Admin` manages delivery features in the assigned Project, including Portfolio, Capacity, Release and Reports, but cannot CRUD Projects/Teams or manage user access.
+- `Editor` manages Backlog Work Items/Tasks, Quality Defects and Iteration Status only within assigned Teams.
+- `Viewer` is Project-wide read-only. `No Access` hides the Project and denies direct URLs.
+- Project access changes take effect on next sign-in; company disable/removal takes effect on next refresh.

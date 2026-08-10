@@ -1,5 +1,7 @@
 # P0-SHELL-01 — Global navigation and active state
 
+> **C2 reconciliation — 2026-08-09:** Any historical requirement below that places Release Planning in the active Portfolio menu is superseded. Current menu: Portfolio Items, Capacity Planning, Release Tracking. Release Planning is Future Backlog. `GAP-P0-SHELL-002` is Closed / Not a Defect.
+
 ## Audit scope
 
 - Environment: `https://rally-dev.qnsc.vn/`

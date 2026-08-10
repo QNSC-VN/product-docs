@@ -1,5 +1,7 @@
 # Initial Deployed Inventory — 2026-08-05
 
+> **Historical environment snapshot:** The authorization dependency described here used the former three-role model. Current re-test data must use Workspace Admin and per-Project `Admin`/`Editor`/`Viewer`/`No Access` assignments.
+
 **Environment checked:** `https://rally-dev.qnsc.vn/`
 **Account:** signed-in Workspace Admin session
 **Current scope:** QNSC / Project `TEST` / All Teams

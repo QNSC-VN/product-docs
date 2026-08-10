@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P0-WORKSPACE` |
 | Trạng thái | Approved Scope — Single-company MVP |
-| Phạm vi | Fixed Workspace context, membership, invitation, Workspace role và settings tối thiểu |
+| Phạm vi | Fixed Workspace context, company users, Workspace Admin authority và settings tối thiểu |
 | Không bao gồm | Workspace List/Create/Edit/Archive/Switch UI, multi-tenant self-service |
 | Phụ thuộc | Authentication, App Shell, RBAC primitives |
 
@@ -22,6 +22,17 @@ Authoritative current-scope rules:
 - Save Workspace name must validate input, show feedback and create an administrative audit event.
 - Environment/sample-data mismatch is not a business gap; business confirmation uses the Workspace concept, not the literal sample name.
 - Schema/API/infra naming is out of scope for this BA alignment pass.
+
+## 0.2 Project Access Reconciliation - 2026-08-10
+
+This addendum supersedes older global Project role wording in this Phase 0 document:
+
+- `Workspace Admin` is the only company-level authority and is assigned by internal/dev setup.
+- Normal users do not receive a global Project Admin/Project Member role.
+- Workspace Admin assigns `Admin`, `Editor`, `Viewer` or `No Access` independently for each Project.
+- Only Workspace Admin invites/disables users and manages Project access or Team membership.
+- Project access changes apply on next sign-in; company disable/removal applies on next refresh.
+- Detailed capabilities are governed by `Phase 4/02_Roles_Permissions/SRS.md`.
 
 ## 1. Quyết định sản phẩm
 
@@ -50,15 +61,16 @@ Các yêu cầu Workspace CRUD/multi-workspace trong tài liệu hoặc prompt c
 
 ## 3. Actor và Permission
 
-| Action | Workspace Admin | PM | Other roles |
-|---|---:|---:|---:|
-| View company context | ✅ | ✅ | ✅ |
-| View members | ✅ | theo permission | theo permission |
-| Invite member | ✅ | ❌ mặc định | ❌ |
-| Change company role/status | ✅ | ❌ | ❌ |
-| Suspend/remove member | ✅ | ❌ | ❌ |
-| Update company settings | ✅ | ❌ | ❌ |
-| Create/archive/switch Workspace | N/A | N/A | N/A |
+| Action | Workspace Admin | Normal user |
+|---|---:|---:|
+| View fixed company context | Yes | Yes after sign-in |
+| View company Users | Yes | No |
+| Invite user | Yes | No |
+| Change user status | Yes | No |
+| Assign Project Access/Team membership | Yes | No |
+| Suspend/remove company access | Yes | No |
+| Update Workspace Settings | Yes | No |
+| Create/archive/switch Workspace | N/A | N/A |
 
 Permission codes:
 
@@ -79,8 +91,8 @@ workspace.setting.manage
 | COMPANY-FR-003 | User chỉ thấy Project/Team mà effective permission cho phép. |
 | COMPANY-FR-004 | Workspace Admin mời user hiện có hoặc user mới qua email. |
 | COMPANY-FR-005 | Invitation token one-time, có expiry, lưu hash và rotate khi resend. |
-| COMPANY-FR-006 | Workspace Admin đổi role/status member nhưng không vi phạm sole-admin invariant. |
-| COMPANY-FR-007 | Suspend/remove member làm mất quyền truy cập ngay; authored/history data không bị xóa. |
+| COMPANY-FR-006 | Workspace Admin đổi company status và Project Access của normal user; Workspace Admin account được quản lý nội bộ và read-only trong UI. |
+| COMPANY-FR-007 | Disable/remove company access có hiệu lực ở lần refresh tiếp theo; authored/history data không bị xóa. |
 | COMPANY-FR-008 | Company settings tối thiểu gồm display name read-only/default, timezone và locale nếu được bật. |
 | COMPANY-FR-009 | Member/invitation/settings mutations phải tạo audit event. |
 | COMPANY-FR-010 | Không có endpoint/UI self-service tạo, archive hoặc switch Workspace trong MVP. |
@@ -99,8 +111,8 @@ Login
 
 ### 5.2 Invite Member
 
-1. Admin mở Settings → User Management.
-2. Nhập email và company role.
+1. Workspace Admin mở Settings → Users.
+2. Nhập thông tin user và Project Access ban đầu nếu cần.
 3. Backend tạo/rotate invitation token hash.
 4. Existing/new user accept đúng email.
 5. Membership active và audit event được tạo.
@@ -109,7 +121,7 @@ Login
 
 - Suspend: chặn access, giữ membership/history.
 - Remove: membership chuyển trạng thái removed; không xóa authored/assigned/history.
-- Không cho suspend/remove sole active Admin.
+- Chỉ áp dụng cho normal user. Workspace Admin được internal/dev quản lý và không có action edit/suspend/remove trong Mini Rally UI.
 
 ## 6. Screen Mapping
 
@@ -117,9 +129,9 @@ Login
 |---|---|---|
 | Workspace root selector | `TopNav` hierarchy dropdown | ✅ Fixed Workspace visual; load project/team tree từ API |
 | Workspace Settings | `SettingsPage` → Workspace Settings | 🟡 Use Workspace labels, real save/validation and audit event |
-| User Management | `SettingsPage` → User Management | 🟡 Table có sẵn; cần invite/status/action modals thật |
+| Users | `SettingsPage` → Users | 🟡 List, User Details, Project Access và invitation review có mockup; cần persistence/enforcement thật |
 | Invite lifecycle | Chưa có | Pending/expired/resend/cancel/accept states |
-| Sole Admin error | Chưa có | Blocking message/confirmation |
+| Workspace Admin guard | User Details read-only | Không có edit/suspend/remove action; internal/dev quản lý |
 | Workspace List/Create/Edit/Archive | N/A | Không xây dựng |
 
 ## 7. Database Usage
@@ -135,19 +147,21 @@ id, name, slug, description, owner_id, status, created_at, updated_at
 ### `workspace_members`
 
 ```text
-id, workspace_id, user_id, role_id, status, joined_at, created_at, updated_at
+id, workspace_id, user_id, status, joined_at, created_at, updated_at
 UNIQUE(workspace_id, user_id)
 ```
+
+Workspace Admin được internal/dev gán qua `access.user_role_assignments`; normal-user Project Access được lưu riêng trong `project_members.access_level`.
 
 ### `workspace_invitations`
 
 ```text
-id, workspace_id, email, role_id, token_hash, status,
+id, workspace_id, email, token_hash, status,
 invited_by, expires_at, accepted_by, accepted_at,
 created_at, updated_at
 ```
 
-Effective permission phải được backend tính; không tin role gửi từ client.
+Invitation không gán global role. Project Access ban đầu, nếu có, là command riêng sau khi user accept invitation. Effective capability phải được backend tính; không tin Access Level hoặc role gửi từ client.
 
 ### `workspace_settings`
 
@@ -161,13 +175,13 @@ UNIQUE(workspace_id)
 | UI field | API DTO | DB column | Mục đích | Editable/rule |
 |---|---|---|---|---|
 | Company ID | `company.id` | `workspaces.id` | Tenant key nội bộ | Hidden, server-derived |
-| Company name | `company.name` | `workspaces.name` | Header/root hierarchy | Read-only trong MVP hoặc deployment-managed |
+| Company name | `company.name` | `workspaces.name` | Header/root hierarchy | Workspace Admin editable; required |
 | Company slug | `company.slug` | `workspaces.slug` | Stable tenant identifier | Hidden/read-only; không dùng làm user input MVP |
 | Company status | `company.status` | `workspaces.status` | Cho phép/chặn mutation | Read-only; active/archived |
 | Timezone | `settings.timezone` | `workspace_settings.timezone` | Date/time display mặc định | Admin editable; IANA timezone |
 | Default locale | `settings.defaultLocale` | `workspace_settings.default_locale` | Ngôn ngữ/format mặc định | Admin editable; allow-list |
 | Date format | `settings.dateFormat` | `workspace_settings.date_format` | Cách render ngày | Nullable; fallback theo locale |
-| Owner/Admin | `company.owner` | `workspaces.owner_id → users` | Governance/audit | Không đổi bằng text input; chọn active member theo flow riêng |
+| Workspace Admin | `company.workspaceAdmin` | Internal assignment source → `users` | Governance/audit | View-only trong UI; internal/dev quản lý account này |
 
 ## 7.2 User Management list mapping
 
@@ -179,13 +193,13 @@ Endpoint list phải server-side pagination/search/filter. Không trả `passwor
 | User ID | `items[].userId` | `workspace_members.user_id` | Identity/link profile | Hidden |
 | Name | `items[].fullName` | `workspace_members.user_id → users.full_name` | Hiển thị người dùng | Search; required |
 | Email | `items[].email` | `users.email` | Nhận diện/invite reconciliation | Search; normalized |
-| Role | `items[].role` | `workspace_members.role_id → roles.name/code` | Hiển thị và change role | Filter role; API dùng role ID/code |
+| Workspace authority | `items[].workspaceAuthority` | Internal assignment source | Chỉ nhận biết Workspace Admin; normal user không có global Project role | WA read-only; normal user null |
 | Membership status | `items[].status` | `workspace_members.status` | Active/invited/suspended/removed | Filter status |
 | User account status | `items[].accountStatus` | `users.status` | Phân biệt account suspended với membership | Read-only |
 | Joined at | `items[].joinedAt` | `workspace_members.joined_at` | Audit membership | Nullable khi invited |
 | Last login | `items[].lastLoginAt` | `users.last_login_at` | Admin xem mức sử dụng | Nullable → “Never” |
 | Avatar | `items[].avatarUrl` | `users.avatar_url` | Avatar list | Nullable → initials |
-| Actions | Không phải field | Dựa permission + IDs/status | Change role/suspend/remove | Không map DB column |
+| Actions | Không phải field | Dựa permission + IDs/status | Change status, Project Access hoặc remove | Không map DB column |
 
 List response contract:
 
@@ -197,7 +211,7 @@ List response contract:
       "userId": "uuid",
       "fullName": "Marcus Webb",
       "email": "marcus@acme.com",
-      "role": { "id": "uuid", "code": "workspace_admin", "name": "Workspace Admin" },
+      "workspaceAuthority": "workspace_admin",
       "status": "active",
       "accountStatus": "active",
       "joinedAt": "ISO-8601",
@@ -217,7 +231,7 @@ List response contract:
 |---|---|---|---|
 | Invitation ID | `workspace_invitations.id` | Action resend/cancel | Hidden |
 | Email | `workspace_invitations.email` | Người được mời | Required, normalized, valid email |
-| Role | `role_id → roles.name/code` | Role sau accept | Chỉ workspace-scope role hợp lệ |
+| Initial Project Access | Dev-defined invitation/access contract | Quyền ban đầu sau accept | Optional Project + Admin/Editor/Viewer + Editor Teams |
 | Status | `workspace_invitations.status` | Pending/accepted/expired/cancelled badge | Derived expired nếu now > expires_at và pending |
 | Invited by | `invited_by → users.full_name` | Audit display | Read-only |
 | Expires at | `expires_at` | Cho biết link còn hiệu lực | UTC → company timezone |
@@ -232,7 +246,7 @@ List response contract:
 |---|---|
 | Member total | `COUNT(workspace_members WHERE status=active)` |
 | Pending invite total | `COUNT(workspace_invitations WHERE status=pending AND expires_at>now())` |
-| Sole Admin warning | Count active membership join admin role; không lưu boolean riêng |
+| Workspace Admin guard | Internal assignment state; không lưu boolean UI riêng |
 | Selected table rows/filter/search | Client/query state; không map DB |
 | Confirmation text | UI state; không map DB |
 
@@ -241,7 +255,6 @@ List response contract:
 ```text
 UNIQUE(workspace_members.workspace_id, workspace_members.user_id)
 INDEX workspace_members_list_idx ON workspace_members(workspace_id, status, updated_at)
-INDEX workspace_members_role_idx ON workspace_members(workspace_id, role_id, status)
 UNIQUE(workspace_settings.workspace_id)
 UNIQUE(workspace_invitations.token_hash)
 INDEX workspace_invitations_list_idx ON workspace_invitations(workspace_id, status, expires_at)
@@ -272,17 +285,17 @@ Không expose `POST /workspaces`, archive Workspace hoặc switch Workspace tron
 - Mọi project/team/work-item query bắt buộc scope theo fixed `workspace_id` lấy từ server context.
 - Không dùng workspace ID trong request payload làm nguồn authorization duy nhất.
 - Invitation token lưu hash, one-time và TTL đề xuất 7 ngày.
-- Role/status changes có hiệu lực ngay và invalidate permission cache.
+- Project Access/Team membership changes có hiệu lực ở next sign-in; company disable/remove có hiệu lực ở next refresh và phải invalidate permission cache phù hợp.
 - Cross-tenant ID phải trả 403/404 theo security policy nhất quán, dù UI chỉ có một Company.
 
 ## 10. UI States
 
 - Company context loading/error.
-- Empty member list ngoại trừ Admin.
+- Empty normal-user list; Workspace Admin vẫn hiển thị dưới dạng read-only.
 - Pending/expired/cancelled invitation badges.
 - Member active/suspended/removed filters.
 - Destructive confirmation.
-- Cannot remove sole Admin.
+- Workspace Admin row/detail không có edit, suspend hoặc remove action.
 - Company context unavailable/configuration error.
 
 ## 11. Acceptance Criteria
@@ -291,9 +304,9 @@ Không expose `POST /workspaces`, archive Workspace hoặc switch Workspace tron
 2. Company root hiển thị Project/Team tree đúng permission.
 3. Invite existing/new user accept được đúng email.
 4. Invitation cũ không dùng được sau resend/accept/cancel/expiry.
-5. Suspended/removed user mất access ngay qua cả UI và direct API.
-6. Không thể remove/suspend sole active Admin.
-7. Member role/status/settings changes có audit event.
+5. Disabled/removed user mất company access ở lần refresh tiếp theo qua cả UI và direct API.
+6. Workspace Admin hiển thị read-only và không thể edit/suspend/remove từ Mini Rally UI.
+7. User status, Project Access, Team membership và Workspace Settings changes có audit event.
 8. Không có Workspace CRUD endpoint hoặc UI trong MVP build.
 
 ## 12. Implementation Breakdown

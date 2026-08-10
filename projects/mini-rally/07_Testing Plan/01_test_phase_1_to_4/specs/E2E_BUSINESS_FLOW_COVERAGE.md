@@ -2,7 +2,7 @@
 
 This file captures cross-phase flows. These are the tests that best prove the product is going in the right direction.
 
-## E2E-001 - Admin creates project foundation
+## E2E-001 - Workspace Admin creates project foundation
 
 | Field | Value |
 |---|---|
@@ -15,7 +15,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 
 1. Login as Workspace Admin.
 2. Confirm Company context is fixed and Workspace create/switch is not available.
-3. Open Projects.
+3. Open Settings > Workspaces & Projects.
 4. Create Project with unique key.
 5. Search created Project.
 6. Attempt duplicate key.
@@ -29,7 +29,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 - Project Key cannot be edited.
 - Protected routes require login after logout.
 
-## E2E-002 - Admin prepares team and user for work management
+## E2E-002 - Workspace Admin prepares Team and Project access
 
 | Field | Value |
 |---|---|
@@ -40,16 +40,18 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 
 ### Steps
 
-1. Open Manage.
-2. Create Team under Project.
-3. Add or invite User with role and Team membership.
-4. Select Project/Team in global context.
-5. Open Backlog.
+1. Open Settings > Workspaces & Projects.
+2. Create Team under a Project and select one existing user as Editor.
+3. Add another existing user to the Project as Admin.
+4. Open Settings > Users and inspect both users' Project Access.
+5. Sign in as the Editor and select the assigned Project/Team.
+6. Open Backlog.
 
 ### Expected result
 
 - Team is available under the correct Project.
-- User project access derives from Team membership.
+- Editor Project Access contains the selected Team; Admin shows All Teams.
+- User Details and Project Users & Permissions show the same assignments.
 - Selected Project/Team context is usable by Backlog.
 
 ## E2E-003 - Create Story and manage detail
@@ -58,7 +60,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 1 |
 | Priority | P0 |
-| Actor | Workspace Admin / Project Admin in assigned Project |
+| Actor | Workspace Admin / Admin / Editor in assigned scope |
 | Preconditions | Project/Team context exists |
 
 ### Steps
@@ -86,7 +88,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 1 |
 | Priority | P0 |
-| Actor | Workspace Admin / Project Admin in assigned Project |
+| Actor | Workspace Admin / Admin / Editor in assigned scope |
 | Preconditions | Project/Team context exists |
 
 ### Steps
@@ -110,7 +112,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 1 |
 | Priority | P0 |
-| Actor | Workspace Admin / Project Member in assigned Team |
+| Actor | Workspace Admin / Admin / Editor in assigned Team |
 | Preconditions | Story exists |
 
 ### Steps
@@ -136,8 +138,8 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 1 + Phase 2 |
 | Priority | P0 |
-| Actor | Workspace Admin / Project Admin in assigned Project |
-| Preconditions | Project/Team, Story/Defect and Iteration exist |
+| Actor | Workspace Admin/Admin creates Iteration; Admin/Editor assigns Work Item |
+| Preconditions | Assigned Project/Team, Story/Defect and Iteration exist |
 
 ### Steps
 
@@ -162,7 +164,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 2 |
 | Priority | P0 |
-| Actor | Workspace Admin / Project Admin in assigned Project |
+| Actor | Workspace Admin / Admin / Editor in assigned Team |
 | Preconditions | Selected Project/Team has an Iteration |
 
 ### Steps
@@ -187,44 +189,45 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 0 + Phase 1 + Phase 2 |
 | Priority | P0 |
-| Actor | Workspace Admin / Project Admin outside managed Project |
-| Preconditions | At least two Projects or Teams with distinct data |
+| Actor | Normal user with different Access Levels across Projects |
+| Preconditions | Project A is accessible; Project B is No Access; Teams have distinct data |
 
 ### Steps
 
 1. Select Project A / Team A.
 2. Capture Backlog items, Iterations and Iteration Status selector.
-3. Switch to Project B / Team B.
-4. Reopen or refresh Backlog, Timeboxes and Iteration Status.
-5. Try direct URL to data from Project A while context/user should not access it.
+3. Confirm Project B/Team B is absent from navigation and selectors.
+4. Try direct URL to Project B and one of its Work Items.
+5. Change Project B to Viewer as Workspace Admin, sign in again and reopen it.
 
 ### Expected result
 
-- Project A data does not leak into Project B views.
-- Lists and selectors reload after context change.
-- Direct unauthorized access returns Access Denied or API rejection.
+- No Access Project/Team/data does not leak through lists, search or selectors.
+- Direct unauthorized access returns safe Access Denied/Not Found without metadata.
+- After next sign-in, Viewer can read Project B but cannot mutate it.
 
-## E2E-009 - Out-of-scope Project Admin behavior
+## E2E-009 - Access in one Project does not grant another Project
 
 | Field | Value |
 |---|---|
 | Phases | Phase 0 + Phase 1 + Phase 2 |
 | Priority | P1 |
-| Actor | Project Admin outside managed Project |
-| Preconditions | Project Admin account has access to a non-managed Project |
+| Actor | Normal user |
+| Preconditions | User is Admin in Project A and No Access in Project B |
 
 ### Steps
 
-1. Login as the out-of-scope Project Admin.
-2. Open Project list, Backlog, Work Item Detail, Timeboxes and Iteration Status.
-3. Try create/edit/archive/assign operations from UI.
-4. If possible, call direct mutation endpoint with that session.
+1. Login as the test user.
+2. In Project A, verify delivery management and All Teams.
+3. Confirm Project/Team/access structural controls remain unavailable.
+4. Search/select/navigate directly to Project B data.
+5. If possible, call a direct Project B read and mutation endpoint with that session.
 
 ### Expected result
 
-- Project Admin can view permitted data but cannot mutate the non-managed Project.
-- Create/edit controls are hidden or disabled.
-- Backend rejects direct mutation.
+- Project A Admin access does not reveal Project B.
+- Project B direct access is denied safely for both reads and mutations.
+- Project A structural Project/Team/access controls remain WA-only.
 
 ## E2E-010 - Deferred scope guard
 
@@ -256,7 +259,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 1 + Phase 2 + Phase 3 |
 | Priority | P0 |
-| Actor | Workspace Admin / Project Admin / Project Member in assigned scope |
+| Actor | Workspace Admin / Admin in assigned Project |
 | Preconditions | Story/Defect is assigned to an Iteration and has at least two child Tasks |
 
 ### Steps
@@ -281,7 +284,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 2 + Phase 3 |
 | Priority | P0 |
-| Actor | Workspace Admin / Project Admin in assigned Project |
+| Actor | Workspace Admin / Admin in assigned Project |
 | Preconditions | Story/Defect and Iteration have been auto-updated by completion rules |
 
 ### Steps
@@ -400,5 +403,5 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 - Team Board is not required for Phase 3 acceptance.
 - Iteration Status uses List only; Board toggle, drag/drop, WIP limits and transition rules are not current MVP requirements.
 - Phase 3 Release list/detail has no Release Progress column, percentage or widget.
-- Portfolio contains `Release Planning` as Phase 5 direction only; it is not a second Release create/edit source in Phase 0-4.
+- Portfolio contains Portfolio Items, Capacity Planning and Release Tracking. Release Tracking is not a second Release create/edit source; Release Planning remains Future Backlog.
 - Deferred notes preserve direction without creating a current development obligation.

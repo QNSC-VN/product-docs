@@ -1,5 +1,7 @@
 # Plan 2 — Live Progress
 
+> **Historical component log:** Role Badge variants built in this plan predate the 2026-08-10 access model. Current UI uses Workspace Admin only at company level and contextual Project Access Level values for normal users.
+
 ## Current component family
 
 **Plan 2 is complete.** All of P2.a–P2.h are done: 22 components across actions, forms, feedback/identity and overlays, all structurally and visually QA-passed. `P2_COMPONENT_CATALOG.md` and `P2_VALIDATION.md` are written. Status is `AWAITING PLAN 2 CONFIRMATION` — per `AI_EXECUTION_WORKFLOW.md`, do not start Plan 3 until the user sends `CONFIRM PLAN 2` or an equally unambiguous approval.

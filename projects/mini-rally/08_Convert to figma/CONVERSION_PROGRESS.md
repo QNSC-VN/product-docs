@@ -1,5 +1,7 @@
 # Conversion Progress — Mini Rally Mockup to Figma
 
+> **Maintenance note (2026-08-10):** The former Roles & Permissions matrix remains in the completed Figma conversion history. Current authorization is defined by the updated Phase 4 SRS/mockup and has not been claimed as a new native-Figma conversion in this document.
+
 > Cập nhật file này ở cuối mỗi plan trước khi gửi review. Không bắt đầu plan tiếp theo nếu plan hiện tại chưa được bạn xác nhận.
 
 ## Current status

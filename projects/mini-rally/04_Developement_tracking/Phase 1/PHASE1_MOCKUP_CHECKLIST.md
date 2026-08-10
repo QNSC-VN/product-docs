@@ -72,8 +72,8 @@ Không nằm trong Phase 1:
 | Story/Defect/Task core | `work_items.type` | ✅ | Dùng chung `work_items`, không tạo bảng task riêng |
 | Parent Story → Task | `work_items.parent_id` | ✅ | Task có `type='task'`, `parent_id` trỏ tới Story/Defect |
 | Project/Team | `work_items.project_id`, `work_items.team_id`, `project_teams` | ✅ | Validate team thuộc project |
-| Manage Project | `projects`, project membership/link tables | ✅ | Phase 1 có Manage > Projects |
-| Manage Team | `teams`, `project_teams`, `team_members` | ✅ | Create Team từ Manage; list không show capacity/velocity |
+| Project Management | `projects`, project access/link tables | ✅ | Một đường dẫn duy nhất: top-right Settings gear > Workspaces & Projects |
+| Team Management | `teams`, `project_teams`, `team_members` | ✅ | Create/Edit Team trong Project đã chọn; có thể chọn existing users và Access Level |
 | Manage User | `users`, workspace/team membership tables | ✅ | Invite/edit user, role, team membership; project access derive từ team |
 | Schedule State / Flow State | `work_items.schedule_state`, `work_items.flow_state` | ✅ M1/M3/M5.1 confirmed | Cùng 6 options; Detail mirror hai chiều; create default Idea; shared Work Item state reflects cross-screen for the current mockup session. Refresh/API persistence remains DevInt scope. |
 | Owner | `work_items.assignee_id` | ✅ | Join `users` |

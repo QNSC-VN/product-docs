@@ -1,61 +1,75 @@
-# Phase 4 Test Scenarios - Governance and Administration
+# Phase 4 Test Scenarios - Governance and Project Access
 
-Phase 4 validates the BA/FE behavior for Notifications, Roles & Permissions, Workspace/User Settings and Audit. Schema, database and infrastructure verification are outside this document.
+Phase 4 validates Notifications, Project Access, Settings and Audit. Database/infrastructure implementation is outside this BA test specification.
 
 ## P4-NOT - Notifications
 
 | ID | Priority | Scenario | Steps | Expected result | Status |
 |---|---|---|---|---|---|
-| P4-NOT-001 | P0 | Open Notification Center | Click the top navigation bell | Notifications page opens with unread count and approved filters | Not Run |
-| P4-NOT-002 | P0 | Assignment notification | Assign a US/DE to another user | Assigned user receives an `Assigned` notification that routes to the same Work Item | Not Run |
-| P4-NOT-003 | P0 | Mention notification | Mention a user in a US/DE Note | Mentioned user receives a `Mentions` notification that routes to the same Work Item | Not Run |
-| P4-NOT-004 | P0 | Read one | Click an unread notification | It becomes read and unread count decreases | Not Run |
-| P4-NOT-005 | P0 | Mark all read | Click `Mark all as read` | All visible notifications become read and unread count becomes zero | Not Run |
-| P4-NOT-006 | P1 | Filter categories | Switch All/Unread/Assigned/Mentions | Each tab shows only matching notifications | Not Run |
-| P4-NOT-007 | P0 | Inaccessible target | Open notification for an item no longer accessible | Safe access-denied/not-found state appears without restricted metadata | Not Run |
-| P4-NOT-008 | P1 | Empty state and popup delivery | Open an empty category and trigger an approved notification event | Empty state is clear; one in-app notification/popup is created without duplicate event | Not Run |
-| P4-NOT-009 | P1 | Generic Note and duplicate prevention | Create a Note without mention, then repeat the same event | No mention notification is created for generic Note; duplicate delivery is prevented | Not Run |
-| P4-NOT-010 | P0 | Recipient isolation | Attempt to open another user's notification target | No notification data or restricted Work Item metadata is exposed | Not Run |
+| P4-NOT-001 | P0 | Open Notification Center | Click top navigation bell | Page opens with unread count and All/Unread/Assigned/Mentions | Not Run |
+| P4-NOT-002 | P0 | Assignment notification | Assign a US/DE to another user | Assigned user receives one notification that routes to the same Work Item | Not Run |
+| P4-NOT-003 | P0 | Mention notification | Mention a user in a US/DE Note | Mentioned user receives popup/list entry that routes to the same Work Item | Not Run |
+| P4-NOT-004 | P0 | Read state | Read one item, then Mark all as read | Item/count states update correctly | Not Run |
+| P4-NOT-005 | P1 | Filter categories | Switch the four filters | Results match the selected category | Not Run |
+| P4-NOT-006 | P0 | Recipient isolation | Attempt to read another user's notification | No notification or restricted Work Item metadata is exposed | Not Run |
+| P4-NOT-007 | P0 | Revoked target access | Revoke Project access, sign in again, then open old notification | Safe Access Denied/Not Found appears without target metadata | Not Run |
+| P4-NOT-008 | P1 | Unsupported events | Add generic Note or change status/attachment/due date | No Phase 4 notification is created | Not Run |
 
-## P4-RBAC - Roles & Permissions
+## P4-RBAC - Project Access & Permissions
 
 | ID | Priority | Scenario | Steps | Expected result | Status |
 |---|---|---|---|---|---|
-| P4-RBAC-001 | P0 | Approved role catalog | Open Roles & Permissions | Only Workspace Admin, Project Admin and Project Member are shown | Not Run |
-| P4-RBAC-002 | P0 | Matrix states | Inspect screen/action matrix | Each action uses E/R/D/H and has an independent permission code | Not Run |
-| P4-RBAC-003 | P0 | Workspace Admin edit flow | Click Edit, change a non-WA cell, save | Non-WA cells unlock only in edit mode; save locks them again; WA baseline stays locked | Not Run |
-| P4-RBAC-004 | P0 | Project Admin managed project | Simulate PA in an assigned managed Project | Delivery modules allow confirmed CRUD behavior | Not Run |
-| P4-RBAC-005 | P0 | Project Admin other project | Simulate PA in a non-managed Project | Delivery modules are read-only | Not Run |
-| P4-RBAC-006 | P0 | Project Member scope | Simulate PM and inspect context/navigation | Only assigned Projects/Teams are visible; no All Teams, Release assignment or admin/planning access | Not Run |
-| P4-RBAC-007 | P0 | Access state | Directly open denied and missing routes | Shared Access Denied/Not Found states appear safely | Not Run |
-| P4-RBAC-008 | P1 | Phase 5 exclusion | Inspect matrix/navigation scope | Portfolio Release Planning, Release Progress and Reports are not Phase 4 core permissions | Not Run |
-| P4-RBAC-009 | P1 | Role/membership effective timing | Change role, team or Project membership, then sign in again | New access takes effect on next login; Company access removal takes effect on next refresh | Not Run |
-| P4-RBAC-010 | P0 | Fixed permission rows | Inspect Auth, App Shell, Personal and Notifications rows | Fixed rows remain locked at E and cannot be edited | Not Run |
+| P4-RBAC-001 | P0 | Approved access model | Open Permission Model | Workspace Admin plus per-Project Admin/Editor/Viewer/No Access are explained; no editable role matrix | Not Run |
+| P4-RBAC-002 | P0 | WA authority | Switch demo to Workspace Admin and open Settings | All Projects and administration entries/actions are available | Not Run |
+| P4-RBAC-003 | P0 | WA is not Project member | Open Project Users & Permissions and Add Existing User | WA is absent from rows and candidates | Not Run |
+| P4-RBAC-004 | P0 | Admin assigned Project | Switch demo to Admin | Only assigned Project is visible; All Teams and delivery management are available | Not Run |
+| P4-RBAC-005 | P0 | Admin structural read-only | As Admin open Workspaces & Projects > Details/Users & Permissions/Teams | Content is readable; Project/Team/access mutation controls are absent or read-only | Not Run |
+| P4-RBAC-006 | P0 | Editor scope | Switch demo to Editor | Only assigned Project/Teams appear; no Users & Permissions; approved delivery edits remain available | Not Run |
+| P4-RBAC-007 | P0 | Viewer scope | Use Viewer account on assigned Project | Project delivery is readable; no mutation control and no Team membership | Not Run |
+| P4-RBAC-008 | P0 | No Access isolation | Give user No Access and attempt navigation/direct URL/search | Project is hidden and direct access returns safe denied/not-found state | Not Run |
+| P4-RBAC-009 | P0 | Different level per Project | Give same user Admin in A, Editor in B, Viewer in C | Each Project resolves independently; other Projects remain No Access | Not Run |
+| P4-RBAC-010 | P0 | Admin All Teams | Set Project access to Admin from either access journey | All Teams is automatic and individual Team selection is unavailable | Not Run |
+| P4-RBAC-011 | P0 | Editor Team validation | Set access to Editor with zero then multiple Teams | Save is blocked at zero; one or more active Teams save successfully | Not Run |
+| P4-RBAC-012 | P1 | Access effective timing | Change Project access/Team membership and sign in again | New access is applied on next sign-in | Not Run |
+| P4-RBAC-013 | P1 | Company disable timing | Disable normal user, then refresh that user's page | Company access is removed on next refresh | Not Run |
+| P4-RBAC-014 | P0 | Archived Project | Archive an assigned Project | Delivery mutations are blocked for every access level until WA restores it | Not Run |
+
+## P4-ACCESS - Synchronized Access Journeys
+
+| ID | Priority | Scenario | Steps | Expected result | Status |
+|---|---|---|---|---|---|
+| P4-ACCESS-001 | P0 | Add from User Details | Users > user > Project Access; add Project and Editor Teams; save | User appears in Project Users & Permissions with same level and Teams | Not Run |
+| P4-ACCESS-002 | P0 | Add from Project | Project > Users & Permissions > Add Existing User; choose Admin | User Details gains that Project with Admin and All Teams | Not Run |
+| P4-ACCESS-003 | P0 | Change from Project | Change Access Level dropdown to Editor and choose Teams | User Details shows same Editor Teams | Not Run |
+| P4-ACCESS-004 | P0 | Remove from Project | Click Remove and confirm | User becomes No Access and all Team memberships in that Project are removed | Not Run |
+| P4-ACCESS-005 | P0 | Add Team with users | Create Team; select existing users as Admin/Editor | Admin receives All Teams; Editor receives new Team; both access views synchronize | Not Run |
+| P4-ACCESS-006 | P1 | Duplicate prevention | Try to add same Project twice to a user or same user twice to a Project | Duplicate assignment is unavailable/rejected | Not Run |
 
 ## P4-SET - Settings, Users and Audit
 
 | ID | Priority | Scenario | Steps | Expected result | Status |
 |---|---|---|---|---|---|
-| P4-SET-001 | P0 | Workspace Settings entry | Click top-right Settings gear as Workspace Admin | Workspace-wide settings open; Project Settings is not duplicated there | Not Run |
-| P4-SET-002 | P0 | Workspace fields | Inspect Workspace Settings | Workspace Name is editable; Slug, Workspace Scope and Workspace Admin are read-only | Not Run |
-| P4-SET-003 | P0 | Save creates audit row | Change Workspace Name and save | UI confirms save and Audit Log records actor, time and detail | Not Run |
-| P4-SET-004 | P0 | Project Settings single entry | Open Manage Projects and top-right Settings | Project configuration exists only under Manage Projects > Projects | Not Run |
-| P4-SET-005 | P0 | User list and search | Open User Management; search name/email/phone and filter role | Columns and search/filter results match the confirmed baseline | Not Run |
-| P4-SET-006 | P0 | User detail | Click a non-WA user | Name, Role, Status and Phone are editable; Email is read-only | Not Run |
-| P4-SET-007 | P0 | Workspace Admin account guard | Open WA user from list | Detail is read-only and has no save mutation | Not Run |
-| P4-SET-008 | P0 | Destructive confirmation | Archive/restore/delete Project or remove User access | Confirm modal appears; high-risk actions require typed target name where specified | Not Run |
-| P4-SET-009 | P1 | Audit search | Search Audit Log by actor and time text | Matching Time/Actor/Detail rows appear | Not Run |
-| P4-SET-010 | P1 | Deferred settings guard | Inspect top-right Settings | Workflow Status, Labels and Notification Preferences are not active Phase 4 features | Not Run |
-| P4-SET-011 | P0 | Team administration entry | Open Manage Projects, then top-right Settings > Teams | Manage Projects has Projects only; Settings > Teams shows the Team list and authorized Create/Edit/Deactivate actions | Pass (runtime smoke 2026-07-19) |
-| P4-SET-012 | P1 | Administrative audit coverage | Change a role, user/team membership and Project/Team administration setting | Audit records actor, time and meaningful detail; delivery-item delete is excluded from Admin Audit | Not Run |
-| P4-SET-013 | P0 | Remove user access typed confirmation | Remove a user's access from workspace/project/team | Dependency rejection is clear; destructive action requires the specified typed confirmation before save | Not Run |
+| P4-SET-001 | P0 | Settings navigation | Compare WA, Admin and Editor demos | Each sees only approved personal/administration entries | Not Run |
+| P4-SET-002 | P0 | Workspace fields | Open Workspace Settings as WA | Name editable; Slug, Scope and Workspace Admin read-only | Not Run |
+| P4-SET-003 | P0 | Workspace Admin account guard | Open WA from Users | All fields are read-only; no Project membership and no save/remove action | Not Run |
+| P4-SET-004 | P0 | Users list/search | Search name/email/phone and filter status | Columns and results match confirmed baseline | Not Run |
+| P4-SET-005 | P0 | Normal user detail | Open non-WA user | General and Project Access tabs show approved fields and controls | Not Run |
+| P4-SET-006 | P0 | Invite with access | Invite user with initial Project access and review | Review shows Project, level and Teams before Send Invite | Not Run |
+| P4-SET-007 | P0 | Project/Team CRUD authority | Compare WA and Admin in Workspaces & Projects | Only WA can mutate Project or Team structure | Not Run |
+| P4-SET-008 | P0 | Administrative audit | Save Workspace/user/Project/access/Team change | Audit adds Time, Actor and clear Detail | Not Run |
+| P4-SET-009 | P1 | Audit filter | Search by actor and full time text | Matching Time/Actor/Detail rows appear | Not Run |
+| P4-SET-010 | P0 | Remove Project user confirmation | Click Remove in Project Users & Permissions | Confirmation appears before access becomes No Access | Not Run |
+| P4-SET-011 | P0 | High-risk confirmation | Delete Project or remove company user | Exact typed Project key/user name is required | Not Run |
+| P4-SET-012 | P1 | Deferred guard | Inspect Settings | Workflow Status, Labels and Notification Preferences are not active | Not Run |
 
-## Phase 4 smoke path
+## Phase 4 Smoke Path
 
-1. Open Notifications, filter, mark one and all as read, then route to a US/DE.
-2. As Workspace Admin, review and edit a non-WA permission cell, save and verify locked state.
-3. Simulate Project Admin in managed and non-managed Projects, then simulate Project Member scope.
-4. Open Settings > Teams, verify Team list/Create Team, and confirm Manage Projects has no Teams tab.
-5. Update Workspace Name and verify the administrative audit entry.
-6. Search/open a user, verify WA account protection and exercise a destructive confirmation.
-7. Confirm Portfolio Release Planning, Release Progress, Reports, Workflow Status, Labels and Team/Iteration Boards remain deferred.
+1. Verify assignment and mention notifications, read state and Work Item route.
+2. Switch to Workspace Admin; review Users, Workspaces & Projects and Permission Model.
+3. Add Project access from User Details and verify it in Project Users & Permissions.
+4. Add another existing user from the Project and verify User Details.
+5. Add a Team with Admin/Editor assignments and verify synchronized access.
+6. Switch to Admin; verify delivery access and read-only Project/Team structure.
+7. Switch to Editor; verify assigned Project/Team isolation and approved delivery edits.
+8. Verify Viewer and No Access with direct URL and search isolation.
+9. Exercise Project-user removal, destructive confirmation and administrative Audit Log.

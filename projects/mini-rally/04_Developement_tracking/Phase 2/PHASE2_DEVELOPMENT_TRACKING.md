@@ -267,7 +267,7 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 | P2-IT-R06 | Existing backlog assignment is required for Iteration Status to link with Backlog | High | Keep assignment as Work Item `iterationId` field in Backlog/Detail and test before P2.3 | BA/Dev | Decided |
 | P2-IS-R01 | Iteration Status Schedule State differs from Backlog sample statuses | High | Use one shared enum Idea/Defined/In-Progress/Completed/Accepted/Release; reconcile legacy values before render and remove screen-local normalization | BA/Dev | Decided |
 | P2-IS-R02 | Defects metric can be misread as child defect count | Medium | SRS defines Defects as count of work items where type = Defect in selected Iteration | BA | Decided |
-| P2-IS-R03 | Permission matrix is not finalized | Medium | Mock assumes admin; backend must still enforce baseline project/work item permissions | BA/Tech | Open |
+| P2-IS-R03 | Project access baseline must be applied consistently | Medium | Use the approved Phase 4 model: WA company-wide; Project `Admin` manages delivery; Editor manages assigned-Team Backlog/Quality/Iteration Status; Viewer read-only; No Access denied | BA/Tech | Decided 2026-08-10 |
 | P2-PHASE-R01 | Dev agent may still pick up old Team Board mockup | High | Move Team Status docs to Phase 3, Team Board docs to Future Backlog, and remove Phase 2 execution tasks | BA | Decided |
 | P2-CONTEXT-R01 | Workspace selector context could be missed by individual feature teams | High | Document as global Phase 2 rule and include tests for Backlog, Timeboxes and Iteration Status | BA/Dev | Decided |
 

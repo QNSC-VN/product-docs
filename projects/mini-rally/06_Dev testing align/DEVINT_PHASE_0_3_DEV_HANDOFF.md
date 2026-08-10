@@ -1,5 +1,7 @@
 # DevInt Phase 0–3 Dev Fix Handoff
 
+> **Superseded correction notice — 2026-08-09:** Use `DEVINT_PHASE_0_4_DEV_HANDOFF.md` and `07_Testing Plan/BA_SRS_CORRECTIONS_RESPONSE.md` for C1-C10 decisions. Release Planning is not an active Portfolio entry, and Iteration Status does not require a Type column. Historical rows below are evidence only.
+
 Date: 2026-07-24
 
 Source tracker: `06_Dev testing align/DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx`

@@ -39,12 +39,11 @@ The BA decision is:
 ## 3. Actors
 
 - Workspace Admin.
-- Project Manager / Scrum Master.
-- Product Owner / BA.
-- Developer / QA.
-- Viewer.
+- Project `Admin`.
+- Project `Editor` in assigned Teams.
+- Project `Viewer` (read-only).
 
-Permission granularity is deferred. Current P2.3 mockup assumes admin/full access. Production must still enforce backend permissions.
+Phase 4 access baseline applies: Workspace Admin/Admin can update assigned Project data; Editor can update assigned Team data; Viewer is read-only; No Access is hidden. Production must enforce the same scope in backend/service guards.
 
 ## 4. Terminology
 
@@ -116,7 +115,7 @@ Nghiệp vụ chính:
 | P2-IS-FR-016C | Plan Est total sums scoped Story/Defect Plan Estimates; Task Est total sums child Task `To Do + Actual`; To Do total sums child Task `To Do` for the same scoped parents. |
 | P2-IS-FR-017 | Iteration Status list displays only Story/Defect items assigned to the selected Iteration. Child Tasks are not independent rows. |
 | P2-IS-FR-017A | Iteration Status list is sourced from Backlog/work_items where `iterationId` equals the selected Iteration. |
-| P2-IS-FR-018 | List columns are: selection checkbox, rank, ID, Type, Name, Schedule State, Flow State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner. |
+| P2-IS-FR-018 | List columns are: selection checkbox, rank, ID, Name, Schedule State, Flow State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner. There is no dedicated Type column; Story/Defect type is conveyed by the required `US`/`DE` formatted-ID prefix and type glyph in the identity cell. |
 | P2-IS-FR-019 | The list must not include a per-row `Defects` column. |
 | P2-IS-FR-020 | Quick search `Filter items...` remains outside Manage Filters. |
 | P2-IS-FR-021 | User can open Show/Hide filter banner. |
@@ -284,7 +283,7 @@ Query params:
 | `filters` | object/string | No | Dynamic filters from Manage Filters |
 | `pageSize` | 10/25/50/100 | Yes | Default 25 |
 | `page` or `cursor` | number/string | Yes | Follow standard pagination |
-| `sortBy` | enum | No | `rank`,`itemKey`,`type`,`title`,`scheduleState`,`flowState`,`iteration`,`blocked`,`planEstimate`,`taskEstimate`,`toDo`,`owner` |
+| `sortBy` | enum | No | `rank`,`itemKey`,`title`,`scheduleState`,`flowState`,`iteration`,`blocked`,`planEstimate`,`taskEstimate`,`toDo`,`owner` |
 | `sortDirection` | `asc`,`desc` | No | Default rank asc |
 
 Response:
@@ -416,7 +415,7 @@ Alternative draft implementation is allowed only if the application already supp
 
 ## 10. Permission Rules
 
-Current mockup assumes admin/full access. Production baseline:
+Production baseline:
 
 | Action | Required permission |
 |---|---|
@@ -427,7 +426,7 @@ Current mockup assumes admin/full access. Production baseline:
 | Re-rank work items if rank controls are enabled | `work_item:rank_update` or `backlog:prioritize` |
 | Open Work Item Detail | `work_item:view` |
 
-Detailed role matrix for PO/PM/Developer/Tester/Viewer is deferred. API must not rely on mockup admin assumptions.
+Workspace Admin/Admin may update in Project scope; Editor may update in assigned Teams; Viewer is read-only; No Access is hidden. Persona names such as PO/PM/Developer/Tester do not grant permissions.
 
 ## 11. Validation Rules
 
@@ -530,7 +529,7 @@ Suggested P2.3 estimate: 14.0h.
 | Carry-over unfinished work | Deferred | Depends on Close Iteration workflow |
 | Saved Views | Deferred | Can be added after list/filter contract stabilizes |
 | Release and Milestone management | Deferred | Phase 3 |
-| Permission role matrix | Follow-up | Current mockup assumes admin/full access |
+| Project Access enforcement | Required | Follow the fixed Phase 4 Workspace Admin/Admin/Editor/Viewer/No Access baseline |
 | Chart drilldown | Follow-up | `View Charts` is placeholder in P2.3 |
 
 ## 16. BA Readiness Conclusion

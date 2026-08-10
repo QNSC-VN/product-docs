@@ -2,6 +2,8 @@
 
 > **⚠️ Scope note (2026 pivot):** This document captures the *original* "Mini Rally" product vision. The project has since pivoted to a **global, multi-tenant, enterprise-grade SaaS** (a ~95–100% Rally equivalent). For the **authoritative** architecture, tech stack, tenancy, scale, security and scope, see [`05_Architecture/`](../05_Architecture/) (`ARCHITECTURE_CURRENT.md`, `ARCHITECTURE_FUTURE_SCALE.md`, `PRODUCTION_READINESS.md`, `FOUNDATION_PHASE.md`). The functional/module breakdown below remains valid; the "small / ≤200 users / not full enterprise" framing is superseded.
 
+> **Current Mini Rally authorization/navigation (2026-08-10):** The BA/mockup scope uses one Company/Workspace, one global Workspace Admin and per-Project `Admin`/`Editor`/`Viewer`/`No Access`. PM/BA/Developer/QA are personas, not permission roles. Project/user/team administration is centralized at top-right Settings. This note overrides older role and navigation wording below.
+
 ## Current MVP/Phase Baseline — 2026-06-24
 
 Phase 0 đã pass acceptance. Phase đang chuẩn bị dev là **Phase 1 — Core Work Item Management**.
@@ -54,13 +56,10 @@ Sản phẩm hướng đến sự đơn giản, dễ dùng, dễ triển khai, k
 
 | User Group | Mục đích sử dụng |
 |---|---|
-| Workspace Admin | Quản lý workspace, user, role, permission |
-| Project Admin / PM | Quản lý project, sprint, release, member |
-| Product Owner / BA | Quản lý backlog, user story, acceptance criteria, priority |
-| Scrum Master | Theo dõi sprint, board, blocked item, team progress |
-| Developer | Nhận task, cập nhật status, comment, xử lý defect |
-| QA / Tester | Tạo defect, verify bug, cập nhật testing status |
-| Stakeholder / Viewer | Xem dashboard, report, release progress |
+| Workspace Admin | Quản trị Company, users, Projects, Teams, access và toàn bộ delivery |
+| Delivery lead / planner persona | Thường được WA gán `Admin` trong Project cần quản lý |
+| Contributor persona | Thường được WA gán `Editor` và một hoặc nhiều Teams |
+| Stakeholder persona | Thường được WA gán `Viewer` trong Project cần theo dõi |
 
 ---
 
@@ -82,11 +81,10 @@ Main Web App
 │
 └── Admin / Settings Area
     ├── Workspace Settings
-    ├── User Management
-    ├── Roles & Permissions
-    ├── Project Settings
-    ├── Workflow Settings
-    └── Labels / Tags
+    ├── Users
+    ├── Workspaces & Projects
+    ├── Permission Model (read-only)
+    └── Audit Log
 ```
 
 Không cần tách riêng:
@@ -173,8 +171,8 @@ Workspace là cấp cao nhất, đại diện cho một Công ty/Organization v�
 ### Features
 
 - Provision fixed Company/Workspace from deployment configuration.
-- Manage workspace members.
-- Manage workspace-level roles.
+- Manage company users.
+- Display the internally assigned Workspace Admin; no custom company-role management.
 - Company settings tối thiểu.
 - Không có Workspace List/Create/Edit/Archive/Switch UI trong single-company MVP.
 
@@ -204,8 +202,8 @@ Project đại diện cho một sản phẩm hoặc phạm vi delivery. Project 
 - Create project.
 - Update project.
 - Archive project.
-- Add/remove project members.
-- Assign project role.
+- Add/remove Project users.
+- Assign `Admin`, `Editor` or `Viewer` per Project; removed/no row means `No Access`.
 - Project overview.
 - Project settings.
 - Link/unlink Team.
@@ -593,9 +591,9 @@ One Web App
 - Manage users
 - Invite users
 - Activate/deactivate users
-- Assign roles
-- Manage project members
-- Basic role-based permission
+- Assign Project Access Levels
+- Manage Project users and Team membership
+- View the fixed Permission Model
 - Project settings
 - Workspace settings
 ```
@@ -614,31 +612,27 @@ One Web App
 
 ---
 
-## 7. Role & Permission
+## 7. Project Access & Permission
 
-### Suggested Roles
+### Approved Access Model
 
-| Role | Description |
+| Authority / Level | Description |
 |---|---|
-| Workspace Admin | Toàn quyền trong workspace |
-| Project Admin / PM | Quản lý project, member, sprint, release |
-| Product Owner / BA | Quản lý backlog, story, priority, acceptance criteria |
-| Scrum Master | Quản lý sprint, board, team progress |
-| Developer | Cập nhật task, xử lý story/bug |
-| QA / Tester | Tạo defect, verify bug |
-| Viewer / Stakeholder | Chỉ xem dashboard/report |
+| Workspace Admin | Toàn quyền Company; chỉ WA quản lý user, Project, Team và access |
+| Admin | Quản lý delivery trong Project được gán; All Teams |
+| Editor | Chỉnh Backlog/Work Item/Task, Quality và Iteration Status trong Team được gán |
+| Viewer | Chỉ đọc toàn Project |
+| No Access | Không thấy và không truy cập Project |
 
 ### Admin Access Suggestion
 
-| Role | Access Admin/Settings? |
+| Authority / Level | Access Settings? |
 |---|---|
 | Workspace Admin | Full access |
-| Project Admin / PM | Project-level settings |
-| Product Owner / BA | Limited settings |
-| Scrum Master | Limited sprint/board settings |
-| Developer | No |
-| QA / Tester | No or limited |
-| Viewer | No |
+| Admin | Workspaces & Projects read-only cho Project được gán |
+| Editor | Chỉ thấy Project/Team/access context của mình |
+| Viewer | Chỉ thấy Project/access context của mình |
+| No Access | Không thấy Project |
 
 ---
 
@@ -1008,9 +1002,9 @@ Admin/Settings vẫn cần có, nhưng chỉ nên build ở mức cơ bản:
 ```text
 1. User management
 2. Invite user
-3. Assign role
-4. Project member management
-5. Basic permission
+3. Assign Project Access Level
+4. Project user and Team membership management
+5. Read-only Permission Model
 ```
 
 ---

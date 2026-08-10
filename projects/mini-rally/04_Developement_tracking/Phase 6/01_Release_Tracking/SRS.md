@@ -1,5 +1,7 @@
 # Phase 6 — Portfolio > Release Tracking
 
+> **Project Access:** Workspace Admin and `Admin` in the assigned Project can use Release Tracking controls; `Viewer` is read-only; `Editor` and `No Access` cannot open this surface.
+
 ## 0. Document control
 
 | Attribute | Value |

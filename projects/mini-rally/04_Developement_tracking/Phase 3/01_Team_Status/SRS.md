@@ -37,12 +37,12 @@ BA rule revision 2026-07-19: Team Status recalculates parent progress/roll-up af
 ## 3. Actors
 
 - Workspace Admin.
-- Project Manager / Scrum Master.
-- Product Owner / BA.
-- Developer / QA.
-- Viewer.
+- Project `Admin`.
+- Project `Viewer` (read-only).
 
-Current mockup uses Workspace Admin. Production must enforce permissions in the API even when the UI hides or disables edit controls.
+Project `Editor` and `No Access` do not enter Team Status.
+
+Phase 4 access baseline applies. Workspace Admin and Admin may view/update Team Status in allowed Project scope; Viewer is read-only; Editor and No Access do not access Team Status. Production must enforce permissions in the API even when the UI hides controls.
 
 ## 4. Terminology
 
@@ -118,7 +118,7 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 - Authorized users can inline edit Task Name, Task State, Owner, To Do, Actuals and Estimate directly from the Task Dashboard table.
 - Task State options in the Task Dashboard are the same task-level values used by Team Status: `Defined`, `In-Progress`, `Completed`.
 - Inline Task Dashboard edits update the task row without forcing the user to open Task Detail.
-- Project Admin outside managed Project can open and read the Task Dashboard, but inline edit controls are disabled or read-only.
+- Viewer in an assigned Project can read Team Status/Task Dashboard, but inline edit controls are absent.
 - Clicking the Task ID still opens Task Detail; editing inline fields must not accidentally open Task Detail.
 
 ## 6. Functional Requirements
@@ -132,6 +132,8 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-005 | Changing Iteration refreshes the grouped table data and totals. |
 | P3-TS-FR-006 | Page does not show the Team Status search input. |
 | P3-TS-FR-007 | Page does not show a KPI strip above the table. |
+| P3-TS-FR-007A | Team Status permits an explicit Filters control and pagination. It must not show a local Search Tasks input or a Show Fields/column chooser. |
+| P3-TS-FR-007B | Filters affect displayed rows, but the Totals row always covers the full selected Iteration scope, never only the current page. |
 | P3-TS-FR-008 | Main content is a dense resizable table aligned with the Iteration Status table template. |
 | P3-TS-FR-009 | Header typography, row height and font size must match the approved Iteration Status dense table style. |
 | P3-TS-FR-010 | Table columns are: Rank, ID, Task Name, Work Product, Release, State, Capacity, Estimate, ToDo, Actuals, Owner. |
@@ -163,7 +165,7 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-036 | Parent Story/Defect auto-completion must not remove the user's ability to manually change the parent status from existing Work Item edit surfaces. |
 | P3-TS-FR-037 | Work Item Detail `Tasks` tab acts as the Task Dashboard for the selected parent Story/Defect. |
 | P3-TS-FR-038 | Authorized users can inline edit Task Name, State, Owner, To Do, Actuals and Estimate from the Task Dashboard table. |
-| P3-TS-FR-039 | Project Admin outside managed Project can read the Task Dashboard but cannot inline edit Task fields. |
+| P3-TS-FR-039 | Viewer in an assigned Project can read Team Status/Task Dashboard but cannot inline edit; Editor and No Access do not access this module. |
 | P3-TS-FR-040 | Clicking Task ID opens Task Detail; inline editing fields must not trigger Task Detail navigation. |
 | P3-TS-FR-041 | Reopening a Task after all child Tasks had been Completed must recalculate metrics and automatically set the parent Story/Defect status to `In-Progress`. This applies even when the parent had been manually promoted to `Accepted`; `Accepted` is not exempt from the reopen roll-up. |
 
@@ -177,7 +179,9 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | Search input | Removed | No Team Status-specific quick search in P3.1 |
 | KPI strip | Removed | No KPI cards above table in P3.1 |
 | Table header | Dense header with sort icon and resize handle | Same visual template as Iteration Status |
-| Totals row | Capacity, Estimate, ToDo, Actuals totals | Calculated from filtered groups |
+| Filters | Owner/State filters are allowed | Filter displayed rows; no local search and no Show Fields |
+| Pagination | Rows-per-page and previous/next controls are allowed | Pages task results without changing full-Iteration Totals |
+| Totals row | Capacity, Estimate, ToDo, Actuals totals | Calculated from the full selected Iteration scope, not only current page |
 | Member row | Owner avatar/name/task count, progress bar, inline Capacity | Group by task owner/member |
 | Task row ID | Type badge `Task` plus `TA-...` | Task-level identity |
 | Task Name | Inline editable input | Updates task title |
@@ -326,6 +330,7 @@ Rules:
 - Return groups ordered by owner display name or configured team order.
 - Return task rows ordered by rank, then task key.
 - Return empty groups only if product decides to show all members; approved P3.1 mockup shows members with tasks.
+- Filtering and pagination may be server-side or client-side, but response totals must represent the full selected Iteration scope.
 
 ### 9.2 Update Member Capacity
 
@@ -436,15 +441,15 @@ All calculations must use the same filtered task set returned by the selected Pr
 
 ## 11. Permissions
 
-| Role/permission | Read Team Status | Edit Capacity | Edit Task Name | Edit Task State |
+| Authority / Project Access | Read Team Status | Edit Capacity | Edit Task Name | Edit Task State |
 |---|---:|---:|---:|---:|
 | Workspace Admin | Yes | Yes | Yes | Yes |
-| Project Manager / Scrum Master | Yes | Yes | Yes | Yes |
-| Product Owner / BA | Yes | Optional by product permission | Optional by product permission | Optional by product permission |
-| Developer / QA | Yes | No by default | Own tasks only if permission allows | Own tasks only if permission allows |
-| Viewer | Yes | No | No | No |
+| Admin in assigned Project | Yes | Yes | Yes | Yes |
+| Editor in assigned Project | Hidden | No | No | No |
+| Viewer in assigned Project | Yes | No | No | No |
+| No Access | No | No | No | No |
 
-If the production RBAC model does not yet support field-level permissions, enforce a simple `can_edit_team_status` permission and keep Viewer read-only.
+This mapping is fixed by Project Access Level; there is no field-level permission editor in the MVP.
 
 ## 12. Acceptance Criteria
 

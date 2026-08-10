@@ -1,5 +1,7 @@
 # Phase 0 — Development Tracking
 
+> **Current access/navigation addendum (2026-08-10):** Project/user/team administration is now centralized at top-right Settings. `Workspaces & Projects` is the single Project-management route. `Permission Model` replaces the former editable Roles & Permissions concept. Older observations below remain historical.
+
 > **⚠️ SUPERSEDED (2026-06-20):** This 1.5-day single-company prototype is **no longer the project foundation**. It is replaced by [`05_Architecture/FOUNDATION_PHASE.md`](../../05_Architecture/FOUNDATION_PHASE.md) (modular monolith, multi-tenant foundation, NestJS/TS). Kept for historical reference only.
 
 ## 1. Tracking Information

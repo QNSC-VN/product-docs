@@ -8,14 +8,16 @@
 
 **Two-phase, deny-by-default: a coarse RBAC gate at the edge, a fine ABAC policy at the resource.**
 
+> **Product authorization update (2026-08-10):** There is one global system role, Workspace Admin. Normal users receive fixed `Admin`/`Editor`/`Viewer` access independently per Project; no active assignment means `No Access`. Custom roles and PM/BA/Developer/QA permission roles are outside the Mini Rally MVP.
+
 ### Model
-- `user → role (scoped) → permission codes`. **Scope** = `workspace` or `project`.
+- `user → workspace_admin` for internal company authority, or `user → project_members.access_level` for a Project.
 - **Permission code** = `resource:action` — e.g. `work_item:update`, `project:archive`, `sprint:close`, `member:invite`.
-- **Roles** carry a set of permission codes within a scope. Built-in roles seeded (Admin, Manager, Member, Viewer); **custom roles per workspace** are an enterprise feature (deny-by-default catalog).
+- Fixed Project Access Levels map to fixed capability sets. The mapping is code/config owned and read-only in the product UI.
 
 ### Phase 1 — RBAC (Guard, coarse)
-- `PermissionGuard` answers "does this user hold `work_item:update` in this scope?" — a cheap set-membership check.
-- The **effective permission set** for `(user, tenant, project)` is **resolved once and cached in Valkey**, invalidated on role/membership change. No per-request recompute.
+- `PermissionGuard` answers "is this user Workspace Admin, or does the active Project Access Level allow `work_item:update`?".
+- The **effective permission set** for `(user, tenant, project)` is **resolved once and cached in Valkey**, invalidated on Workspace Admin, Project Access or Team membership change. No per-request recompute.
 
 ### Phase 2 — ABAC (Policy/Specification, fine)
 - In the **application layer**, against the **actual entity**: "only assignee or reporter may X", "cannot edit an archived item", "same-team-only".

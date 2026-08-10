@@ -43,7 +43,7 @@ Team Status approved behavior:
 - Task State options are exactly `Defined`, `In-Progress`, `Completed`.
 - Work Item Detail `Tasks` tab is the Task Dashboard and supports inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
 - Completing a task refreshes the referenced US/DE Work Product roll-up. Initial partial completion does not change parent status; when all child tasks are `Completed`, parent US/DE becomes `Completed`; reopening a Task from that state recalculates metrics and moves parent US/DE to `In-Progress`. Auto-roll-up does not remove manual parent status editing from existing Work Item edit surfaces.
-- Project Admin outside managed Project cannot mutate inline fields.
+- Viewer is read-only; Editor/No Access do not access Team Status; only Workspace Admin/Admin may mutate inline fields.
 
 ## 3. Mockup Coverage Summary
 
@@ -157,7 +157,7 @@ Team Status approved behavior:
 - Accepted releases remain editable for authorized users.
 - Release readiness information is manually gathered by users from linked US/DE release notes.
 - Reassigning a Story/Defect from one Release to another removes it from the old Release artifact view, recalculates old/new Release counts and shows user feedback.
-- Release Progress is not added to Timeboxes Release list/detail; `Portfolio > Release Planning` owns that future scope.
+- Release Progress is not added to Timeboxes Release list/detail; `Portfolio > Release Tracking` owns tracking/reporting scope. Release Planning remains a separate Future Backlog item.
 
 ### P3.2 Development Must Verify
 

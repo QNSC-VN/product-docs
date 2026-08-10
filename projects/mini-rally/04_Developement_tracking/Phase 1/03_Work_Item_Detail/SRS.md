@@ -47,7 +47,7 @@ BA confirmed the current Detail state display contract:
 | WID-FR-007 | Sidebar hiển thị Owner, Project, Team, Schedule State, Flow State, Plan Estimate, Release, Milestones, Iteration. Nếu Work Item là Defect thì hiển thị thêm Priority. |
 | WID-FR-008 | Field update phải persist DB và ghi activity log. |
 | WID-FR-009 | Project/team/status/release/iteration dropdown chỉ hiển thị option hợp lệ. |
-| WID-FR-010 | Project Admin outside managed Project chỉ có read-only access và không sửa được field. |
+| WID-FR-010 | User không có Access Level trong Project không thấy item và direct URL phải bị từ chối an toàn; Viewer chỉ đọc. |
 | WID-FR-011 | Refresh/direct URL detail phải load đúng item. |
 | WID-FR-012 | Schedule State và Flow State dùng cùng catalog `Idea/Defined/In-Progress/Completed/Accepted/Release`; đổi một field phải phản ánh field còn lại trong MVP. |
 | WID-FR-012A | UI rendering: Schedule State uses the six-box control; Flow State uses a dropdown. |

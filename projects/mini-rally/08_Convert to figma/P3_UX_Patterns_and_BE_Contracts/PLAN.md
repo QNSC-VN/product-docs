@@ -1,5 +1,7 @@
 # Plan 3 — UX Patterns and BE Contracts
 
+> Historical conversion plan. Role-axis labels and E/R/D/H examples record the original 2026-07 Figma work and are not the current permission baseline. Use `P3_RBAC_AND_SYSTEM_STATES.md` and the 2026-08-10 Phase 4 Project Access SRS for new or updated designs.
+
 ## Goal
 
 Normalize data-heavy/RBAC UX patterns and attach a usable UI/API contract before screen conversion.

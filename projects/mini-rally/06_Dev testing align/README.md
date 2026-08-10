@@ -1,5 +1,7 @@
 # DevInt Audit — Phase 0 to Phase 4
 
+> **Access-model update (2026-08-10):** Phase 4 role/matrix results below are historical. Current acceptance uses Workspace Admin and per-Project `Admin`/`Editor`/`Viewer`/`No Access`; Permission Model is read-only.
+
 ## Objective
 
 Audit `https://rally-dev.qnsc.vn/` screen by screen and function by function against the confirmed Mini Rally business rules, SRS, test scenarios and FE mockup for Phase 0–4.

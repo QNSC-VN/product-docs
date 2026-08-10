@@ -26,7 +26,7 @@ Phase 0 validates the base platform: Microsoft SSO authentication, app shell, fi
 | P0-SHELL-004 | P0 | Fixed Workspace is shown as root context | Open context selector | Workspace root appears before Project/Team; no workspace switcher is available | Not Run |
 | P0-SHELL-005 | P0 | Project context switch invalidates data | Select Project A; observe page data; switch to Project B | Scoped pages reload and do not show stale Project A data | Not Run |
 | P0-SHELL-006 | P1 | Team hierarchy display | Open context selector for Project with teams | Teams are nested/available under valid Project context | Not Run |
-| P0-SHELL-007 | P1 | Navigation information architecture | Inspect top navigation | Home direct; Plan has Backlog/Timeboxes; Timeboxes covers Iterations/Releases/Milestones; Track has Iteration Status/Team Status; Portfolio has Release Planning as Phase 5/Future Backlog; no top-level Releases | Not Run |
+| P0-SHELL-007 | P1 | Navigation information architecture | Inspect top navigation | Home direct; Plan has Backlog/Timeboxes; Timeboxes covers Iterations/Releases/Milestones; Track has Iteration Status/Team Status; Portfolio has Portfolio Items/Capacity Planning/Release Tracking; Release Planning is Future Backlog; no top-level Releases | Not Run |
 | P0-SHELL-008 | P1 | 404 page | Open unknown route | Not Found page renders while shell remains stable if authenticated | Not Run |
 | P0-SHELL-009 | P1 | 403/access denied | Open route without permission as restricted user | Access Denied page is shown; sensitive data not rendered | Not Run |
 | P0-SHELL-010 | P1 | Generic page error containment | Trigger or simulate child page error | Error boundary affects page outlet only; top nav remains usable | Not Run |
@@ -40,18 +40,18 @@ Phase 0 validates the base platform: Microsoft SSO authentication, app shell, fi
 | P0-WS-002 | P0 | No Workspace create/switch in MVP | Inspect app shell/settings/project context | No self-service Workspace create, archive or switch control is available | Not Run |
 | P0-WS-003 | P0 | Workspace tree respects permission | Login as user with limited access | Only accessible Project/Team entries are visible | Not Run |
 | P0-WS-004 | P0 | Workspace name editable by Workspace Admin | Open Settings as Workspace Admin; edit Workspace Name; save | Name saves with validation/feedback and audit event | Not Run |
-| P0-WS-005 | P1 | Invite existing/new member | Admin invites member by email and role | Invitation is created; accepted user becomes active member | Not Run |
+| P0-WS-005 | P1 | Invite existing/new user | Workspace Admin invites by email with optional initial Project Access | Invitation is created; accepted user becomes active with confirmed Project Access | Not Run |
 | P0-WS-006 | P1 | Resend/cancel/expired invitation | Resend/cancel invitation; try old token | Old token cannot be used | Not Run |
-| P0-WS-007 | P1 | Suspend member immediately blocks access | Suspend active user; user refreshes or calls API | UI and direct API access are blocked immediately | Not Run |
+| P0-WS-007 | P1 | Disable user blocks access on refresh | Disable active user; affected user refreshes or calls API | Company access is blocked on next refresh | Not Run |
 | P0-WS-008 | P1 | Cannot remove sole active Admin | Attempt to suspend/remove only active Workspace Admin | Action is rejected with clear error | Not Run |
-| P0-WS-009 | P1 | Member role/status audit | Change role/status/settings | Audit/activity event is created | Not Run |
+| P0-WS-009 | P1 | User access/status audit | Change status, Project Access, Team membership or Workspace Settings | Administrative Audit event is created | Not Run |
 
 ## P0-PROJECT - Project Management
 
 | ID | Priority | Scenario | Steps | Expected result | Status |
 |---|---|---|---|---|---|
 | P0-PRJ-001 | P0 | Project list loads accessible projects | Open `/projects` | List shows only projects user can access | Not Run |
-| P0-PRJ-002 | P0 | Create Project happy path | Create project with Project Name, Project Key, Owner, Project Start Date, Teams and Description | Project is created; settings and owner membership are created atomically | Not Run |
+| P0-PRJ-002 | P0 | Create Project happy path | Create project with Project Name, Project Key, Owner, Project Start Date, Description and estimation settings | Project/settings are created; owner metadata does not grant Project Access automatically | Not Run |
 | P0-PRJ-003 | P0 | Duplicate project key rejected | Create project with existing key | Validation rejects duplicate key | Not Run |
 | P0-PRJ-004 | P0 | Invalid key rejected | Create project with key below 2 chars, above 10 chars or non-uppercase-alphanumeric chars | Field-level or form validation rejects input | Not Run |
 | P0-PRJ-005 | P0 | Project key immutable | Edit an existing project | Key is read-only or cannot be changed | Not Run |
@@ -59,7 +59,7 @@ Phase 0 validates the base platform: Microsoft SSO authentication, app shell, fi
 | P0-PRJ-007 | P1 | Status filter active/archived | Filter active and archived | Active/archived results match state; empty state appears when no result | Not Run |
 | P0-PRJ-008 | P1 | Pagination and aggregates | Verify list page size and member/team counts | Pagination works; `memberCount` and `teamCount` are accurate | Not Run |
 | P0-PRJ-009 | P1 | Archive project | Archive project with permission | Project becomes read-only and hidden from active list by default | Not Run |
-| P0-PRJ-010 | P1 | Restore project permission | Restore archived project as authorized/unauthorized user | Authorized succeeds; unauthorized gets 403/rejection | Not Run |
+| P0-PRJ-010 | P1 | Restore Project authority | Restore as Workspace Admin, then attempt as Project Access Level Admin | WA succeeds; Admin cannot see the action and direct mutation is rejected | Not Run |
 | P0-PRJ-011 | P1 | Project owner must be active member | Create/update owner with inactive/non-member user | Action is rejected | Not Run |
 | P0-PRJ-012 | P1 | Linked Team display | Inspect project list/edit once Team data/code is available | Linked Teams display exactly as mockup/SRS; mark Not Tested when Team data is missing | Not Run |
 | P0-PRJ-013 | P1 | Project mutation audit | Create/update/archive/restore project | Audit event is recorded | Not Run |

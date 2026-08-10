@@ -1,4 +1,5 @@
 ﻿export type Role = "Workspace Admin" | "Project Admin" | "Project Member";
+export type ProjectAccessLevel = "Admin" | "Editor" | "Viewer" | "No Access";
 export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "releaseTracking" | "capacityPlanning" | "releasePlanning" | "releases" | "reports" | "notifications" | "settings";
 export type WorkItemType = "Story" | "Defect" | "Task" | "Feature";
 export type StatusType = "Idea" | "Defined" | "In-Progress" | "Completed" | "Accepted" | "Release";
@@ -240,9 +241,9 @@ export const can = {
   manageBacklog: (_r: Role) => true,
   manageSettings: (r: Role) => r !== "Project Member",
   manageRoles: (r: Role) => r === "Workspace Admin",
-  createDefects: (r: Role) => r !== "Project Member",
+  createDefects: (_r: Role) => true,
   viewAdmin: (r: Role) => r === "Workspace Admin",
-  dragBoard: (r: Role) => r !== "Project Member",
+  dragBoard: (_r: Role) => true,
 };
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
@@ -253,7 +254,14 @@ export const OWNERS: Owner[] = [
   { name: "James Okafor", initials: "JO", color: "#7a4e3d" },
   { name: "Priya Nair", initials: "PN", color: "#5c4a87" },
   { name: "Tom Brennan", initials: "TB", color: "#7a6a2d" },
+  { name: "Unassigned", initials: "—", color: "#8c94a6" },
 ];
+
+export const DEMO_ACCESS_PROFILES: Record<Role, { name: string; email: string; owner: Owner; label: "Workspace Admin" | "Admin" | "Editor"; scope: string }> = {
+  "Workspace Admin": { name: "Marcus Webb", email: "marcus.webb@acme.com", owner: OWNERS[0], label: "Workspace Admin", scope: "All workspace" },
+  "Project Admin": { name: "Priya Nair", email: "priya.nair@acme.com", owner: OWNERS[3], label: "Admin", scope: "Nexus Platform 2025 · All Teams" },
+  "Project Member": { name: "Sarah Chen", email: "sarah.chen@acme.com", owner: OWNERS[1], label: "Editor", scope: "Nexus Platform 2025 · Core Platform" },
+};
 
 export const PROJECTS: Project[] = [
   { key: "NXP", name: "Nexus Platform 2025", activeSprint: "Sprint 24.3", progress: 34, openDefects: 3, blocked: 1, owner: OWNERS[0] },
@@ -271,6 +279,7 @@ export const SCOPE_PROJECTS: ScopeProject[] = [
 
 export const ROLE_SCOPE = {
   projectAdminProjectKeys: ["NXP"],
+  projectAdminViewerProjectKeys: [] as readonly string[],
   projectMemberProjectKey: "NXP",
   projectMemberTeams: ["Core Platform"],
 } as const;

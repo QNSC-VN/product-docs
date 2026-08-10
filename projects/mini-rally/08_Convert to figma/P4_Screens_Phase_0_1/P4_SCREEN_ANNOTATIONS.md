@@ -1,5 +1,7 @@
 # Plan 4 — Screen Annotations
 
+> **Authorization/navigation supersession (2026-08-10):** Project Admin/Project Member and separate Manage Projects notes below are historical Figma annotations. Current behavior uses per-Project Access Levels and a single Settings > Workspaces & Projects route; see Phase 1 Project Management SRS and Phase 4 Permissions SRS.
+
 Per-screen role, state and action behaviour for every screen built in P4.a–P4.d. This does not redefine rules — it applies the patterns already established in `P3_RBAC_AND_SYSTEM_STATES.md` and `P3_UI_API_CONTRACTS.md` to the specific screens now in Figma. Where a screen needs a rule not covered by P3, that gap is called out explicitly rather than invented here.
 
 ## SCR-00 Login

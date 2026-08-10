@@ -56,10 +56,10 @@ BA reconciliation update 2026-07-24:
 ## 3. Actors
 
 - Workspace Admin.
-- Project Manager / Scrum Master.
-- Product Owner / BA.
-- Developer / QA.
-- Viewer.
+- Project `Admin`.
+- Project `Viewer` (read-only).
+
+Project `Editor` and `No Access` do not enter Timeboxes.
 
 ## 4. Terminology
 
@@ -113,8 +113,8 @@ Nghiệp vụ chính:
 | P2-IT-FR-002 | Timeboxes page defaults to type `Iterations`. |
 | P2-IT-FR-003 | Type dropdown is hidden in Phase 2; Timeboxes shows Iterations only. |
 | P2-IT-FR-004 | Releases and Milestones are explicitly out of scope for P2.2 and must not block Iteration delivery. |
-| P2-IT-FR-005 | Iterations list displays columns: Name, Theme, Start Date, End Date, Project, Planned Velocity, Task Estimate, State. |
-| P2-IT-FR-006 | User can search iterations by Name, Theme, Project or State. |
+| P2-IT-FR-005 | In the current single-Project scope, Iterations list displays: Name, Theme, Start Date, End Date, Planned Velocity, Task Estimate, State. Project column returns only if a future cross-Project view is approved. |
+| P2-IT-FR-006 | User can search iterations by Name, Theme or State. Project search/sort is not required in the current single-Project scope. |
 | P2-IT-FR-007 | User can sort list columns by clicking header sort icons. |
 | P2-IT-FR-008 | Date columns sort oldest-newest/newest-oldest; numeric columns sort smallest-largest/largest-smallest; text columns sort A-Z/Z-A. |
 | P2-IT-FR-009 | User can filter Iterations by State: All, Planning, Committed, Accepted. |
@@ -147,7 +147,7 @@ Nghiệp vụ chính:
 | Navigation | `Plan > Timeboxes` | Opens Iteration Management |
 | Page title | `Timeboxes` | No subtitle under title |
 | Type dropdown | Hidden in Phase 2 | P2.2 supports Iterations only; Release/Milestone options return in Phase 3 |
-| Search | `Search iterations...` | Search by name/theme/project/state |
+| Search | `Search iterations...` | Search by name/theme/state within the globally selected Project |
 | State filter | Show filter banner | Filter by Iteration state |
 | List | `IterationsPage` table | Dense list, 11px typography, sortable headers |
 | Create button | `Create Iteration` | Opens quick create modal |
@@ -386,15 +386,15 @@ Rules:
 | Archive/Delete Iteration | `iteration:delete` or `sprint:delete`, future follow-up |
 | Assign/unassign work items to Iteration | `iteration:update` plus `work_item:update` or equivalent planning permission |
 
-Role guidance:
+Access guidance:
 
-| Role | Expected behavior |
+| Access | Expected behavior |
 |---|---|
-| Workspace Admin | Full access |
-| Project Manager / Scrum Master | Full create/update access within assigned project |
-| Product Owner / BA | View and possibly update theme/notes depending final role matrix |
-| Developer / QA | View access |
-| Viewer | Read-only |
+| Workspace Admin | Full access across Projects |
+| Admin | Full create/update/delete access in assigned Project |
+| Editor | Timeboxes hidden; may update Work Item Iteration through approved Backlog/Iteration Status flows only |
+| Viewer | Assigned Project list/detail read-only |
+| No Access | Project Iterations hidden |
 
 ## 10. Validation Rules
 
@@ -456,7 +456,7 @@ Assignment and board rules:
 | Detail loading | Header may show selected id/name; body shows loading |
 | Detail save pending | Disable changed field or show saving indicator |
 | Detail save error | Keep user value, show field/toast error, allow retry |
-| Project Admin outside managed Project | Hide create button; render fields as read-only or disabled |
+| Viewer | Hide create/edit/delete controls and render Iteration values read-only |
 
 ## 12. Acceptance Criteria
 
@@ -464,7 +464,7 @@ Assignment and board rules:
 2. Page title is `Timeboxes` and defaults type to `Iterations`.
 3. Timeboxes respects the active workspace selector Project and optional Team context.
 4. Iterations list only shows Iterations for the selected Project/Team.
-5. Iterations list shows columns Name, Theme, Start Date, End Date, Project, Planned Velocity, Task Estimate and State.
+5. Iterations list shows Name, Theme, Start Date, End Date, Planned Velocity, Task Estimate and State; Project is omitted because the global Project selector scopes the list.
 6. User can search iterations.
 7. User can filter by State.
 8. User can sort list columns.
