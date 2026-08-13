@@ -1,0 +1,47 @@
+# Gitleaks configuration for product-docs.
+#
+# The default ruleset is EXTENDED, not replaced: everything gitleaks normally detects
+# still fails this repo's Secret scan. Only the one value below is exempt.
+#
+# WHY THIS FILE EXISTS. The scan failed with "leaks found: 5", and all five were the same
+# 22-character string in projects/mini-rally/08_Convert to figma/ — a Figma FILE KEY, the
+# identifier in a figma.com/file/<key>/... URL. It is not a credential: it grants nothing
+# without a Figma permission on the file. gitleaks flags it under `generic-api-key` on
+# entropy alone (3.82), which is the rule doing its job on a string it cannot classify.
+#
+# WHY NOT ANY OF THE ALTERNATIVES:
+#
+#   skip the workflow for this repo   A BA/mockup repo is one of the MORE likely places
+#                                     for a real token to land — pasted screenshots,
+#                                     integration notes, API examples. Removing the
+#                                     control where the risk is human is backwards.
+#
+#   fail-on-leak: false               The scan-secrets action supports it, and it would
+#                                     report without blocking. Honest only if somebody
+#                                     reads the output; otherwise it is a control that
+#                                     exists on paper and stops nothing.
+#
+#   .gitleaksignore fingerprints      Fingerprints are commit:file:rule:line, so each new
+#                                     file carrying this key needs a new entry — and the
+#                                     Figma work is ongoing. It would rot.
+#
+#   allowlist the whole directory     Exempts every future secret pasted into that folder,
+#                                     which is the one place this repo is most likely to
+#                                     receive one.
+#
+# So the allowlist is on the VALUE, matched anywhere in the repo. Adding a second exempt
+# value means adding a second regex here, in a diff someone reviews — which is the point.
+#
+# NOTE, and it is not a code problem: product-docs is a PUBLIC repository, so this key is
+# public. That is harmless while the Figma file's sharing is "only invited people". If it
+# is ever set to "anyone with the link", the mockups become publicly readable — check the
+# Figma sharing setting, not this file.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Figma file key for the mini-rally design conversion — an identifier in a figma.com/file/<key>/ URL, not a credential."
+regexes = [
+  '''ttpggMpbPwggOZl6umowzC''',
+]
