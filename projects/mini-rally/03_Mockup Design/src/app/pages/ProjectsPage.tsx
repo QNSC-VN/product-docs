@@ -528,7 +528,7 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
   const [restoreTeamTarget, setRestoreTeamTarget] = useState<TeamRecord | null>(null);
   const canManageCompanyStructure = role === "Workspace Admin";
   const visibleProjectKeys = role === "Project Admin"
-    ? [...ROLE_SCOPE.projectAdminProjectKeys, ...ROLE_SCOPE.projectAdminViewerProjectKeys] as readonly string[]
+    ? [...ROLE_SCOPE.projectAdminProjectKeys] as readonly string[]
     : null;
   const visibleProjects = visibleProjectKeys ? projects.filter(project => visibleProjectKeys.includes(project.key)) : projects;
   const canManageProject = (project: ProjectRecord) => role === "Workspace Admin" || (role === "Project Admin" && ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));

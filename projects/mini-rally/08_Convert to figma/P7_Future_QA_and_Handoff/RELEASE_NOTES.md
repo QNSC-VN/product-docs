@@ -1,6 +1,6 @@
 # Release Notes — Mini Rally Mockup → Figma Conversion
 
-> **Authorization supersession (2026-08-10):** The converted Roles & Permissions screen and Permission State Chip listed below represent the earlier model. Current Mini Rally uses one global Workspace Admin plus per-Project `Admin`/`Editor`/`Viewer`/`No Access`; Permission Model is read-only. Phase 4 SRS/mockup overrides this historical Figma release for permission behavior.
+> **Authorization supersession (2026-08-13):** The converted Roles & Permissions screen and Permission State Chip listed below represent the earlier model. Current Mini Rally uses one global Workspace Admin plus per-Project `Admin`/`Editor` (No Access is implicit — no `project_members` row); Permission Model is read-only. Phase 4 SRS/mockup overrides this historical Figma release for permission behavior.
 
 Final deliverable of the 7-plan conversion workflow. This is the single authoritative summary — the per-plan `CONVERSION_PROGRESS.md` bullet list of open questions is now frozen; this document supersedes it as the live reference.
 

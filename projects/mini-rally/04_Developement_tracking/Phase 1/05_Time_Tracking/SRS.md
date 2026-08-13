@@ -105,7 +105,7 @@ Task list totals:
 3. Negative values are rejected.
 4. Totals row equals sum of child task To Do, Actual and derived Estimate.
 5. Updating Actual creates Revision History entry.
-6. Viewer cannot edit time fields.
+6. Users without edit permission (e.g. outside assigned Team scope) cannot edit time fields.
 
 ## 9. Open Questions
 

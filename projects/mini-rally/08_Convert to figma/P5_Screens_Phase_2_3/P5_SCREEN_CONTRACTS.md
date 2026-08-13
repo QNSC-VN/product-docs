@@ -1,6 +1,6 @@
 # Plan 5 — Screen-Level Contracts
 
-> **Authorization supersession (2026-08-10):** Screen structures remain useful, but the role checks described below are historical. Apply Phase 4 `02_Roles_Permissions/SRS.md`: WA company-wide; per-Project Admin; assigned-Team Editor; Project-wide Viewer; No Access denied.
+> **Authorization supersession (2026-08-13):** Screen structures remain useful, but the role checks described below are historical. Apply Phase 4 `02_Roles_Permissions/SRS.md`: WA company-wide; per-Project Admin; assigned-Team Editor; No Access (no `project_members` row) denied. (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor.)
 
 Same template and rule as `P4_SCREEN_CONTRACTS.md`: UI requirements, not an API specification. Endpoint names are placeholder capabilities pending API-owner sign-off (P0 finding G-007). Contracts continue the numbering from `P3_UI_API_CONTRACTS.md` (1–5) and `P4_SCREEN_CONTRACTS.md` (6–9).
 

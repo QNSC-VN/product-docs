@@ -8,7 +8,7 @@ import { Avatar } from "../components/shared";
 
 type ProjectStatus = "Active" | "Archived";
 type TeamStatus = "Active" | "Deactive";
-export type ProjectPermission = "Admin" | "Editor" | "Viewer" | "No Access";
+export type ProjectPermission = "Admin" | "Editor";
 export type SharedProjectAccess = { projectKey: string; level: ProjectPermission; teams: string[] };
 export type SharedWorkspaceUser = { name: string; email: string; owner: Owner; status: string; projectAccess: SharedProjectAccess[] };
 type ProjectTab = "details" | "users" | "teams";
@@ -76,12 +76,14 @@ const INITIAL_TEAMS: AdminTeam[] = SCOPE_PROJECTS.flatMap((project, projectIndex
   })),
 );
 
-function accessFor(role: Role, projectKey: string): ProjectPermission {
+// Effective access for a role in a project. "No Access" is the implicit
+// absence-of-access state (no project_members row); it is not a selectable
+// ProjectPermission level. The Viewer tier was removed — Project Admins either
+// Admin their assigned project or have No Access to every other project.
+function accessFor(role: Role, projectKey: string): ProjectPermission | "No Access" {
   if (role === "Workspace Admin") return "Admin";
   if (role === "Project Member") return projectKey === ROLE_SCOPE.projectMemberProjectKey ? "Editor" : "No Access";
-  if (ROLE_SCOPE.projectAdminProjectKeys.includes(projectKey as typeof ROLE_SCOPE.projectAdminProjectKeys[number])) return "Admin";
-  if (ROLE_SCOPE.projectAdminViewerProjectKeys.includes(projectKey as typeof ROLE_SCOPE.projectAdminViewerProjectKeys[number])) return "Viewer";
-  return "No Access";
+  return ROLE_SCOPE.projectAdminProjectKeys.includes(projectKey as typeof ROLE_SCOPE.projectAdminProjectKeys[number]) ? "Admin" : "No Access";
 }
 
 function StatusBadge({ value }: { value: ProjectStatus | TeamStatus }) {
@@ -223,16 +225,16 @@ function EditorTeamsModal({ user, project, projectTeams, selectedTeamIds, onClos
   );
 }
 
-function AddExistingUserModal({ project, projectTeams, users, onClose, onAdd }: { project: AdminProject; projectTeams: AdminTeam[]; users: AdminUser[]; onClose: () => void; onAdd: (userId: string, permission: Exclude<ProjectPermission, "No Access">, teamIds: string[]) => void }) {
+function AddExistingUserModal({ project, projectTeams, users, onClose, onAdd }: { project: AdminProject; projectTeams: AdminTeam[]; users: AdminUser[]; onClose: () => void; onAdd: (userId: string, permission: ProjectPermission, teamIds: string[]) => void }) {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState("");
-  const [permission, setPermission] = useState<Exclude<ProjectPermission, "No Access">>("Editor");
+  const [permission, setPermission] = useState<ProjectPermission>("Editor");
   const [selectedTeamIds, setSelectedTeamIds] = useState<string[]>([]);
   const activeTeams = projectTeams.filter(team => team.status === "Active");
   const candidates = users.filter(user => user.email !== "marcus.webb@acme.com" && (user.permissions[project.key] ?? "No Access") === "No Access" && `${user.name} ${user.email}`.toLowerCase().includes(search.toLowerCase()));
   const canAdd = Boolean(selectedId) && (permission !== "Editor" || selectedTeamIds.length > 0);
 
-  function changePermission(next: Exclude<ProjectPermission, "No Access">) {
+  function changePermission(next: ProjectPermission) {
     setPermission(next);
     setSelectedTeamIds(next === "Admin" ? activeTeams.map(team => team.id) : []);
   }
@@ -250,11 +252,10 @@ function AddExistingUserModal({ project, projectTeams, users, onClose, onAdd }: 
         <div className="grid min-h-0 flex-1 grid-cols-[1fr_240px] border-t" style={{ borderColor: "#e2e6eb" }}>
           <div className="overflow-auto p-4" style={{ borderRight: "1px solid #e2e6eb" }}>{candidates.map(user => <button key={user.id} onClick={() => setSelectedId(user.id)} className="mb-1 flex w-full items-center gap-2 rounded border px-3 py-2 text-left" style={{ color: "#1a2234", backgroundColor: selectedId === user.id ? "#edf2fb" : "white", borderColor: selectedId === user.id ? "#bdd0ea" : "#e2e6eb" }}><Avatar owner={user.owner} size="sm" /><span className="min-w-0 flex-1"><span className="block truncate text-[11px] font-semibold">{user.name}</span><span className="block truncate text-[9px]" style={{ color: "#8c94a6" }}>{user.email}</span></span><span className="text-[9px]" style={{ color: user.status === "Disabled" ? "#b91c1c" : "#5c6478" }}>{user.status}</span>{selectedId === user.id && <Check size={12} style={{ color: "#1d3f73" }} />}</button>)}{candidates.length === 0 && <p className="py-10 text-center text-[11px]" style={{ color: "#8c94a6" }}>No users available to add.</p>}</div>
           <div className="space-y-4 p-4">
-            <Field label="Access Level"><select value={permission} onChange={event => changePermission(event.target.value as Exclude<ProjectPermission, "No Access">)} className="admin-input bg-white"><option>Admin</option><option>Editor</option><option>Viewer</option></select></Field>
+            <Field label="Access Level"><select value={permission} onChange={event => changePermission(event.target.value as ProjectPermission)} className="admin-input bg-white"><option>Admin</option><option>Editor</option></select></Field>
             <div><p className="text-[10px] font-semibold uppercase" style={{ color: "#5c6478" }}>Teams</p><div className="mt-2">
               {permission === "Admin" && <span className="inline-flex items-center gap-1.5 rounded border px-2 py-1 text-[10px] font-semibold" style={{ color: "#1d3f73", backgroundColor: "#edf2fb", borderColor: "#bdd0ea" }}><Check size={11} />All Teams</span>}
               {permission === "Editor" && <div className="space-y-1.5">{activeTeams.map(team => { const checked = selectedTeamIds.includes(team.id); return <button key={team.id} onClick={() => toggleTeam(team.id)} className="flex w-full items-center gap-2 rounded border px-2 py-1.5 text-left text-[10px]" style={{ color: checked ? "#1d3f73" : "#5c6478", backgroundColor: checked ? "#edf2fb" : "white", borderColor: checked ? "#bdd0ea" : "#d9dee7" }}><span className="flex h-3 w-3 items-center justify-center rounded-sm border" style={{ borderColor: checked ? "#1d3f73" : "#b8bfcc", backgroundColor: checked ? "#1d3f73" : "white" }}>{checked && <Check size={9} color="white" />}</span>{team.name}</button>; })}<p className="text-[9px]" style={{ color: selectedTeamIds.length ? "#8c94a6" : "#b91c1c" }}>Select at least one team.</p></div>}
-              {permission === "Viewer" && <p className="text-[10px] leading-4" style={{ color: "#8c94a6" }}>Project-wide read-only access. No team assignment.</p>}
             </div></div>
           </div>
         </div>
@@ -264,7 +265,7 @@ function AddExistingUserModal({ project, projectTeams, users, onClose, onAdd }: 
   );
 }
 
-export function WorkspaceProjectsPanel({ role, workspaceUsers, onChangeProjectAccess, onAddProjectTeam }: { role: Role; workspaceUsers: SharedWorkspaceUser[]; onChangeProjectAccess: (email: string, projectKey: string, permission: ProjectPermission, teamNames: string[]) => void; onAddProjectTeam: (projectKey: string, teamName: string) => void }) {
+export function WorkspaceProjectsPanel({ role, workspaceUsers, onChangeProjectAccess, onAddProjectTeam }: { role: Role; workspaceUsers: SharedWorkspaceUser[]; onChangeProjectAccess: (email: string, projectKey: string, permission: ProjectPermission | "No Access", teamNames: string[]) => void; onAddProjectTeam: (projectKey: string, teamName: string) => void }) {
   const [projects, setProjects] = useState(INITIAL_PROJECTS);
   const [teams, setTeams] = useState(INITIAL_TEAMS);
   const [selected, setSelected] = useState<SelectedNode>({ type: "project", key: "NXP" });
@@ -362,7 +363,7 @@ export function WorkspaceProjectsPanel({ role, workspaceUsers, onChangeProjectAc
     setTeamModal(undefined);
   }
 
-  function updatePermission(userId: string, projectKey: string, permission: ProjectPermission) {
+  function updatePermission(userId: string, projectKey: string, permission: ProjectPermission | "No Access") {
     const user = users.find(candidate => candidate.id === userId);
     if (!user) return;
     const projectTeams = teams.filter(team => team.projectKey === projectKey);
@@ -370,7 +371,7 @@ export function WorkspaceProjectsPanel({ role, workspaceUsers, onChangeProjectAc
     onChangeProjectAccess(user.email, projectKey, permission, permission === "Admin" ? ["All Teams"] : permission === "Editor" ? currentTeamNames : []);
   }
 
-  function addExistingUser(userId: string, projectKey: string, permission: Exclude<ProjectPermission, "No Access">, teamIds: string[]) {
+  function addExistingUser(userId: string, projectKey: string, permission: ProjectPermission, teamIds: string[]) {
     const user = users.find(candidate => candidate.id === userId);
     if (!user) return;
     const teamNames = teams.filter(team => teamIds.includes(team.id)).map(team => team.name);
@@ -445,7 +446,6 @@ export function WorkspaceProjectsPanel({ role, workspaceUsers, onChangeProjectAc
                 </div>
                 <div><p className="text-[10px] font-semibold" style={{ color: "#5c6478" }}>Point Conversion</p><p className="mt-1 text-[12px] font-medium" style={{ color: "#1a2234" }}>1 point = {selectedProject.hoursPerPoint} hours</p></div>
               </div>
-              {effectiveAccess === "Viewer" && <div className="rounded border px-3 py-2 text-[11px]" style={{ color: "#5c6478", backgroundColor: "#f7f8fa", borderColor: "#d9dee7" }}>You can view this project, but project settings and membership are read-only.</div>}
             </div>
           )}
 
@@ -468,7 +468,7 @@ export function WorkspaceProjectsPanel({ role, workspaceUsers, onChangeProjectAc
                       <div className="flex items-center gap-2"><Avatar owner={user.owner} size="sm" /><span><span className="block text-[11px] font-semibold" style={{ color: "#1a2234" }}>{user.name}</span><span className="block text-[9px]" style={{ color: "#8c94a6" }}>{user.email}</span></span></div>
                       <span className="w-fit rounded-sm px-2 py-0.5 text-[9px] font-semibold" style={{ color: statusColor, backgroundColor: statusBg }}>{user.status}</span>
                       <div className="flex flex-col items-start gap-1">
-                        <select aria-label={`${user.name} access level`} disabled={!canManageMembership} value={permission} onChange={event => { const next = event.target.value as Exclude<ProjectPermission, "No Access">; if (next === "Editor") setEditTeamsUser(user); else updatePermission(user.id, selectedProject.key, next); }} className="w-32 rounded border bg-white px-2 py-1 text-[10px] disabled:bg-[#f4f6f9]" style={{ borderColor: "#d9dee7", color: "#1a2234" }}><option>Admin</option><option>Editor</option><option>Viewer</option></select>
+                        <select aria-label={`${user.name} access level`} disabled={!canManageMembership} value={permission} onChange={event => { const next = event.target.value as ProjectPermission; if (next === "Editor") setEditTeamsUser(user); else updatePermission(user.id, selectedProject.key, next); }} className="w-32 rounded border bg-white px-2 py-1 text-[10px] disabled:bg-[#f4f6f9]" style={{ borderColor: "#d9dee7", color: "#1a2234" }}><option>Admin</option><option>Editor</option></select>
                         {permission === "Admin" && <span className="text-[9px]" style={{ color: "#8c94a6" }}>All Teams</span>}
                       </div>
                       <div>{canManageMembership ? <button onClick={() => setRemoveUser(user)} className="rounded border px-2 py-1 text-[10px] font-semibold" style={{ color: "#b91c1c", borderColor: "#f0c7c1" }}>Remove</button> : <span className="text-[10px]" style={{ color: "#b0b8c8" }}>-</span>}</div>

@@ -43,7 +43,7 @@ Team Status approved behavior:
 - Task State options are exactly `Defined`, `In-Progress`, `Completed`.
 - Work Item Detail `Tasks` tab is the Task Dashboard and supports inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
 - Completing a task refreshes the referenced US/DE Work Product roll-up. Initial partial completion does not change parent status; when all child tasks are `Completed`, parent US/DE becomes `Completed`; reopening a Task from that state recalculates metrics and moves parent US/DE to `In-Progress`. Auto-roll-up does not remove manual parent status editing from existing Work Item edit surfaces.
-- Viewer is read-only; Editor/No Access do not access Team Status; only Workspace Admin/Admin may mutate inline fields.
+- Editor opens Team Status read-only for assigned Teams (no mutation controls); No Access does not access Team Status; only Workspace Admin/Admin may mutate inline fields.
 
 ## 3. Mockup Coverage Summary
 
@@ -66,7 +66,6 @@ Team Status approved behavior:
 | State dropdown | Defined/In-Progress/Completed only | Done | `TeamStatusPage.tsx` | Accepted/Release removed |
 | State propagation | Task state change refreshes parent US/DE roll-up | Documented | `01_Team_Status/SRS.md` | All completed -> parent Completed; reopened -> parent In-Progress |
 | Row click | Opens existing detail flow | Done in mockup | `TeamStatusPage.tsx`, `App.tsx` | Inline controls stop propagation |
-| Viewer read-only | No inline mutation for Viewer | Business rule | `01_Team_Status/SRS.md` | API must enforce |
 
 ## 4. P3.1 Acceptance Checklist
 
@@ -106,8 +105,8 @@ Team Status approved behavior:
 - [ ] Parent US/DE remains manually editable from existing Work Item edit surfaces after auto-completion.
 - [ ] Task Dashboard inline edit persists Task Name, State, Owner, To Do, Actuals and Estimate without opening Task Detail.
 - [ ] Clicking Task ID in Task Dashboard opens Task Detail.
-- [ ] Viewer cannot edit via UI.
-- [ ] Viewer cannot mutate via direct API call.
+- [ ] Editor opens Team Status read-only for assigned Teams — capacity and inline controls absent (Viewer level removed; Editor holds `team_status:view` only).
+- [ ] Editor (Team Status view-only) cannot mutate via direct API call (403).
 - [ ] Row click opens detail; inline controls do not trigger row navigation.
 - [ ] Totals row recalculates after capacity/task updates.
 - [ ] Table does not crash for empty Iteration result.
@@ -166,8 +165,8 @@ Team Status approved behavior:
 - [ ] Release State accepts only `Planning`, `Active`, `Accepted`.
 - [ ] Legacy release state values are normalized or rejected.
 - [ ] Create Release modal locks Type to Release.
-- [ ] Viewer cannot edit via UI.
-- [ ] Viewer cannot mutate via direct API call.
+- [ ] N/A — Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor. Editor has no Release access (hidden), so read-only-UI no longer applies.
+- [ ] Editor (no Release access) cannot mutate via direct API call (403).
 - [ ] Release detail shows Theme, Notes and required right-panel fields.
 - [ ] Release readiness rule does not require system-calculated readiness in P3.2.
 - [ ] Reassigning a Story/Defect to another Release removes it from the previous Release artifact list and refreshes both Release counters.
@@ -210,8 +209,8 @@ Team Status approved behavior:
 - [ ] Milestone dashboard response includes only Name, Target Start Date, Target End Date and Status columns.
 - [ ] Milestone State accepts only `Planned`, `At Risk`, `Met`, `Missed`, `Cancelled`, `Completed`.
 - [ ] Owner is editable for authorized users.
-- [ ] Viewer cannot edit via UI.
-- [ ] Viewer cannot mutate via direct API call.
+- [ ] N/A — Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor. Editor has no Milestone access (hidden), so read-only-UI no longer applies.
+- [ ] Editor (no Milestone access) cannot mutate via direct API call (403).
 
 ### P3.3 Development Must Verify - Artifacts
 

@@ -1,6 +1,6 @@
 # Phase 6 Reports - Business and Data Contract
 
-> **Authorization baseline (2026-08-10):** Reports are available to Workspace Admin plus assigned-Project `Admin` and `Viewer`; they remain read-only. `Editor` and `No Access` cannot open Reports. Server-side queries must enforce the selected Project boundary.
+> **Authorization baseline (2026-08-10, updated 2026-08-13 to 3-level access):** Reports are available to Workspace Admin plus assigned-Project `Admin`; they remain read-only. `Editor` and `No Access` cannot open Reports. Server-side queries must enforce the selected Project boundary. (Access model is now 3-level: Workspace Admin / Admin / Editor; the former Viewer level is removed.)
 
 ## 1. Document control
 

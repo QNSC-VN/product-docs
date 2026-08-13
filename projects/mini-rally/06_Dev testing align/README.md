@@ -1,6 +1,6 @@
 # DevInt Audit — Phase 0 to Phase 4
 
-> **Access-model update (2026-08-10):** Phase 4 role/matrix results below are historical. Current acceptance uses Workspace Admin and per-Project `Admin`/`Editor`/`Viewer`/`No Access`; Permission Model is read-only.
+> **Access-model update (2026-08-10, corrected to 3-level 2026-08-13):** Phase 4 role/matrix results below are historical. Current acceptance uses Workspace Admin and per-Project `Admin`/`Editor`; "No Access" is implicit (no `project_members` row → Project hidden) and the former `Viewer` level is removed. Permission Model is read-only.
 
 ## Objective
 

@@ -23,7 +23,7 @@ BA working rule:
 | Feature | Name | Purpose | BA status | Dev status |
 |---|---|---|---|---|
 | P4.1 | Notifications | Assignment and Note-mention notification, popup, read state and route to US/DE | Ready | Not started |
-| P4.2 | Project Access & Permissions | Workspace Admin authority plus per-Project Admin/Editor/Viewer/No Access | Ready | Not started |
+| P4.2 | Project Access & Permissions | Workspace Admin authority plus per-Project Admin/Editor (3-level model; No Access is implicit) | Ready | Not started |
 | P4.3 | Settings & Audit | Workspace settings, Users, Workspaces & Projects, Permission Model, Audit and confirmations | Ready | Not started |
 
 ## 3. Status Legend
@@ -55,7 +55,7 @@ BA working rule:
 
 | ID | Module | Task | Deliverable | Dependency | Status |
 |---|---|---|---|---|---|
-| P4-RBAC-01 | BA/SRS | Define authority model | WA plus independent Admin/Editor/Viewer/No Access per Project | Phase 0-4 access rules | `DONE` |
+| P4-RBAC-01 | BA/SRS | Define authority model | WA plus independent Admin/Editor per Project (3-level; No Access implicit) | Phase 0-4 access rules | `DONE` |
 | P4-RBAC-02 | BA/SRS | Define capabilities | Fixed company/structure and delivery-feature baseline | P4-RBAC-01 | `DONE` |
 | P4-RBAC-03 | BA/SRS + Mockup | User-centric access journey | User Details > Project Access | P4-RBAC-02 | `DONE` |
 | P4-RBAC-04 | BA/SRS + Mockup | Project-centric access journey | Project > Users & Permissions | P4-RBAC-02 | `DONE` |
@@ -95,11 +95,11 @@ BA-confirmed scope:
 
 - Notifications are limited to US/DE assignment and Note mentions and route to the related Work Item.
 - Workspace Admin is the only company-level authority and is internally assigned.
-- Normal users receive Admin, Editor, Viewer or No Access independently per Project.
+- Normal users receive Admin or Editor independently per Project; absence of a Project row means implicit No Access.
 - Only Workspace Admin manages company users, Projects, Teams, Project access and Team membership.
 - Admin manages delivery in assigned Projects with All Teams, while Project structure remains read-only.
 - Editor edits approved delivery work only in assigned Teams.
-- Viewer is project-wide read-only; No Access Projects are hidden.
+- No Access Projects are hidden (no `project_members` row).
 - User, Project and Team access journeys share one assignment source.
 - Audit Log records administrative/settings actions only.
 

@@ -1,5 +1,5 @@
 # Codex Audit 0-6 Tracker
-> **Historical execution log:** Results before 2026-08-10 used the former Project Admin/Project Member model. They remain evidence of what was tested at that time, but do not certify the current per-Project `Admin`/`Editor`/`Viewer`/`No Access` baseline. Re-run current access scenarios before authorization sign-off.
+> **Historical execution log:** Results before 2026-08-10 used the former Project Admin/Project Member model. They remain evidence of what was tested at that time, but do not certify the current per-Project `Admin`/`Editor` baseline (with implicit No Access for unassigned users). Re-run current access scenarios before authorization sign-off.
 
 **Source:** `02_test_phase_5_6/PHASE_0_6_AUDIT_TRACKER.xlsx`  \n**Purpose:** Codex working log for audit execution. The Excel tracker remains the formal BA result source.
 
@@ -8,7 +8,7 @@
 1. Execute one Scenario ID at a time.
 2. Record browser evidence and conclusion below the matching ID.
 3. Do not create, edit, archive or delete deployed records unless BA has authorized that specific action.
-4. Current access cases remain `Blocked` until WA and normal users with controlled per-Project `Admin`, `Editor`, `Viewer` and `No Access` assignments exist.
+4. Current access cases remain `Blocked` until WA and normal users with controlled per-Project `Admin` and `Editor` assignments exist (plus an unassigned user for implicit No Access).
 
 ## Current Summary
 

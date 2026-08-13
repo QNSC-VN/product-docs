@@ -130,7 +130,7 @@ Response:
 
 - Create Story requires `work_item.create.story`.
 - Create Defect requires `work_item.create.defect` or generic `work_item.create`.
-- Viewer cannot see/enable Create button.
+- Users without `work_item.create` permission cannot see/enable Create button.
 - Backend must reject unauthorized create even if FE button is visible.
 
 ## 9. Acceptance Criteria

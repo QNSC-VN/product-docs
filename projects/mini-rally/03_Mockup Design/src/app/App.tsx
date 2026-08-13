@@ -369,7 +369,7 @@ export default function App() {
       if (project.key !== ROLE_SCOPE.projectMemberProjectKey || !ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number])) return;
     }
     if (currentRole === "Project Admin") {
-      const canOpenProject = ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]) || ROLE_SCOPE.projectAdminViewerProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminViewerProjectKeys[number]);
+      const canOpenProject = ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]);
       if (!canOpenProject) return;
     }
     setCurrentProject(project);
@@ -387,7 +387,7 @@ export default function App() {
       if (!["home", "projects", "backlog", "track", "quality", "notifications", "settings"].includes(currentPage)) setAccessState("access-denied");
       else setAccessState(null);
     } else if (nextRole === "Project Admin") {
-      const allowedProjectKeys = [...ROLE_SCOPE.projectAdminProjectKeys, ...ROLE_SCOPE.projectAdminViewerProjectKeys] as readonly string[];
+      const allowedProjectKeys: readonly string[] = ROLE_SCOPE.projectAdminProjectKeys;
       if (!allowedProjectKeys.includes(currentProject.key)) {
         const adminProject = SCOPE_PROJECTS.find(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number])) ?? SCOPE_PROJECTS[0];
         setCurrentProject(adminProject);

@@ -65,7 +65,7 @@
 | P1-08 | Detail | Work Item Detail read/update | Header, fields, Details tab, optimistic/save flow | P1-02 | 2.5h | 2.5h | `DONE` |
 | P1-09 | Detail | Sidebar field updates | Owner, Project, Team, Schedule State, Flow State, Defect-only Priority, Plan Estimate, Release, Iteration | P1-08 | 2.0h | 2.0h | `DONE` |
 | P1-10 | Detail | Collapse/summary panel behavior | Full detail ↔ summary panel state | P1-08 | 1.0h | 1.0h | `DONE` |
-| P1-11 | Detail | Permission/read-only rules | Viewer read-only, invalid project/team blocked | P1-08 | 1.0h | 1.0h | `DONE` |
+| P1-11 | Detail | Permission/read-only rules | Editor read-only outside assigned Teams, invalid project/team blocked | P1-08 | 1.0h | 1.0h | `DONE` |
 | P1-12 | Task | Task List under Work Item | Full-width table, totals row, server data | P1-02 | 2.0h | 2.0h | `DONE` |
 | P1-13 | Task | Add Task modal | Name required, owner/estimate, create/create-with-details | P1-12 | 1.25h | 1.25h | `DONE` |
 | P1-14 | Task | Task Detail page | Details/Revision History tabs, left/right layout | P1-13 | 2.0h | 2.0h | `DONE` |
@@ -153,7 +153,7 @@ P1-01 DB migration
 - [ ] Sidebar fields update và persist đúng DB.
 - [ ] Team đổi phải validate thuộc project.
 - [ ] Release/Iteration nullable và có option `Unscheduled`.
-- [ ] Viewer không sửa được field.
+- [ ] Editor không sửa được field ngoài assigned Teams.
 
 ### Task
 

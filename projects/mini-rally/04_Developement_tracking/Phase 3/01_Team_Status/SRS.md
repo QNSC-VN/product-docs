@@ -38,11 +38,10 @@ BA rule revision 2026-07-19: Team Status recalculates parent progress/roll-up af
 
 - Workspace Admin.
 - Project `Admin`.
-- Project `Viewer` (read-only).
 
-Project `Editor` and `No Access` do not enter Team Status.
+Project `Editor` may open Team Status read-only for assigned Teams (view only — no capacity or task edits). `No Access` does not enter Team Status.
 
-Phase 4 access baseline applies. Workspace Admin and Admin may view/update Team Status in allowed Project scope; Viewer is read-only; Editor and No Access do not access Team Status. Production must enforce permissions in the API even when the UI hides controls.
+Phase 4 access baseline applies. Workspace Admin and Admin may view/update Team Status in allowed Project scope; Editor holds `team_status:view` only (assigned Teams, read-only — the API rejects Editor mutations with 403); No Access does not access Team Status. Production must enforce permissions in the API even when the UI hides controls.
 
 ## 4. Terminology
 
@@ -118,7 +117,6 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 - Authorized users can inline edit Task Name, Task State, Owner, To Do, Actuals and Estimate directly from the Task Dashboard table.
 - Task State options in the Task Dashboard are the same task-level values used by Team Status: `Defined`, `In-Progress`, `Completed`.
 - Inline Task Dashboard edits update the task row without forcing the user to open Task Detail.
-- Viewer in an assigned Project can read Team Status/Task Dashboard, but inline edit controls are absent.
 - Clicking the Task ID still opens Task Detail; editing inline fields must not accidentally open Task Detail.
 
 ## 6. Functional Requirements
@@ -154,7 +152,6 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-025 | Release column displays the release assigned to the task/work product. |
 | P3-TS-FR-026 | Estimate, ToDo and Actuals are shown as numeric hour values. |
 | P3-TS-FR-027 | Owner column displays the task owner name. |
-| P3-TS-FR-028 | Viewer can read the page but cannot edit Capacity, Task Name or Task State. |
 | P3-TS-FR-029 | User without edit permission sees non-editable values or disabled controls. |
 | P3-TS-FR-030 | Inline edit failure must show field-level or toast error and revert or keep the previous persisted value. |
 | P3-TS-FR-031 | Row click opens Work Item Detail without losing the selected Iteration context. |
@@ -165,7 +162,6 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-036 | Parent Story/Defect auto-completion must not remove the user's ability to manually change the parent status from existing Work Item edit surfaces. |
 | P3-TS-FR-037 | Work Item Detail `Tasks` tab acts as the Task Dashboard for the selected parent Story/Defect. |
 | P3-TS-FR-038 | Authorized users can inline edit Task Name, State, Owner, To Do, Actuals and Estimate from the Task Dashboard table. |
-| P3-TS-FR-039 | Viewer in an assigned Project can read Team Status/Task Dashboard but cannot inline edit; Editor and No Access do not access this module. |
 | P3-TS-FR-040 | Clicking Task ID opens Task Detail; inline editing fields must not trigger Task Detail navigation. |
 | P3-TS-FR-041 | Reopening a Task after all child Tasks had been Completed must recalculate metrics and automatically set the parent Story/Defect status to `In-Progress`. This applies even when the parent had been manually promoted to `Accepted`; `Accepted` is not exempt from the reopen roll-up. |
 
@@ -402,7 +398,7 @@ Rules:
 - If all child Tasks under the same parent Story/Defect are now `Completed`, automatically update the parent Story/Defect status to `Completed`.
 - If the update reopens a Task from an all-completed parent roll-up, automatically update the parent Story/Defect status to `In-Progress`.
 - Reject updates when the task does not belong to the selected Project/Team/Iteration context.
-- Reject Viewer or unauthorized role mutation even if the UI allows a direct API call.
+- Reject unauthorized role mutation even if the UI allows a direct API call.
 
 ### 9.4 Error Contract
 
@@ -417,7 +413,7 @@ Required validation cases:
 | Capacity < 0 | 400 field validation error |
 | Empty title | 400 field validation error |
 | Unsupported task state | 400 field validation error |
-| Viewer patch attempt | 403 permission error |
+| Direct PATCH by user without Team Status edit permission (e.g. view-only Editor) | 403 permission error |
 | Task not in selected context | 404 or 403, based on existing API convention |
 
 ## 10. Calculation Rules
@@ -446,7 +442,6 @@ All calculations must use the same filtered task set returned by the selected Pr
 | Workspace Admin | Yes | Yes | Yes | Yes |
 | Admin in assigned Project | Yes | Yes | Yes | Yes |
 | Editor in assigned Project | Hidden | No | No | No |
-| Viewer in assigned Project | Yes | No | No | No |
 | No Access | No | No | No | No |
 
 This mapping is fixed by Project Access Level; there is no field-level permission editor in the MVP.
@@ -479,7 +474,7 @@ This mapping is fixed by Project Access Level; there is no field-level permissio
 24. Task Dashboard supports inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
 25. Task Dashboard inline controls do not trigger Task Detail navigation; Task ID remains the explicit navigation control.
 26. Capacity is inline editable at member group level for authorized users.
-27. Viewer can read Team Status and Task Dashboard but cannot edit Capacity, Task Name, Task State or Task Dashboard fields.
+27. Viewer level removed (3-level model: Workspace Admin / Admin / Editor). Editor opens Team Status read-only for assigned Teams — capacity and inline task controls are absent and the API rejects Editor mutations (403).
 28. Inline edit validation errors are visible and do not silently corrupt table data.
 29. Row click opens the existing detail flow without triggering when clicking inline controls.
 30. Team Board, drag/drop, WIP limits and board transition rules are not required for P3.1.
@@ -507,8 +502,8 @@ This mapping is fixed by Project Access Level; there is no field-level permissio
 | P3-TS-TS-017 | Edit inline field in Task Dashboard | Task Detail does not open |
 | P3-TS-TS-018 | Source state Accepted is returned by backend | UI displays Completed |
 | P3-TS-TS-019 | Source state Idea is returned by backend | UI displays Defined |
-| P3-TS-TS-020 | Viewer opens Team Status | Values are readable but inline edit controls are disabled/read-only |
-| P3-TS-TS-021 | Viewer calls PATCH task API directly | API returns 403 |
+| P3-TS-TS-020 | Editor opens Team Status | Read-only view of assigned Teams renders; capacity and inline task controls are absent (Viewer level removed; Editor holds `team_status:view` only) |
+| P3-TS-TS-021 | Editor (Team Status view-only) calls PATCH task API directly | API returns 403 |
 | P3-TS-TS-022 | Request Iteration from another Team | API rejects with validation/access error |
 | P3-TS-TS-023 | Click task row outside inline inputs | Existing detail route opens |
 | P3-TS-TS-024 | Click State dropdown | Row detail does not open |
@@ -524,7 +519,7 @@ This mapping is fixed by Project Access Level; there is no field-level permissio
 | P3-TS-03 | Implement capacity storage | Upsert member capacity by Project/Team/Iteration/User |
 | P3-TS-04 | Implement task patch behavior | Update task title/state from Team Status |
 | P3-TS-05 | Implement parent Work Product roll-up and status automation | Task state changes recalculate parent progress; all completed -> parent Completed; reopen -> parent In-Progress |
-| P3-TS-06 | Implement permission guards | Read/edit permissions and Viewer read-only enforcement |
+| P3-TS-06 | Implement permission guards | View open to Workspace Admin/Admin/Editor (Editor read-only in assigned Teams); edit permission enforcement Workspace Admin/Admin only |
 | P3-TS-07 | Build Team Status route/page | `Track > Team Status` page with approved layout |
 | P3-TS-08 | Build Iteration selector reuse | Same selector pattern as Iteration Status |
 | P3-TS-09 | Build grouped dense table | Header, totals row, group rows, task rows |

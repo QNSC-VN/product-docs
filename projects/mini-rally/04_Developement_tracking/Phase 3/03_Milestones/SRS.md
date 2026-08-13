@@ -130,7 +130,7 @@ Rules:
 - Each work item must belong to an allowed Project/Team scope for the Milestone.
 - Milestone artifact assignment is independent from Release assignment.
 - Replacing the Milestone artifact list must not mutate Release assignment or Iteration assignment.
-- Viewer mutation must return 403.
+- Mutation by a user without Milestone edit access (e.g. Editor, who has no Milestone access) must return 403.
 
 ## 6. BA Confirmations
 

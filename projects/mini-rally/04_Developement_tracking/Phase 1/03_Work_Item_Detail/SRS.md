@@ -47,7 +47,7 @@ BA confirmed the current Detail state display contract:
 | WID-FR-007 | Sidebar hiển thị Owner, Project, Team, Schedule State, Flow State, Plan Estimate, Release, Milestones, Iteration. Nếu Work Item là Defect thì hiển thị thêm Priority. |
 | WID-FR-008 | Field update phải persist DB và ghi activity log. |
 | WID-FR-009 | Project/team/status/release/iteration dropdown chỉ hiển thị option hợp lệ. |
-| WID-FR-010 | User không có Access Level trong Project không thấy item và direct URL phải bị từ chối an toàn; Viewer chỉ đọc. |
+| WID-FR-010 | User không có Access Level trong Project không thấy item và direct URL phải bị từ chối an toàn; Editor chỉ sửa trong assigned Teams, ngoài scope read-only. |
 | WID-FR-011 | Refresh/direct URL detail phải load đúng item. |
 | WID-FR-012 | Schedule State và Flow State dùng cùng catalog `Idea/Defined/In-Progress/Completed/Accepted/Release`; đổi một field phải phản ánh field còn lại trong MVP. |
 | WID-FR-012A | UI rendering: Schedule State uses the six-box control; Flow State uses a dropdown. |
@@ -148,7 +148,7 @@ Patch request supports partial update:
 2. Details tab render Description/Attachments/Notes/Release Notes.
 3. Sidebar updates persist after refresh.
 4. Invalid team/release/iteration from another project is rejected.
-5. Viewer sees read-only fields.
+5. Editor sees fields read-only outside assigned Teams and editable inside assigned Teams.
 6. Every update writes activity log with old/new value.
 7. Collapse icon returns user to summary panel state without losing selected item.
 

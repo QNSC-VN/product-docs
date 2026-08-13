@@ -23,14 +23,13 @@ This is a Figma-to-development handoff for the accepted Phase 5 mockup scope. It
 |---|---|---|---|
 | Workspace Admin | All Projects | Yes | Yes, subject to dependency rules |
 | Admin | Assigned Project | Yes | Yes, subject to dependency rules |
-| Viewer | Assigned Project | No | No |
 | Editor / No Access | Hidden | No | No |
 
 ## Capacity Planning
 
 | Screen / state | Read model | Commands | Rules to enforce server-side |
 |---|---|---|---|
-| `SCR-P8-04 Capacity Plans` | Plans filtered by Project/Release; visible status, release, team summary, last updated | Create Capacity Plan; open plan | WA/Admin may manage in scope; Viewer reads assigned Project; Editor/No Access are hidden. One plan per Project + Release is the P5 assumption. |
+| `SCR-P8-04 Capacity Plans` | Plans filtered by Project/Release; visible status, release, team summary, last updated | Create Capacity Plan; open plan | WA/Admin may manage in scope; Editor/No Access are hidden. One plan per Project + Release is the P5 assumption. |
 | `SCR-P8-05 Capacity Plan — Draft` | Plan, Features, Teams by Total, allocations, demand/capacity/forecast and warnings | Add Feature, add/remove team, allocate, forecast, publish | All planning mutation is Draft-only. Allocation is fixed and plan-specific, may split one Feature across Teams and never changes `Feature.projectId`. |
 | `SCR-P8-06 Capacity Plan — Published / Read-only` | Same read model as Draft | Revert to Draft for an authorized planner | Published is immutable/read-only until explicit Revert to Draft. |
 | `DIA-P8 Capacity Allocation & Forecast` | Eligible Features, selectable Teams, existing allocations and historic velocity input | Apply allocations; calculate/apply forecast | Forecast is a Draft-only planning aid and may be overwritten. Exceed-capacity warnings must remain visible after apply. |

@@ -8,7 +8,7 @@
 
 **Two-phase, deny-by-default: a coarse RBAC gate at the edge, a fine ABAC policy at the resource.**
 
-> **Product authorization update (2026-08-10):** There is one global system role, Workspace Admin. Normal users receive fixed `Admin`/`Editor`/`Viewer` access independently per Project; no active assignment means `No Access`. Custom roles and PM/BA/Developer/QA permission roles are outside the Mini Rally MVP.
+> **Product authorization update (2026-08-10, corrected to 3-level 2026-08-13):** There is one global system role, Workspace Admin. Normal users receive fixed `Admin`/`Editor` access independently per Project; no active assignment (no `project_members` row) means implicit `No Access` (Project hidden, direct URLs denied). The former `Viewer` level is removed. Custom roles and PM/BA/Developer/QA permission roles are outside the Mini Rally MVP.
 
 ### Model
 - `user → workspace_admin` for internal company authority, or `user → project_members.access_level` for a Project.

@@ -139,6 +139,8 @@ Roles:
 * Can view dashboard, reports, board, backlog, release progress, and work item detail.
 * Should not see create, edit, delete, assign, or settings actions.
 
+> **Access-model note (2026-08-13):** The `Viewer` level is removed. Mini Rally now uses a 3-level access model — Workspace Admin / Admin / Editor. Treat the read-only "Viewer / Stakeholder" role above as historical prompt guidance only; a stakeholder who needs Project access is assigned `Admin` or `Editor` (read-only is now an outcome of certain Admin/Editor views, not a distinct level).
+
 ## Main Navigation Screens
 
 Create the foundation layout for these pages:

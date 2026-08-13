@@ -404,7 +404,7 @@ The exhaustive visual/button catalog is in `02_Capacity_Planning/BUSINESS_FLOW_A
 - Publish.
 - Revert to Draft.
 
-All mutation controls are hidden or disabled in Published and Viewer contexts.
+All mutation controls are hidden or disabled in Published state.
 
 ## 6. Access and Authorization Boundary
 
@@ -412,7 +412,6 @@ All mutation controls are hidden or disabled in Published and Viewer contexts.
 
 - Workspace Admin: manage every Project.
 - Project `Admin`: manage Portfolio Items in the assigned Project.
-- Project `Viewer`: read-only across the assigned Project.
 - Project `Editor` and `No Access`: Portfolio is hidden.
 - Access in one Project grants nothing in another Project.
 - Archive and create/edit actions require management permission.
@@ -421,7 +420,6 @@ All mutation controls are hidden or disabled in Published and Viewer contexts.
 
 - Workspace Admin manages plans in every Project.
 - Project `Admin` manages Draft/Published plans in the assigned Project.
-- Project `Viewer` can open Draft/Published plans read-only for the assigned Project.
 - Project `Editor` and `No Access` cannot open Capacity Planning.
 - Permission Model is explanatory and read-only; Capacity permissions are not customized per action.
 - DEV must enforce Project access server-side and not rely on hidden UI controls.
@@ -497,7 +495,7 @@ The mockup evidence in that file proves BA behavior and visual direction only. D
 - Cross-screen identity.
 - Project/Team negative scope.
 - Project `Admin` assigned-Project manage scope and denied unassigned-Project scope.
-- Project `Viewer` read-only scope; `Editor`/`No Access` hidden scope.
+- `Editor`/`No Access` hidden scope. (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor.)
 - Draft visibility and Published lock.
 - Split allocation atomicity.
 - Remove from Plan across all Teams.

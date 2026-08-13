@@ -367,7 +367,6 @@ Revised 2026-08-10. Capacity Planning follows the fixed Phase 4 Project Access b
 | Workspace Admin | Full create, edit, allocate, forecast, publish and revert across all Projects |
 | Admin | Full create, edit, allocate, forecast, publish and revert in assigned Projects only |
 | Editor | Capacity Planning hidden |
-| Viewer | Assigned Project plans are read-only; no create/edit/allocate/forecast/publish/revert controls |
 | No Access | Project plans hidden and direct access rejected safely |
 
 Draft and Published plan visibility follows Project Access. Published lifecycle state remains read-only for everyone until an authorized Workspace Admin/Admin explicitly reverts it to Draft.
@@ -385,13 +384,13 @@ Draft and Published plan visibility follows Project Access. Published lifecycle 
 | P5-CAP-AC-007 | Split allocation lets one Feature have multiple Team allocation rows while Draft. |
 | P5-CAP-AC-008 | Allocation values are plan-specific manual inputs; split allocation creates another editable row for the same Feature and Team Demand uses `allocation.value`. |
 | P5-CAP-AC-009 | `Publish Without Updating Fields` changes visibility/status only; `Publish` also writes Release and planned dates to allocated Features without overwriting Feature Project or child Story/Defect fields. |
-| P5-CAP-AC-010 | Workspace Admin manages all Projects; Admin manages assigned Projects; Viewer is assigned-Project read-only; Editor/No Access do not access Capacity Planning. |
+| P5-CAP-AC-010 | Workspace Admin manages all Projects; Admin manages assigned Projects; Editor/No Access do not access Capacity Planning. (Viewer level removed.) |
 | P5-CAP-AC-012 | Capacity Planning uses the fixed Phase 4 Project Access baseline and has no temporary editable Full/View permission row. |
 | P5-CAP-AC-014 | Feature Estimated resolves in priority order: Team-assigned Total Allocated, Refined Estimate, then temporary Preliminary Estimate mapping. Unallocated rows do not count toward Total Allocated. |
 | P5-CAP-AC-015 | `Remove from Plan` removes all allocations for that Feature across all Teams without deleting or editing the Portfolio Feature. One-Team removal is not part of the current P5.2 UI. |
 | P5-CAP-AC-016 | Feature Complete is the live sum of child Plan Estimate at `Completed`, `Accepted` or `Release`; Feature Rollup is the live sum of every linked Story/Defect Plan Estimate. Moving a child back to `In-Progress` reduces Complete immediately. |
 | P5-CAP-AC-017 | Feature-grid columns use `Dependencies → Rollup → Estimated → Complete`; the three numeric metrics show numbers without percentages. A split Feature shows total Estimated in the Features tab and its Team allocation slice under Teams by Total; Team summary rows retain number plus percent and Capacity remains manual Plan input. |
-| P5-CAP-AC-013 | Viewer may read Draft and Published plans in the assigned Project, but lifecycle state still controls whether an authorized planner can mutate the plan. |
+| P5-CAP-AC-013 | _(N/A — Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor. Capacity Planning is hidden from Editor and No Access.)_ |
 | P5-CAP-AC-011 | Record detail has independently retained Teams by Total and Features tab view state; the Features tab supports Rank-only capacity cutline and Draft-only multi-Team allocation. |
 | P5-CAP-AC-018 | Features tab has no separate intro/sort toolbar. `Planned Team Assignment` supports `Unassign` for one-Team rows, returning the row to yellow `Not assigned`; the summary `Breakdown` shows per-metric bars aligned to the same scale as the total composite bar. |
 | P5-CAP-AC-019 | `Publish` copies Feature Release only when Plan planned start/end match the selected Release dates; mismatch is reported and does not silently overwrite Feature Release. |

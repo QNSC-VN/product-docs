@@ -143,8 +143,7 @@ Role type và permission helper nằm tại [`model.ts`](../03_Mockup%20Design/s
 | Workspace Admin | Company | Assigned internally; không nằm trong Project membership |
 | Admin | Project | All Teams; manage delivery, không quản trị structure/access |
 | Editor | Project + explicit Teams | Backlog/Work Item/Task, Quality, Iteration Status |
-| Viewer | Project | Read-only |
-| No Access | None | Project hidden; direct URL denied |
+| (No Access) | None | Implicit — Project hidden; direct URL denied |
 
 Mockup thể hiện UI outcome để review nghiệp vụ; implementation vẫn phải enforce access ở server. Permission Model là read-only và không có custom role/matrix editing.
 
@@ -259,7 +258,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Rich work item card | Type, ID, title, priority, estimate, owner và indicators | ✅ |
 | Owner quick filter | `filterOwner` local state | ✅ |
 | Open item detail | Click card mở side panel/full detail | ✅ |
-| Viewer read-only | `can.dragBoard(role)` và view-only notice | ✅ UI gating |
+| ~~Viewer read-only~~ | N/A — Viewer level removed; access model is now 3-level (Workspace Admin / Admin / Editor). Editor/Admin có quyền update nên có thể drag | — |
 | Drag/drop between columns | Card có `draggable` attribute | 🟡 Không có `onDragStart`, `onDragOver`, `onDrop`; status không đổi |
 | Filter type/priority/label/my items | Chưa đủ filter prompt | 🟡 Chỉ có owner |
 
@@ -272,7 +271,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Khu vực / yêu cầu | FE hiện tại | Coverage |
 |---|---|---|
 | Header: type, ID, status, title, watch, more | Sticky header | ✅ Watch dùng local state |
-| Description | Textarea cho non-Viewer, read-only cho Viewer | ✅ UI / 🟡 không lưu |
+| Description | Textarea cho Editor/Admin (mức `Viewer` read-only đã được gỡ) | ✅ UI / 🟡 không lưu |
 | Acceptance Criteria | Checklist local state | ✅ UI / 🟡 không lưu |
 | Defect Details conditional | Chỉ render khi `item.type === "Defect"` | ✅ |
 | Related Work Items | Static relation list + Link Existing | ✅ UI / 🟡 link chưa xử lý |
@@ -280,7 +279,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Attachments | Static file list | 🟡 Upload/download chưa xử lý |
 | Activity Log | Static timeline | ✅ UI / 🟡 dữ liệu |
 | Metadata panel | Owner, Project, Team, Schedule State, Flow State, Defect-only Priority, Plan Estimate, Release, Iteration | ✅ theo Phase 1 detail sidebar |
-| Role behavior | `editable = role !== Viewer` | 🟡 Chưa có field-level permissions; Viewer vẫn thấy Link/Upload và đổi Blocked được |
+| Role behavior | `editable = role !== Viewer` (FE mockup cũ; `Viewer` level đã được gỡ — access model 3-level: Workspace Admin / Admin / Editor) | 🟡 Chưa có field-level permissions; cần re-scope theo Editor/Admin |
 
 ### SCR-07 — Quality / Defect Management
 

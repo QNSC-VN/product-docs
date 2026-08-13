@@ -198,13 +198,13 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 2. Capture Backlog items, Iterations and Iteration Status selector.
 3. Confirm Project B/Team B is absent from navigation and selectors.
 4. Try direct URL to Project B and one of its Work Items.
-5. Change Project B to Viewer as Workspace Admin, sign in again and reopen it.
+5. Change Project B to Editor (with a Team) as Workspace Admin, make a new request and reopen it.
 
 ### Expected result
 
 - No Access Project/Team/data does not leak through lists, search or selectors.
 - Direct unauthorized access returns safe Access Denied/Not Found without metadata.
-- After next sign-in, Viewer can read Project B but cannot mutate it.
+- After the user's next request, Editor can read Project B and work within assigned Teams.
 
 ## E2E-009 - Access in one Project does not grant another Project
 

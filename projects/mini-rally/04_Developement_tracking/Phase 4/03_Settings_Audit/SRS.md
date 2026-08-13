@@ -47,13 +47,13 @@ Visibility depends on Workspace authority and the current Project Access Level. 
 
 ## 3. Settings Navigation By Access
 
-| Entry | Workspace Admin | Admin | Editor | Viewer / No Access |
+| Entry | Workspace Admin | Admin | Editor | No Access |
 |---|---:|---:|---:|---:|
 | Profile & Account | View/Edit own profile | View/Edit own profile | View/Edit own profile | View/Edit own profile |
 | My Permissions | View all effective access | View own assigned Projects | View own assigned Projects/Teams | View own access or no-access state |
 | Workspace Settings | View/Edit | Hidden | Hidden | Hidden |
 | Users | View/Edit | Hidden | Hidden | Hidden |
-| Workspaces & Projects | Full administration | Assigned Projects read-only | Assigned Projects/Teams read-only | Assigned Project read-only / hidden when No Access |
+| Workspaces & Projects | Full administration | Assigned Projects read-only | Assigned Projects/Teams read-only | Hidden |
 | Permission Model | View | View | Hidden | Hidden |
 | Audit Log | View | Hidden | Hidden | Hidden |
 
@@ -151,7 +151,7 @@ Workspace Admin is assigned internally and cannot be changed, disabled or remove
 For a normal user, Workspace Admin can:
 
 - Add more than one Project Access row.
-- Select `Admin`, `Editor`, `Viewer` or `No Access` independently per Project.
+- Select `Admin` or `Editor` independently per Project (No Access is implicit when no Project row exists).
 - Assign one or more Teams only when the level is Editor.
 - Review all changed Project access before confirming save.
 
@@ -159,7 +159,6 @@ Rules:
 
 - Admin automatically displays All Teams.
 - Editor requires at least one Team.
-- Viewer is project-wide read-only and has no Team membership.
 - No Access hides the Project and has no Team membership.
 - Removing a Project Access row is equivalent to No Access for that Project.
 - The same Project cannot be added twice for one user.
@@ -176,7 +175,7 @@ Workspace Admin detail instead displays `No Project Membership` because its auth
 
 ### 6.5 Effective Time
 
-- Project Access and Team membership changes apply to the affected user at next sign-in.
+- Project Access and Team membership changes apply to the affected user at next request (stricter than next sign-in).
 - Company disable/removal applies at the affected user's next page refresh.
 
 ## 7. Permission Model

@@ -297,5 +297,5 @@ Interactions:
 
 Role behavior:
 
-* Viewer can view board but cannot drag cards.
+* Viewer can view board but cannot drag cards. _(Access-model update 2026-08-13: the `Viewer` level is removed; access is now 3-level — Workspace Admin / Admin / Editor. Editor and Admin have update permission and can drag cards. Treat this Viewer line as historical prompt guidance.)_
 * Developer and QA can drag cards if they have update permission.

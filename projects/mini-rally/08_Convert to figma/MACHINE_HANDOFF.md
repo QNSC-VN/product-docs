@@ -1,6 +1,6 @@
 # Machine Handoff — Mini Rally Convert to Figma
 
-> **Permission update (2026-08-10):** Plan 6 role-matrix nodes remain historical Figma assets. Current product truth is the updated Phase 4 SRS/mockup: Workspace Admin plus per-Project `Admin`/`Editor`/`Viewer`/`No Access`, with a read-only Permission Model.
+> **Permission update (2026-08-13):** Plan 6 role-matrix nodes remain historical Figma assets. Current product truth is the 3-level access model: Workspace Admin plus per-Project `Admin`/`Editor` (No Access is now implicit — no `project_members` row; the Project is hidden and direct URLs are denied), with a read-only Permission Model.
 
 ## Resume source of truth
 

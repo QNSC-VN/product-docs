@@ -54,7 +54,7 @@ Cho phép user ghi nội dung nghiệp vụ có format và đính kèm file:
 | CNT-FR-006 | Attachment list hiển thị file name/metadata. |
 | CNT-FR-007 | Delete attachment soft/hard theo policy và log activity. |
 | CNT-FR-008 | Task detail không cần Release Notes. |
-| CNT-FR-009 | Viewer read-only, không upload/delete. |
+| CNT-FR-009 | Users without edit permission (outside assigned Team scope) read-only, không upload/delete. |
 
 ## 5. API Contracts
 
@@ -105,7 +105,7 @@ Attachment response:
 3. Release Notes saves for Story/Defect.
 4. Upload attachment creates DB metadata and file storage object.
 5. Attachment appears in item/task attachment list.
-6. Viewer cannot edit/upload/delete.
+6. Users without edit permission (outside assigned Team scope) cannot edit/upload/delete.
 7. XSS payload in rich text is sanitized.
 8. Content and attachment changes create activity log entries.
 
