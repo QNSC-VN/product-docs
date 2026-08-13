@@ -1,14 +1,16 @@
 # Mini Rally - Project Access Use Case Matrix
 
+> **Correction 2026-08-13 (BA-confirmed):** the Access Model is **3-level — Workspace Admin, Admin, Editor.** The `Viewer` and `No Access` levels are **removed**. "No Access" remains the implicit state of a user who has no `project_members` row for a Project (the Project is hidden and direct URLs are denied). This revises the earlier 4-level wording; all matrices below are updated to the three levels.
+
 ## 1. Purpose
 
-This document is the business-facing authorization map for Mini Rally. It uses the approved 2026-08-10 model and supersedes the former PM/BA/Developer/QA role matrix.
+This document is the business-facing authorization map for Mini Rally. It uses the approved 2026-08-10 model (corrected to 3-level on 2026-08-13) and supersedes the former PM/BA/Developer/QA role matrix.
 
 ## 2. Authorization Model
 
 - `Workspace Admin` is the only company-level role. It is assigned internally and has company-wide authority.
 - Workspace Admin is not a Project member and does not appear in Project user or Team-member candidates.
-- Every normal user receives one Access Level independently in each Project: `Admin`, `Editor`, `Viewer` or `No Access`.
+- Every normal user receives one Access Level independently in each Project: `Admin` or `Editor`. A user with no Project row has implicit **No Access** (the Project is hidden).
 - Access in one Project never grants access to another Project.
 - Business personas such as PM, BA, Developer or QA do not grant permissions.
 
@@ -19,46 +21,45 @@ This document is the business-facing authorization map for Mini Rally. It uses t
 | Workspace Admin | Company | Manage all users, Projects, Teams, access and delivery data |
 | Admin | Assigned Project, All Teams | Manage delivery features; Project/Team/user-access structure remains read-only |
 | Editor | Assigned Project and explicit Teams | Manage Backlog Work Items/Tasks, Quality Defects and Iteration Status in assigned Teams |
-| Viewer | Assigned Project, all Teams read-only | View Project delivery data; no mutations |
-| No Access | None | Project is hidden and direct URLs are denied safely |
+| (No Access) | None | Implicit — no `project_members` row. Project is hidden and direct URLs are denied safely |
 
 ## 4. Company And Structure
 
-| Use Case | Workspace Admin | Admin | Editor | Viewer | No Access |
-|---|---:|---:|---:|---:|---:|
-| Sign in/out and manage own profile | Yes | Yes | Yes | Yes | Yes |
-| View accessible Project/Team context | All | Assigned Project / All Teams | Assigned Project / assigned Teams | Assigned Project / all Teams | No |
-| Edit Workspace Settings | Yes | No | No | No | No |
-| Invite/disable/remove company user | Yes | No | No | No | No |
-| Create/edit/archive/restore/delete Project | Yes | No | No | No | No |
-| Create/edit/deactivate/restore Team | Yes | No | No | No | No |
-| Assign Project Access Level | Yes | No | No | No | No |
-| Assign Team membership | Yes | No | No | No | No |
-| View Project Details/Teams | Yes | Read-only | Scoped read-only | Read-only | No |
-| View Project Users & Permissions | Yes | Read-only | No | No | No |
-| View Permission Model | Yes | Own permissions only | Own permissions only | Own permissions only | Own permissions only |
-| View Audit Log | Yes | No | No | No | No |
+| Use Case | Workspace Admin | Admin | Editor |
+|---|---:|---:|---:|
+| Sign in/out and manage own profile | Yes | Yes | Yes |
+| View accessible Project/Team context | All | Assigned Project / All Teams | Assigned Project / assigned Teams |
+| Edit Workspace Settings | Yes | No | No |
+| Invite/disable/remove company user | Yes | No | No |
+| Create/edit/archive/restore/delete Project | Yes | No | No |
+| Create/edit/deactivate/restore Team | Yes | No | No |
+| Assign Project Access Level | Yes | No | No |
+| Assign Team membership | Yes | No | No |
+| View Project Details/Teams | Yes | Read-only | Scoped read-only |
+| View Project Users & Permissions | Yes | Read-only | No |
+| View Permission Model | Yes | Own permissions only | Own permissions only |
+| View Audit Log | Yes | No | No |
 
 ## 5. Delivery Features
 
-| Feature / Action | Workspace Admin | Admin | Editor | Viewer | No Access |
-|---|---:|---:|---:|---:|---:|
-| Backlog / Work Item / Task - View | All | Project | Assigned Teams | Project read-only | No |
-| Backlog / Work Item / Task - Create/Edit/Delete | All | Project | Assigned Teams | No | No |
-| Iteration Status - View | All | Project | Assigned Teams | Project read-only | No |
-| Iteration Status - Edit | All | Project | Assigned Teams | No | No |
-| Timeboxes: Iteration/Release/Milestone - View | All | Project | No | Project read-only | No |
-| Timeboxes: Create/Edit/Archive | All | Project | No | No | No |
-| Team Status - View | All | Project | No | Project read-only | No |
-| Team Status - Edit | All | Project | No | No | No |
-| Quality Defects - View | All | Project | Assigned Teams | Project read-only | No |
-| Quality Defects - Create/Edit/Delete | All | Project | Assigned Teams | No | No |
-| Portfolio Items - View | All | Project | No | Project read-only | No |
-| Portfolio Items - Manage | All | Project | No | No | No |
-| Capacity Planning - View | All | Project | No | Project read-only | No |
-| Capacity Planning - Manage | All | Project | No | No | No |
-| Release Tracking / Reports - View | All | Project | No | Project read-only | No |
-| Release Tracking controls, where provided | All | Project | No | No | No |
+| Feature / Action | Workspace Admin | Admin | Editor |
+|---|---:|---:|---:|
+| Backlog / Work Item / Task - View | All | Project | Assigned Teams |
+| Backlog / Work Item / Task - Create/Edit/Delete | All | Project | Assigned Teams |
+| Iteration Status - View | All | Project | Assigned Teams |
+| Iteration Status - Edit | All | Project | Assigned Teams |
+| Timeboxes: Iteration/Release/Milestone - View | All | Project | No |
+| Timeboxes: Create/Edit/Archive | All | Project | No |
+| Team Status - View | All | Project | Assigned Teams |
+| Team Status - Edit | All | Project | No |
+| Quality Defects - View | All | Project | Assigned Teams |
+| Quality Defects - Create/Edit/Delete | All | Project | Assigned Teams |
+| Portfolio Items - View | All | Project | No |
+| Portfolio Items - Manage | All | Project | No |
+| Capacity Planning - View | All | Project | No |
+| Capacity Planning - Manage | All | Project | No |
+| Release Tracking / Reports - View | All | Project | No |
+| Release Tracking controls, where provided | All | Project | No |
 
 ## 6. Notifications
 
@@ -78,7 +79,6 @@ This document is the business-facing authorization map for Mini Rally. It uses t
 - Each Project row has its own Access Level.
 - `Admin` automatically shows `All Teams`.
 - `Editor` requires one or more explicit Teams.
-- `Viewer` has Project-wide read-only access and no Team membership.
 
 ### Project-centric
 
@@ -97,7 +97,7 @@ This document is the business-facing authorization map for Mini Rally. It uses t
 
 ## 8. Effective Time
 
-- Project Access Level and Team membership changes take effect on the user's next sign-in.
+- Project Access Level and Team membership changes take effect on the user's next request (shipped behavior — stricter than next sign-in).
 - Company disable/removal takes effect on the user's next page refresh.
 
 ## 9. UI Outcomes

@@ -2,7 +2,7 @@
 
 > **C2/C8 alignment — 2026-08-09:** Current Portfolio menu is Portfolio Items, Capacity Planning and Release Tracking; Release Planning is Future Backlog. Capacity Features columns are `Dependencies → Rollup → Estimated → Complete`. Earlier implementation-log wording below is historical evidence and does not override these confirmed rules.
 
-> **Access alignment — 2026-08-10:** Earlier Project Admin/Project Member and editable Capacity-permission entries below are implementation history only. Current Phase 5 access is fixed by Project Access Level: WA company-wide; assigned-Project Admin manages; Viewer read-only; Editor/No Access hidden.
+> **Access alignment — 2026-08-10 (updated 2026-08-13 to 3-level):** Earlier Project Admin/Project Member and editable Capacity-permission entries below are implementation history only. Current Phase 5 access is fixed by Project Access Level: WA company-wide; assigned-Project Admin manages; Editor/No Access hidden. (Access model is now 3-level: Workspace Admin / Admin / Editor; the former Viewer level is removed.)
 
 ## 1. Tracking Information
 

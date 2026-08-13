@@ -8,7 +8,7 @@
 
 **C1-C10 BA correction addendum (confirmed 2026-08-06, aligned 2026-08-09):** Team is optional on Work Items; Portfolio menu is Portfolio Items/Capacity Planning/Release Tracking; Iteration Status has no separate Type column; Team Status allows Filters and pagination but not local Search/Show Fields; User list excludes Phone and Teams while User Details keeps Phone; Notification Preferences remains Future Backlog; Velocity defaults to Last 10 and persists the user's 5/10 choice; Capacity Features use `Dependencies → Rollup → Estimated → Complete`; Iterations omit Project in single-Project scope but retain Task Estimate; Work Item Owner defaults to current user with explicit Unassigned and membership-scoped options.
 
-**Project Access reconciliation (confirmed 2026-08-10):** `Workspace Admin` is the only company-level authority. Every other user receives `Admin`, `Editor`, `Viewer` or `No Access` independently per Project. Only Workspace Admin manages company users, Projects, Teams, Project access and Team membership. This addendum supersedes every older WA/Project Admin/Project Member global-role rule.
+**Project Access reconciliation (confirmed 2026-08-10, corrected to 3-level 2026-08-13):** `Workspace Admin` is the only company-level authority. Every other user receives `Admin` or `Editor` independently per Project; a user with no `project_members` row for a Project has implicit No Access (the Project is hidden and direct URLs are denied). The former `Viewer` level is removed, so the access model is now 3-level: Workspace Admin / Admin / Editor. Only Workspace Admin manages company users, Projects, Teams, Project access and Team membership. This addendum supersedes every older WA/Project Admin/Project Member global-role rule.
 
 ## 1. Use this document
 
@@ -75,10 +75,10 @@ Release <-> Milestone
 | Portfolio > Release Tracking | **Not included in closed Phase 5. Phase 6 BA/mockup approved and closed for DEV handoff.** Dedicated surface governed by `Phase 6/01_Release_Tracking/SRS.md`; it is the final item in the Portfolio menu. |
 | Portfolio > Release Planning | Future Backlog; not active in Phase 5 MVP |
 | Team Board / Iteration Board | Future Backlog; absent from active navigation |
-| Settings gear > Workspaces & Projects | Single Workspace -> Project -> Team administration tree. Workspace Admin alone performs Project/Team CRUD and manages Project access; Admin/Editor/Viewer see only their allowed read-only structure. Project-specific Preliminary Estimate points and Hours per point are configurable by Workspace Admin. |
+| Settings gear > Workspaces & Projects | Single Workspace -> Project -> Team administration tree. Workspace Admin alone performs Project/Team CRUD and manages Project access; Admin/Editor see only their allowed read-only structure. Project-specific Preliminary Estimate points and Hours per point are configurable by Workspace Admin. |
 | Settings gear | Personal: Profile & Account, My Permissions. Administration: Workspace Settings, Users, Workspaces & Projects, Permission Model and Audit Log, filtered by effective access. |
 | Settings > Users | WA-only company directory. List columns are Name, Email, Phone Number, Status and Last Login. User Details separates General from Project Access; normal users may have different Access Levels per Project. |
-| Settings > Permission Model | Read-only explanation of Workspace Admin plus per-Project Admin, Editor, Viewer and No Access. No custom E/R/D/H matrix editing in this MVP. |
+| Settings > Permission Model | Read-only explanation of Workspace Admin plus per-Project Admin and Editor (No Access is implicit when no Project row exists). No custom E/R/D/H matrix editing in this MVP. |
 
 Iteration Status shows current-context Story/Defect rows assigned to the selected Iteration only. `Tasks — N active` counts all persisted child Tasks under the scoped US/DE. The Totals row derives Plan Estimate from scoped US/DE and Task Estimate/To Do from their child Tasks; Task Estimate is the explicit Task Estimate field, not `To Do + Actual`.
 
@@ -97,11 +97,10 @@ Every normal user receives an independent Access Level for each Project:
 | Access level | Scope | Effective behavior |
 |---|---|---|
 | Admin | Assigned Project, automatically All Teams | Full delivery management, including Timeboxes, Release/Milestone, Team Status, Quality, Portfolio, Capacity and Reports; Project/Team/access structure remains read-only |
-| Editor | Assigned Project and one or more assigned Teams | Create/Edit/Delete team-scoped US/DE/Task and Quality Defects; update Iteration Status; no planning or administration modules |
-| Viewer | Assigned Project, no Team membership | Project-wide read-only delivery access |
-| No Access | None | Project is hidden and direct access is rejected safely |
+| Editor | Assigned Project and one or more assigned Teams | Create/Edit/Delete team-scoped US/DE/Task and Quality Defects; update Iteration Status; view Team Status read-only for assigned Teams; no planning or administration modules |
+| (No Access) | None | Implicit — no `project_members` row. Project is hidden and direct access is rejected safely |
 
-Only Workspace Admin can invite/disable company users, CRUD Projects/Teams, assign Project access or maintain Team membership. Access in one Project never grants visibility in another Project. Project access and Team membership changes apply on next sign-in; company disable/removal applies on next refresh.
+Only Workspace Admin can invite/disable company users, CRUD Projects/Teams, assign Project access or maintain Team membership. Access in one Project never grants visibility in another Project. Project access and Team membership changes apply on the user's next request; company disable/removal applies on next refresh.
 
 The detailed fixed capability baseline and synchronized User/Project/Team access journeys are governed by `Phase 4/02_Roles_Permissions/SRS.md`.
 

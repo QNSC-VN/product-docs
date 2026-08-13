@@ -86,7 +86,7 @@
 | P2-IT-06 | Frontend | Timeboxes route/list | Iterations list with search, state filter, sort, pagination | P2-IT-03 | 1.25h | 0h | `NOT STARTED` |
 | P2-IT-07 | Frontend | Quick create modal | Type, Project, optional Team, Name, Start/End Date, State | P2-IT-04 | 1.0h | 0h | `NOT STARTED` |
 | P2-IT-08 | Frontend | Full-page Iteration detail | Open from Create with details and row click | P2-IT-05 | 1.5h | 0h | `NOT STARTED` |
-| P2-IT-09 | Frontend | Permission/read-only/error states | Viewer read-only, validation, save pending/error | P2-IT-04..08 | 1.0h | 0h | `NOT STARTED` |
+| P2-IT-09 | Frontend | Permission/error states | Validation, save pending/error; Editor and No Access hidden (no read-only state — access model is 3-level: Workspace Admin / Admin / Editor) | P2-IT-04..08 | 1.0h | 0h | `NOT STARTED` |
 | P2-IT-10 | Backend | Expose iteration assignment options | Iterations available to Work Item assignment with project/team validation | Work Item API, P2-IT-02 | 1.0h | 0h | `NOT STARTED` |
 | P2-IT-11 | Frontend | Consume iteration assignment options | Backlog list and Work Item Detail can select valid Iteration values | P2-IT-10, P2-BL-07 | 1.25h | 0h | `NOT STARTED` |
 | P2-IT-12 | Verification | Unit/contract/e2e smoke tests | Context filter, create defaults, list, detail, validation, permission, assignment | P2-IT-01..11 | 0.75h | 0h | `NOT STARTED` |
@@ -217,7 +217,7 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 - [ ] System rejects assignment when work item Project/Team scope does not match Iteration Project/Team scope.
 - [ ] User can unassign an item from an Iteration without deleting the Backlog item.
 - [ ] Assigned items appear in Iteration Status for the selected Iteration.
-- [ ] Viewer cannot create, edit or assign iterations.
+- [ ] N/A — Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor. Editor has no Timeboxes access (module hidden), so read-only-view-but-cannot-edit no longer applies.
 - [ ] Releases and Milestones are not implemented in P2.2.
 
 ## 11. Acceptance Checklist - P2.3
@@ -267,7 +267,7 @@ Team Status and Team Board are intentionally not included in Phase 2 execution o
 | P2-IT-R06 | Existing backlog assignment is required for Iteration Status to link with Backlog | High | Keep assignment as Work Item `iterationId` field in Backlog/Detail and test before P2.3 | BA/Dev | Decided |
 | P2-IS-R01 | Iteration Status Schedule State differs from Backlog sample statuses | High | Use one shared enum Idea/Defined/In-Progress/Completed/Accepted/Release; reconcile legacy values before render and remove screen-local normalization | BA/Dev | Decided |
 | P2-IS-R02 | Defects metric can be misread as child defect count | Medium | SRS defines Defects as count of work items where type = Defect in selected Iteration | BA | Decided |
-| P2-IS-R03 | Project access baseline must be applied consistently | Medium | Use the approved Phase 4 model: WA company-wide; Project `Admin` manages delivery; Editor manages assigned-Team Backlog/Quality/Iteration Status; Viewer read-only; No Access denied | BA/Tech | Decided 2026-08-10 |
+| P2-IS-R03 | Project access baseline must be applied consistently | Medium | Use the approved Phase 4 model (3-level: Workspace Admin / Admin / Editor): WA company-wide; Project `Admin` manages delivery; Editor manages assigned-Team Backlog/Quality/Iteration Status; No Access denied (implicit — no `project_members` row) | BA/Tech | Decided 2026-08-10 |
 | P2-PHASE-R01 | Dev agent may still pick up old Team Board mockup | High | Move Team Status docs to Phase 3, Team Board docs to Future Backlog, and remove Phase 2 execution tasks | BA | Decided |
 | P2-CONTEXT-R01 | Workspace selector context could be missed by individual feature teams | High | Document as global Phase 2 rule and include tests for Backlog, Timeboxes and Iteration Status | BA/Dev | Decided |
 

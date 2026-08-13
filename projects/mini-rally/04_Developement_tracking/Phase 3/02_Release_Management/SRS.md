@@ -96,7 +96,6 @@ Backlog / Work Item Detail or Release detail assigns Story/Defect items to a Rel
 | P3-REL-FR-023 | Release detail Task Roll-up displays Estimate, To Do and Actual values from assigned tasks/work items. |
 | P3-REL-FR-024 | Accepted displays accepted work total for the Release. |
 | P3-REL-FR-025 | Version is editable optional text. |
-| P3-REL-FR-026 | Viewer can read Release list/detail but cannot inline edit. |
 | P3-REL-FR-027 | Backend must enforce edit permissions; UI disabled state is not sufficient. |
 | P3-REL-FR-028 | User can assign Story/Defect work items to a Release from Backlog and Work Item Detail. |
 | P3-REL-FR-029 | User can manage assigned Story/Defect work items from the Release detail/artifact surface. |
@@ -235,7 +234,7 @@ Rules:
 - `state` must be one of `Planning`, `Active`, `Accepted`.
 - `releaseDate` must be greater than or equal to `startDate`.
 - `projectId` must be accessible to the current user.
-- Viewer mutation must return 403.
+- Mutation by a user without Release edit access (e.g. Editor, who has no Release access) must return 403.
 
 ### 7.4 Get Release Detail
 
@@ -299,7 +298,6 @@ Rules:
 | Workspace Admin | Yes | Yes | Yes | Yes |
 | Admin in assigned Project | Yes | Yes | Yes | Yes |
 | Editor in assigned Project | Hidden | No | No | No |
-| Viewer in assigned Project | Yes | No | No | No |
 | No Access | No | No | No | No |
 
 ## 9. Acceptance Criteria
@@ -314,7 +312,7 @@ Rules:
 8. `Create with details` opens Release detail.
 9. Release detail has Theme and Notes rich text areas.
 10. Release detail right panel includes Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate, Task Roll-up, Accepted and Version.
-11. Viewer can read but cannot mutate Release list/detail fields.
+11. N/A — Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor. Editor has no Release access (hidden), so read-only-view-but-cannot-edit no longer applies.
 12. Backend rejects invalid state and invalid date ranges.
 13. Release Artifacts view lists Story/Defect work items assigned to the Release.
 14. Backlog and Release detail can both assign Story/Defect work items to a Release.
@@ -333,8 +331,8 @@ Rules:
 | P3-REL-TS-005 | Click Create Release | Modal opens with Release selected and Type disabled |
 | P3-REL-TS-006 | Try to switch Type in modal | Type cannot be changed |
 | P3-REL-TS-007 | Create Release with invalid date range | Validation error |
-| P3-REL-TS-008 | Viewer edits inline via UI | Control is disabled/read-only |
-| P3-REL-TS-009 | Viewer calls PATCH API | API returns 403 |
+| P3-REL-TS-008 | N/A — Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor. Editor has no Release access (hidden). (Originally: Viewer edits inline via UI → control disabled/read-only.) | — |
+| P3-REL-TS-009 | Editor (no Release access) calls PATCH API | API returns 403 |
 | P3-REL-TS-010 | Open Release detail | Theme/Notes and right-panel fields are shown |
 | P3-REL-TS-011 | Assign a Story to a Release from Backlog | Story appears in Release Artifacts |
 | P3-REL-TS-012 | Assign the same Story to another Release | Previous Release assignment is replaced; old and new Release artifact lists/counters refresh |

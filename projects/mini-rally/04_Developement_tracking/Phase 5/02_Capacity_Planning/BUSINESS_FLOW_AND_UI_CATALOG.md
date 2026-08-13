@@ -48,7 +48,6 @@ automatically add every Team in that Project.
 |---|---|---|
 | Workspace Admin | Sees all Draft and Published plans | Full create, edit, allocate, publish and revert access |
 | Admin | Sees Draft and Published plans in assigned Projects | Full planning access inside assigned Projects |
-| Viewer | Sees Draft and Published plans in assigned Projects | Read-only |
 | Editor / No Access | Capacity Planning hidden | No access |
 
 The current Project Access rule is fixed:
@@ -222,7 +221,7 @@ stateDiagram-v2
 
 | State | Visibility | Editing |
 |---|---|---|
-| Draft | Workspace Admin/Admin/Viewer in allowed Project scope | Workspace Admin/Admin only |
+| Draft | Workspace Admin/Admin in allowed Project scope | Workspace Admin/Admin only |
 | Published | All authorized viewers in Project/Team scope | Locked |
 
 Published is a lock on Plan editing, not a historical rollback mechanism.

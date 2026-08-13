@@ -36,7 +36,6 @@ P2.1 không biến Backlog thành Sprint Planning. Iteration assignment trong Ba
 - Workspace Admin.
 - Project `Admin`.
 - Project `Editor` in assigned Teams.
-- Project `Viewer` (read-only).
 
 ## 3A. Business Rules / Business Flow
 
@@ -91,7 +90,7 @@ Nghiệp vụ chính:
 | P2-BL-FR-015 | User có quyền edit có thể bulk assign Release cho selected items. |
 | P2-BL-FR-015A | User có quyền edit có thể bulk assign Iteration cho selected items. |
 | P2-BL-FR-016 | User có quyền manage backlog có thể reorder backlog; production cập nhật `rank`. |
-| P2-BL-FR-017 | Admin được chỉnh Backlog trong assigned Project; Editor được chỉnh trong assigned Teams; Viewer chỉ xem; No Access không thấy Project. |
+| P2-BL-FR-017 | Admin được chỉnh Backlog trong assigned Project; Editor được chỉnh trong assigned Teams; No Access (no `project_members` row) không thấy Project. |
 | P2-BL-FR-018 | Sprint summary và Sprint planning không xuất hiện trong Backlog P2.1; Iteration assignment chỉ là field của Work Item. |
 | P2-BL-FR-019 | KPI/metric summary strip không hiển thị trong Backlog; pattern này giữ lại cho Iteration Status, Dashboard hoặc Reports. |
 | P2-BL-FR-020 | Manage Filters nằm bên trái trong filter banner; user chọn nhiều column bằng checkbox và Apply để combine filter. |
@@ -293,7 +292,6 @@ Access baseline:
 
 - Workspace Admin and Admin may manage Backlog in allowed Project scope.
 - Editor may manage US/DE/Task only in explicitly assigned Teams and cannot assign Release.
-- Viewer renders read-only values and direct mutations are blocked.
 - No Access Project/items are absent from list/search and direct access is rejected safely.
 
 ## 9. Validation Rules
@@ -313,7 +311,6 @@ Access baseline:
 - Empty: show empty state after filters/search.
 - Inline saving: edited cell may show pending state; list must not jump.
 - Inline error: rollback cell value and show field-level/toast error.
-- Read-only: Viewer sees text/badges instead of editable selects/inputs.
 - Bulk action empty: selected bar hidden when no row selected.
 - Reorder disabled: first row cannot move up; last row cannot move down.
 
@@ -334,14 +331,14 @@ Access baseline:
 13. Inline title edit persists and is visible after refresh.
 14. Inline Defect Priority edit persists; Story priority remains unavailable.
 15. Inline Plan Estimate rejects negative values.
-16. Inline Owner validates active Project Access and Team scope; Viewer, No Access and Workspace Admin are not assignable delivery owners.
+16. Inline Owner validates active Project Access and Team scope; No Access and Workspace Admin are not assignable delivery owners.
 17. Inline Release validates same-project release.
 18. Inline Iteration validates same-project/team iteration and updates `iterationId`.
 19. Work Item Detail right panel shows Iteration and allows the same assignment rule.
 20. Bulk assign Release updates all selected valid items or fails all.
 21. Bulk assign Iteration updates all selected valid items or fails all.
 22. Reorder updates item rank and preserves order after refresh.
-23. Viewer cannot edit inline, bulk assign or reorder.
+23. N/A — the access model has no read-only-at-Project-scope tier; Editor can edit within assigned Teams.
 24. Sprint summary and Sprint planning are not present in Backlog P2.1.
 
 ## 12. Test Scenarios
@@ -359,7 +356,7 @@ Access baseline:
 | P2-BL-TS-009 | Workspace Admin changes Team in create form to a team outside selected Project | Validation rejects invalid Project/Team pair |
 | P2-BL-TS-010 | Bulk assign selected to Q1 2025 | All selected valid items move to release |
 | P2-BL-TS-011 | Move item down then refresh | Order remains changed |
-| P2-BL-TS-012 | Viewer opens Backlog | Controls are read-only |
+| P2-BL-TS-012 | N/A — the access model has no read-only-at-Project-scope tier; Editor can edit within assigned Teams. | — |
 | P2-BL-TS-013 | Invalid release from another project | API returns validation error |
 | P2-BL-TS-014 | Select Name and Owner in Manage Filters, apply both values | Result matches both filter conditions |
 | P2-BL-TS-015 | Search work by `US-4821` while filters are open | Quick search still works independently from Manage Filters |

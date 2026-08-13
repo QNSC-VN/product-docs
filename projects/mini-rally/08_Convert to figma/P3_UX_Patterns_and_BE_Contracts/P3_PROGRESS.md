@@ -1,6 +1,6 @@
 # Plan 3 — Live Progress
 
-> Historical Figma progress evidence. The original Workspace Admin/Project Admin/Project Member variants are superseded for product behavior by the 2026-08-10 per-Project Admin/Editor/Viewer/No Access baseline. Do not reuse the old role labels for new screens.
+> Historical Figma progress evidence. The original Workspace Admin/Project Admin/Project Member variants are superseded for product behavior by the 2026-08-13 per-Project Admin/Editor baseline (No Access is implicit — no `project_members` row). Do not reuse the old role labels for new screens.
 
 ## Current item
 

@@ -1,5 +1,5 @@
 ﻿export type Role = "Workspace Admin" | "Project Admin" | "Project Member";
-export type ProjectAccessLevel = "Admin" | "Editor" | "Viewer" | "No Access";
+export type ProjectAccessLevel = "Admin" | "Editor";
 export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "releaseTracking" | "capacityPlanning" | "releasePlanning" | "releases" | "reports" | "notifications" | "settings";
 export type WorkItemType = "Story" | "Defect" | "Task" | "Feature";
 export type StatusType = "Idea" | "Defined" | "In-Progress" | "Completed" | "Accepted" | "Release";
@@ -279,7 +279,6 @@ export const SCOPE_PROJECTS: ScopeProject[] = [
 
 export const ROLE_SCOPE = {
   projectAdminProjectKeys: ["NXP"],
-  projectAdminViewerProjectKeys: [] as readonly string[],
   projectMemberProjectKey: "NXP",
   projectMemberTeams: ["Core Platform"],
 } as const;

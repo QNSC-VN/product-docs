@@ -54,7 +54,7 @@ Portfolio Items gives leadership an Epic-and-Feature view of work above Story/De
 - Every visible root row has a checkbox. Selecting rows exposes Backlog-style bulk `Edit` and `Delete` actions. `Edit` requires exactly one row. `Delete` archives the selected Portfolio Items rather than hard-deleting them; an Epic with active child Features is skipped and reported.
 - Every column is resizable (drag the column border) and sortable (click the column header).
 - Inline edit follows effective Project Access. Feature supports Name, Release, State, Project, Team and Owner. Epic supports Name, State, Project and Owner; Epic has no Release or Team editor.
-- Workspace Admin manages Portfolio across all Projects. Admin manages Portfolio in assigned Projects. Viewer reads assigned Project Portfolio. Editor and No Access do not access Portfolio Items.
+- Workspace Admin manages Portfolio across all Projects. Admin manages Portfolio in assigned Projects. Editor and No Access do not access Portfolio Items. (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor.)
 - Feature Release options in list, create and detail are scoped to the Feature's current Project. Epic never exposes a Release selector in create, list inline edit or detail.
 - Clicking anywhere on an Epic or Feature row other than an inline-edit control, the Rank reorder buttons, or the expand chevron opens that item's Detail page.
 - Epic root rows keep Rank. Feature child rows revealed under an expanded Epic do not display Rank because their order is contextual to the parent preview; root Feature rows retain Rank.
@@ -152,7 +152,7 @@ This replaces the older task rule that displayed `Estimate = To Do + Actual`.
 
 - Feature removal uses **Archive**, not hard delete.
 - Workspace Admin and Admin may archive a Feature within allowed Project scope.
-- Editor, Viewer and No Access cannot archive.
+- Editor and No Access cannot archive.
 - Archived Features remain available for history/audit, do not appear in the default active list and cannot receive newly created or newly assigned Story/Defect children.
 - Restoring an archived Feature is outside the P5.1 mockup baseline unless separately proposed and confirmed.
 
@@ -221,7 +221,7 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 | P5-PI-FR-015 | Feature Detail shows Owner and Project first in the right panel, shows Preliminary Estimate and optional refined top-down estimates without any Feature Plan Estimate field, moves the old Progress field to left Details as `Total Accepted Children`, and keeps progress indicators computed from linked Story/Defect plus the confirmed top-down denominator formulas. |
 | P5-PI-FR-026 | `Total Accepted Children` uses the same progress-meter visual format as the right-panel progress bars and lets the user switch between Points and Count. |
 | P5-PI-FR-016 | `Portfolio Items` is the first entry in the `Portfolio` nav dropdown. |
-| P5-PI-FR-017 | Portfolio follows Phase 4 Project Access: WA all Projects; Admin manage assigned Project; Viewer read-only; Editor/No Access hidden. |
+| P5-PI-FR-017 | Portfolio follows Phase 4 Project Access: WA all Projects; Admin manage assigned Project; Editor/No Access hidden. (Viewer level removed.) |
 | P5-PI-FR-018 | Every Release selector is limited to Releases belonging to the Feature's Project. |
 | P5-PI-FR-019 | Description, Notes, What Success Looks Like and attachment metadata have a session-level Feature data contract rather than display-only placeholders. |
 | P5-PI-FR-020 | Authorized users can Archive a Feature; the UI does not hard-delete it. |
@@ -254,7 +254,7 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 | P5-PI-Q05 | Is the Features/Total Stories/Accepted Stories/Total Points summary bar needed? | No - removed from the page entirely. |
 | P5-PI-Q06 | Should Story/Defect be linkable to a Feature after creation via a separate link/unlink picker? | No - membership is set only at creation (`Add Item`) or by editing the Story/Defect's own record; the picker was built, then explicitly removed. |
 | P5-PI-Q07 | What is the Feature State field's option set? | The 11-value Portfolio Item State list in Â§7, matching the real Rally Portfolio Item State field the BA referenced. |
-| P5-PI-Q08 | How is Portfolio access scoped? | Workspace Admin: all Projects editable; Admin: assigned Projects editable; Viewer: assigned Project read-only; Editor/No Access: hidden. |
+| P5-PI-Q08 | How is Portfolio access scoped? | Workspace Admin: all Projects editable; Admin: assigned Projects editable; Editor/No Access: hidden. (Viewer level removed.) |
 | P5-PI-Q09 | How is Feature removal handled? | Archive, never hard delete; archived Features retain history and cannot receive new children. |
 | P5-PI-Q10 | Are Release choices global? | No. Every Feature Release choice is scoped to the Feature's Project. |
 | P5-PI-Q11 | Should Feature children be represented as Work Items? | Yes. Children of a Feature are Story/Defect Work Items. Creating one inside a Feature uses the same Work Item template and pre-fills the Feature field. |
@@ -323,7 +323,7 @@ This amendment reopens only the Portfolio Items hierarchy slice and does not reo
 - Epic State is manually changed and never auto-derived from child Feature states.
 - Epic Milestone and planned dates do not cascade to child Features. Epic has no Release assignment.
 - Epic archive is blocked while it still has active child Features. Archive never cascades to Features.
-- Existing Portfolio permission rules are reused: Workspace Admin and Admin can manage Epic in allowed Project scope; Viewer is read-only; Editor/No Access are hidden.
+- Existing Portfolio permission rules are reused: Workspace Admin and Admin can manage Epic in allowed Project scope; Editor/No Access are hidden.
 - Team context rule: Epic rows appear only when the context Team is `All Teams`. If the user filters to a specific Team, Portfolio Items hides Epic rows and shows only Features in that Team.
 
 ### 11.2 Epic Create

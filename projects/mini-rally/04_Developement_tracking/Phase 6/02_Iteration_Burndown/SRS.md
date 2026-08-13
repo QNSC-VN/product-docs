@@ -1,6 +1,6 @@
 # Phase 6 - Reports > Iteration Burndown
 
-> **Project Access:** Workspace Admin, assigned-Project `Admin` and `Viewer` can open this read-only report. `Editor` and `No Access` cannot open Reports.
+> **Project Access:** Workspace Admin and assigned-Project `Admin` can open this read-only report. `Editor` and `No Access` cannot open Reports. (Access model is now 3-level: Workspace Admin / Admin / Editor; the former Viewer level is removed.)
 
 ## 1. Scope boundary
 

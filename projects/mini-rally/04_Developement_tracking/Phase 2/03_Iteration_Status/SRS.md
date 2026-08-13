@@ -41,9 +41,8 @@ The BA decision is:
 - Workspace Admin.
 - Project `Admin`.
 - Project `Editor` in assigned Teams.
-- Project `Viewer` (read-only).
 
-Phase 4 access baseline applies: Workspace Admin/Admin can update assigned Project data; Editor can update assigned Team data; Viewer is read-only; No Access is hidden. Production must enforce the same scope in backend/service guards.
+Phase 4 access baseline applies: Workspace Admin/Admin can update assigned Project data; Editor can update assigned Team data; No Access is hidden (no `project_members` row). Production must enforce the same scope in backend/service guards.
 
 ## 4. Terminology
 
@@ -426,7 +425,7 @@ Production baseline:
 | Re-rank work items if rank controls are enabled | `work_item:rank_update` or `backlog:prioritize` |
 | Open Work Item Detail | `work_item:view` |
 
-Workspace Admin/Admin may update in Project scope; Editor may update in assigned Teams; Viewer is read-only; No Access is hidden. Persona names such as PO/PM/Developer/Tester do not grant permissions.
+Workspace Admin/Admin may update in Project scope; Editor may update in assigned Teams; No Access is hidden (no `project_members` row). Persona names such as PO/PM/Developer/Tester do not grant permissions.
 
 ## 11. Validation Rules
 
@@ -529,7 +528,7 @@ Suggested P2.3 estimate: 14.0h.
 | Carry-over unfinished work | Deferred | Depends on Close Iteration workflow |
 | Saved Views | Deferred | Can be added after list/filter contract stabilizes |
 | Release and Milestone management | Deferred | Phase 3 |
-| Project Access enforcement | Required | Follow the fixed Phase 4 Workspace Admin/Admin/Editor/Viewer/No Access baseline |
+| Project Access enforcement | Required | Follow the fixed Phase 4 Workspace Admin/Admin/Editor baseline (No Access is implicit — no `project_members` row) |
 | Chart drilldown | Follow-up | `View Charts` is placeholder in P2.3 |
 
 ## 16. BA Readiness Conclusion

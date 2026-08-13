@@ -9,7 +9,7 @@ All scenarios start as `Not Run`. Evidence and BA confirmation are recorded in `
 | P6-COM-001 | P0 | Open Portfolio menu | Order is Portfolio Items, Capacity Planning, Release Tracking; Release Tracking is last |
 | P6-COM-002 | P0 | Open Reports and inspect Type | Exactly Iteration Burndown, Velocity and Team Capacity are available |
 | P6-COM-003 | P0 | Switch global Project/Team context | Every summary, row and chart uses the new scope; no duplicate page Project/Team filter |
-| P6-COM-004 | P0 | Test Workspace Admin and Project `Admin`/`Editor`/`Viewer`/`No Access` | Workspace Admin and assigned-Project `Admin` can use Release Tracking and Reports; `Viewer` is read-only; `Editor` and `No Access` cannot open these surfaces; direct URLs do not leak data |
+| P6-COM-004 | P0 | Test Workspace Admin and Project `Admin`/`Editor` plus an unassigned (implicit No Access) user | Workspace Admin and assigned-Project `Admin` can use Release Tracking and Reports; `Editor` and the unassigned user cannot open these surfaces; direct URLs do not leak data |
 | P6-COM-005 | P1 | Open each Phase 6 route with empty valid scope | Explicit empty/unavailable state appears; another Project's data is never reused |
 | P6-COM-006 | P1 | Reload each selected view/filter | Selection and persisted business data remain consistent; no console error |
 

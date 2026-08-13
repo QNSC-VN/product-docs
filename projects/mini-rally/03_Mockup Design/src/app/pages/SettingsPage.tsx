@@ -51,7 +51,7 @@ export function Toggle({ on = true, disabled = false }: { on?: boolean; disabled
 
 export const AUDIT_LOG_DATA = [
   { time: "Tuesday, October 22, 2024 09:14:08", actor: "Marcus Webb", details: "Updated company name from ACME Space to ACME Space Inc." },
-  { time: "Tuesday, October 22, 2024 09:02:31", actor: "Marcus Webb", details: "Granted Priya Nair Viewer access to Mobile App MVP." },
+  { time: "Tuesday, October 22, 2024 09:02:31", actor: "Marcus Webb", details: "Granted Priya Nair Editor access to Mobile App MVP." },
   { time: "Monday, October 21, 2024 16:32:41", actor: "Marcus Webb", details: "Invited Elena Kowalski with Editor access to Infrastructure Refresh." },
   { time: "Monday, October 21, 2024 15:44:09", actor: "Marcus Webb", details: "Changed Priya Nair access to Admin for Nexus Platform 2025." },
   { time: "Sunday, October 20, 2024 11:05:22", actor: "Marcus Webb", details: "Changed Elena Kowalski status from Invited to Active." },
@@ -81,49 +81,48 @@ const USER_PROJECT_ACCESS: Record<string, UserProjectAccess[]> = {
   "james.okafor@acme.com": [{ projectKey: "NXP", level: "Editor", teams: ["Data & Reporting"] }],
   "priya.nair@acme.com": [
     { projectKey: "NXP", level: "Admin", teams: ["Core Platform"] },
-    { projectKey: "MOB", level: "Viewer", teams: [] },
+    { projectKey: "MOB", level: "Editor", teams: ["Mobile Experience"] },
   ],
   "tom.brennan@acme.com": [
     { projectKey: "MOB", level: "Admin", teams: ["Mobile Experience"] },
-    { projectKey: "NXP", level: "Viewer", teams: [] },
+    { projectKey: "NXP", level: "Editor", teams: ["Core Platform"] },
   ],
   "elena.kowalski@acme.com": [{ projectKey: "INF", level: "Editor", teams: ["Platform Operations"] }],
 };
 const SETTINGS_USERS: SettingsUser[] = WORKSPACE_USERS.map((user, index) => ({ ...user, phoneNumber: USER_PHONE_NUMBERS[index] ?? "+1 555 0100", projectAccess: USER_PROJECT_ACCESS[user.email] ?? [] }));
-const PROJECT_ACCESS_LEVELS: ProjectAccessLevel[] = ["Admin", "Editor", "Viewer", "No Access"];
+const PROJECT_ACCESS_LEVELS: ProjectAccessLevel[] = ["Admin", "Editor"];
 const ACCESS_LEVEL_ROWS = [
   { level: "Workspace Admin", scope: "All projects", work: "Full", settings: "Full", people: "Full" },
   { level: "Project Admin", scope: "Assigned project", work: "Full", settings: "Full", people: "None" },
   { level: "Project Member", scope: "Assigned project / team", work: "Edit", settings: "None", people: "None" },
-  { level: "Viewer", scope: "Assigned project", work: "Read-only", settings: "None", people: "None" },
   { level: "No Access", scope: "Hidden", work: "None", settings: "None", people: "None" },
 ] as const;
 
 type FixedAccessState = "Allowed" | "Read-only" | "Hidden";
-type ScreenActionAccessRow = { screen: string; action: string; wa: FixedAccessState; paAdmin: FixedAccessState; paViewer: FixedAccessState; pm: FixedAccessState };
+type ScreenActionAccessRow = { screen: string; action: string; wa: FixedAccessState; paAdmin: FixedAccessState; pm: FixedAccessState };
 const SCREEN_ACTION_ACCESS_ROWS: ScreenActionAccessRow[] = [
-  { screen: "Workspace Settings", action: "View workspace settings", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Workspace Settings", action: "Edit workspace settings", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "User Management", action: "View users", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "User Management", action: "Create invitation", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "User Management", action: "Edit user and project access", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "User Management", action: "Delete user access", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Project Management", action: "View project", wa: "Allowed", paAdmin: "Allowed", paViewer: "Read-only", pm: "Allowed" },
-  { screen: "Project Management", action: "Create project", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Project Management", action: "Edit assigned project", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Project Management", action: "Archive assigned project", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Project Management", action: "Delete project", wa: "Allowed", paAdmin: "Hidden", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Backlog / Quality", action: "View US, DE and Task", wa: "Allowed", paAdmin: "Allowed", paViewer: "Read-only", pm: "Allowed" },
-  { screen: "Backlog / Quality", action: "Create US, DE and Task", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Allowed" },
-  { screen: "Backlog / Quality", action: "Edit US, DE and Task", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Allowed" },
-  { screen: "Backlog / Quality", action: "Delete US, DE and Task", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Allowed" },
-  { screen: "Iteration Status", action: "View iteration status", wa: "Allowed", paAdmin: "Allowed", paViewer: "Read-only", pm: "Allowed" },
-  { screen: "Iteration Status", action: "Update work item and task status", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Allowed" },
-  { screen: "Timebox", action: "Create, Edit and Delete Iteration", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Timebox", action: "Create, Edit and Delete Release", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Timebox", action: "Create, Edit and Delete Milestone", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
-  { screen: "Capacity / Reports", action: "View project planning and reports", wa: "Allowed", paAdmin: "Allowed", paViewer: "Read-only", pm: "Hidden" },
-  { screen: "Capacity / Reports", action: "Create and Edit capacity plan", wa: "Allowed", paAdmin: "Allowed", paViewer: "Hidden", pm: "Hidden" },
+  { screen: "Workspace Settings", action: "View workspace settings", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
+  { screen: "Workspace Settings", action: "Edit workspace settings", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
+  { screen: "User Management", action: "View users", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
+  { screen: "User Management", action: "Create invitation", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
+  { screen: "User Management", action: "Edit user and project access", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
+  { screen: "User Management", action: "Delete user access", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
+  { screen: "Project Management", action: "View project", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
+  { screen: "Project Management", action: "Create project", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
+  { screen: "Project Management", action: "Edit assigned project", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
+  { screen: "Project Management", action: "Archive assigned project", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
+  { screen: "Project Management", action: "Delete project", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
+  { screen: "Backlog / Quality", action: "View US, DE and Task", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
+  { screen: "Backlog / Quality", action: "Create US, DE and Task", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
+  { screen: "Backlog / Quality", action: "Edit US, DE and Task", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
+  { screen: "Backlog / Quality", action: "Delete US, DE and Task", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
+  { screen: "Iteration Status", action: "View iteration status", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
+  { screen: "Iteration Status", action: "Update work item and task status", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
+  { screen: "Timebox", action: "Create, Edit and Delete Iteration", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
+  { screen: "Timebox", action: "Create, Edit and Delete Release", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
+  { screen: "Timebox", action: "Create, Edit and Delete Milestone", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
+  { screen: "Capacity / Reports", action: "View project planning and reports", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
+  { screen: "Capacity / Reports", action: "Create and Edit capacity plan", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
 ];
 
 function AccessBadge({ value }: { value: Role | ProjectAccessLevel }) {
@@ -133,9 +132,7 @@ function AccessBadge({ value }: { value: Role | ProjectAccessLevel }) {
       ? { bg: "#edf2fb", text: "#2558a6" }
       : value === "Editor"
         ? { bg: "#eef6f0", text: "#1e6930" }
-        : value === "Viewer"
-          ? { bg: "#f0f2f5", text: "#5c6478" }
-          : { bg: "#f7f8fa", text: "#8c94a6" };
+        : { bg: "#f7f8fa", text: "#8c94a6" };
   return <span className="inline-flex px-2 py-0.5 rounded-sm text-[10px] font-semibold" style={{ backgroundColor: cfg.bg, color: cfg.text }}>{value}</span>;
 }
 
@@ -305,7 +302,6 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
         if (accessIndex !== index) return access;
         const next = { ...access, ...patch };
         if (next.level === "Admin") next.teams = ["All Teams"];
-        if (next.level === "Viewer" || next.level === "No Access") next.teams = [];
         if (patch.projectKey && next.level === "Editor") next.teams = [];
         return next;
       }),
@@ -315,7 +311,7 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
   function addProjectAccess() {
     const project = SCOPE_PROJECTS.find(candidate => !draft.projectAccess.some(access => access.projectKey === candidate.key));
     if (!project) return;
-    setDraft(previous => ({ ...previous, projectAccess: [...previous.projectAccess, { projectKey: project.key, level: "No Access", teams: [] }] }));
+    setDraft(previous => ({ ...previous, projectAccess: [...previous.projectAccess, { projectKey: project.key, level: "Editor", teams: [] }] }));
   }
 
   function toggleTeam(index: number, team: string) {
@@ -391,7 +387,6 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
                 {draft.projectAccess.map((access, index) => {
                   const project = SCOPE_PROJECTS.find(candidate => candidate.key === access.projectKey) ?? SCOPE_PROJECTS[0];
                   const availableTeams = projectTeamsByProject[access.projectKey] ?? project.teams;
-                  const teamSelectable = access.level === "Editor";
                   return (
                     <div key={`${access.projectKey}-${index}`} className="rounded p-3" style={{ border: "1px solid #d9dee7" }}>
                       <div className="grid items-end gap-3" style={{ gridTemplateColumns: "minmax(180px,1fr) 180px 28px" }}>
@@ -410,18 +405,18 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
                         <button aria-label={`Remove ${project.name} access row`} onClick={() => setDraft(previous => ({ ...previous, projectAccess: previous.projectAccess.filter((_, accessIndex) => accessIndex !== index) }))} className="h-8 w-7 flex items-center justify-center rounded" style={{ color: "#b91c1c", border: "1px solid #f0c7c1" }}><X size={12} /></button>
                       </div>
                       <div className="mt-3 pt-3" style={{ borderTop: "1px solid #edf0f4" }}>
-                        <p className="text-[10px] font-semibold mb-2" style={{ color: teamSelectable ? "#5c6478" : "#b0b8c8" }}>Teams</p>
+                        <p className="text-[10px] font-semibold mb-2" style={{ color: "#5c6478" }}>Teams</p>
                         {access.level === "Admin" ? (
                           <div className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[10px] font-semibold" style={{ color: "#1d3f73", backgroundColor: "#edf2fb", border: "1px solid #bdd0ea" }}><CheckSquare size={11} />All Teams</div>
-                        ) : teamSelectable ? (
+                        ) : (
                           <div className="flex flex-wrap gap-2">
                             {availableTeams.map(team => {
                               const checked = access.teams.includes(team);
                               return <button key={team} onClick={() => toggleTeam(index, team)} className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px]" style={{ color: checked ? "#1d3f73" : "#5c6478", backgroundColor: checked ? "#edf2fb" : "#ffffff", border: `1px solid ${checked ? "#bdd0ea" : "#d9dee7"}` }}>{checked ? <CheckSquare size={11} /> : <Square size={11} />}{team}</button>;
                             })}
-                            {access.level === "Editor" && access.teams.length === 0 && <span className="self-center text-[10px]" style={{ color: "#b91c1c" }}>Select at least one team.</span>}
+                            {access.teams.length === 0 && <span className="self-center text-[10px]" style={{ color: "#b91c1c" }}>Select at least one team.</span>}
                           </div>
-                        ) : <p className="text-[10px]" style={{ color: "#8c94a6" }}>{access.level === "Viewer" ? "Viewer access is project-wide and read-only." : "The project is hidden from this user."}</p>}
+                        )}
                       </div>
                     </div>
                   );
@@ -485,7 +480,6 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
     : role === "Project Admin"
       ? [
         ...ROLE_SCOPE.projectAdminProjectKeys.map(projectKey => ({ project: SCOPE_PROJECTS.find(project => project.key === projectKey)?.name ?? projectKey, access: "Admin" as const, teams: "All Teams", capabilities: "Manage work items, timeboxes, releases and reports" })),
-        ...ROLE_SCOPE.projectAdminViewerProjectKeys.map(projectKey => ({ project: SCOPE_PROJECTS.find(project => project.key === projectKey)?.name ?? projectKey, access: "Viewer" as const, teams: "None", capabilities: "View project data only" })),
       ]
       : [{ project: SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.projectMemberProjectKey)?.name ?? ROLE_SCOPE.projectMemberProjectKey, access: "Editor" as const, teams: ROLE_SCOPE.projectMemberTeams.join(", "), capabilities: "Create, edit and delete work items; update iteration status" }];
   const sections = [
@@ -524,7 +518,7 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
     setSelectedUser(null);
     setRemoveUserTarget(null);
   }
-  function changeProjectAccess(email: string, projectKey: string, level: ProjectAccessLevel, teams: string[]) {
+  function changeProjectAccess(email: string, projectKey: string, level: ProjectAccessLevel | "No Access", teams: string[]) {
     setSettingsUsers(previous => previous.map(user => {
       if (user.email !== email || user.role === "Workspace Admin") return user;
       const otherProjects = user.projectAccess.filter(access => access.projectKey !== projectKey);
@@ -542,20 +536,19 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
           <div><p className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>Project-scoped access</p><p className="mt-1 text-[10px]" style={{ color: "#8c94a6" }}>Access is assigned per project. Team membership is managed separately from permission.</p></div>
           <span className="inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[10px] font-semibold" style={{ color: "#5c6478", backgroundColor: "#f4f6f9", borderColor: "#dde2ea" }}><Lock size={10} /> Fixed model</span>
         </div>
-        <div className="grid grid-cols-4 overflow-hidden rounded border" style={{ borderColor: "#d9dee7" }}>
+        <div className="grid grid-cols-3 overflow-hidden rounded border" style={{ borderColor: "#d9dee7" }}>
           {[
             { name: "Admin", tone: "#1d3f73", bg: "#e8eef8", body: "Manage delivery features in the assigned project. Project, user, access and team administration remain Workspace Admin-only." },
             { name: "Editor", tone: "#1e6930", bg: "#eef6f0", body: "Create, edit and delete project artifacts. Required for team membership." },
-            { name: "Viewer", tone: "#5c6478", bg: "#f0f2f5", body: "View project data without changing settings or artifacts." },
-            { name: "No Access", tone: "#8c94a6", bg: "#f7f8fa", body: "Project is hidden and cannot be opened by the user." },
-          ].map((item, index) => <div key={item.name} className="min-h-32 p-4" style={{ borderRight: index < 3 ? "1px solid #e2e6eb" : undefined }}><span className="inline-flex rounded-sm px-2 py-0.5 text-[10px] font-semibold" style={{ color: item.tone, backgroundColor: item.bg }}>{item.name}</span><p className="mt-3 text-[11px] leading-5" style={{ color: "#5c6478" }}>{item.body}</p></div>)}
+            { name: "No Access", tone: "#8c94a6", bg: "#f7f8fa", body: "Implicit when no project row exists. The project is hidden and direct URLs are denied." },
+          ].map((item, index) => <div key={item.name} className="min-h-32 p-4" style={{ borderRight: index < 2 ? "1px solid #e2e6eb" : undefined }}><span className="inline-flex rounded-sm px-2 py-0.5 text-[10px] font-semibold" style={{ color: item.tone, backgroundColor: item.bg }}>{item.name}</span><p className="mt-3 text-[11px] leading-5" style={{ color: "#5c6478" }}>{item.body}</p></div>)}
         </div>
         <div className="mt-4 rounded border" style={{ borderColor: "#d9dee7" }}>
           {[
             ["Workspace Admin", "Workspace-level authority; manages projects, users, access and global settings."],
             ["Admin", "Project-level access; manages delivery features in the assigned project. Administration remains Workspace Admin-only."],
             ["Editor", "Project-and-team access; manages delivery work without administration access."],
-            ["Viewer / No Access", "Viewer is read-only. No Access hides the project completely."],
+            ["No Access", "Implicit when the user has no project row. The project is hidden and direct URLs are denied."],
           ].map(([label, detail], index) => <div key={label} className="grid min-h-11 grid-cols-[170px_1fr] items-center px-3" style={{ backgroundColor: index % 2 ? "#fbfcfe" : "white", borderBottom: index < 3 ? "1px solid #edf0f4" : undefined }}><span className="text-[11px] font-semibold" style={{ color: "#1a2234" }}>{label}</span><span className="text-[11px]" style={{ color: "#5c6478" }}>{detail}</span></div>)}
         </div>
       </div>
@@ -704,14 +697,14 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
         </div>
 
         <div className="rounded overflow-hidden" style={{ border: "1px solid #d9dee7" }}>
-          <div className="grid h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 105px 120px 120px 120px", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
-            {["Screen", "Action", "WA", "PA · Admin", "PA · Viewer", "PM · Assigned"].map(label => <div key={label} className="px-3 text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{label}</div>)}
+          <div className="grid h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 105px 120px 120px", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
+            {["Screen", "Action", "WA", "PA · Admin", "PM · Assigned"].map(label => <div key={label} className="px-3 text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{label}</div>)}
           </div>
           {SCREEN_ACTION_ACCESS_ROWS.map((item, index) => (
-            <div key={`${item.screen}-${item.action}`} className="grid min-h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 105px 120px 120px 120px", backgroundColor: index % 2 ? "#fbfcfe" : "#ffffff", borderBottom: index < SCREEN_ACTION_ACCESS_ROWS.length - 1 ? "1px solid #edf0f4" : undefined }}>
+            <div key={`${item.screen}-${item.action}`} className="grid min-h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 105px 120px 120px", backgroundColor: index % 2 ? "#fbfcfe" : "#ffffff", borderBottom: index < SCREEN_ACTION_ACCESS_ROWS.length - 1 ? "1px solid #edf0f4" : undefined }}>
               <div className="px-3 text-[10px] font-semibold" style={{ color: "#3a4254" }}>{item.screen}</div>
               <div className="px-3 text-[10px]" style={{ color: "#3a4254" }}>{item.action}</div>
-              {[item.wa, item.paAdmin, item.paViewer, item.pm].map((value, valueIndex) => <div key={`${item.screen}-${item.action}-${valueIndex}`} className="px-3"><FixedAccessBadge value={value} /></div>)}
+              {[item.wa, item.paAdmin, item.pm].map((value, valueIndex) => <div key={`${item.screen}-${item.action}-${valueIndex}`} className="px-3"><FixedAccessBadge value={value} /></div>)}
             </div>
           ))}
         </div>
@@ -719,7 +712,7 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
         <div className="mt-4 grid grid-cols-3 gap-3">
           {[
             { title: "Rule source", value: "Action + scope", detail: "Screens only reflect the effective permissions" },
-            { title: "Project access", value: "Assigned explicitly", detail: "Admin, Member, Viewer or No Access per project" },
+            { title: "Project access", value: "Assigned explicitly", detail: "Admin or Editor per project; no row means No Access" },
             { title: "Permission changes", value: "Next sign-in", detail: "Removal takes effect on page refresh" },
           ].map(item => <div key={item.title} className="px-3 py-3 rounded" style={{ border: "1px solid #d9dee7", backgroundColor: "#fbfcfe" }}><p className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{item.title}</p><p className="text-[12px] font-semibold mt-1" style={{ color: "#1a2234" }}>{item.value}</p><p className="text-[10px] mt-1" style={{ color: "#5c6478" }}>{item.detail}</p></div>)}
         </div>
@@ -788,7 +781,7 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
         </div>
       </div>
       {selectedUser && <UserDetailModal key={selectedUser.email} user={selectedUser} projectTeamsByProject={workspaceProjectTeams} onClose={() => setSelectedUser(null)} onSave={saveUser} onRemoveAccess={setRemoveUserTarget} />}
-      {inviteUserOpen && <UserDetailModal isInvite user={{ name: "", email: "", phoneNumber: "", role: "Project Member", status: "Invited", lastLogin: "—", owner: { name: "New User", initials: "NU", color: "#4a7c6e" }, projectAccess: [{ projectKey: "NXP", level: "No Access", teams: [] }] }} projectTeamsByProject={workspaceProjectTeams} onClose={() => setInviteUserOpen(false)} onSave={inviteUser} />}
+      {inviteUserOpen && <UserDetailModal isInvite user={{ name: "", email: "", phoneNumber: "", role: "Project Member", status: "Invited", lastLogin: "—", owner: { name: "New User", initials: "NU", color: "#4a7c6e" }, projectAccess: [] }} projectTeamsByProject={workspaceProjectTeams} onClose={() => setInviteUserOpen(false)} onSave={inviteUser} />}
       {removeUserTarget && <ConfirmRemoveUserAccess user={removeUserTarget} onCancel={() => setRemoveUserTarget(null)} onConfirm={() => removeUserAccess(removeUserTarget)} />}
     </>
   );

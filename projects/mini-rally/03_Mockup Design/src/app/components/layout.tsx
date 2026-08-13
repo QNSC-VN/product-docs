@@ -56,7 +56,7 @@ export function TopNav({
       .filter(project => project.key === ROLE_SCOPE.projectMemberProjectKey)
       .map(project => ({ ...project, teams: project.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number])) }))
     : currentRole === "Project Admin"
-      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]) || ROLE_SCOPE.projectAdminViewerProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminViewerProjectKeys[number]))
+      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]))
       : SCOPE_PROJECTS;
   const visibleNavItems = currentRole === "Project Member"
     ? NAV_ITEMS
@@ -105,7 +105,7 @@ export function TopNav({
                         <button onClick={() => { onScopeChange(project, currentRole === "Project Member" ? project.teams[0] : "All Teams"); setWsOpen(false); }} className="flex-1 flex items-center gap-2 pr-2 py-1.5 text-left min-w-0">
                           <Package size={12} style={{ color: selectedProject ? "#1d3f73" : "#5c6478" }} />
                           <span className="flex-1 min-w-0"><span className="block text-[11px] font-semibold truncate" style={{ color: selectedProject ? "#1d3f73" : "#1a2234" }}>{project.name}</span><span className="block text-[9px]" style={{ color: "#8c94a6" }}>{project.key} · {project.teams.length} teams</span></span>
-                          {currentRole !== "Workspace Admin" && <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-sm" style={{ color: accessLabel === "Viewer" ? "#5c6478" : "#1d3f73", backgroundColor: accessLabel === "Viewer" ? "#f0f2f5" : "#e8eef8" }}>{accessLabel}</span>}
+                          {currentRole !== "Workspace Admin" && <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-sm" style={{ color: "#1d3f73", backgroundColor: "#e8eef8" }}>{accessLabel}</span>}
                           {selectedProject && <Check size={11} style={{ color: "#1d3f73" }} />}
                         </button>
                       </div>
@@ -296,7 +296,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam, currentRo
   const visibleProjects = currentRole === "Project Member"
     ? SCOPE_PROJECTS.filter(project => project.key === ROLE_SCOPE.projectMemberProjectKey)
     : currentRole === "Project Admin"
-      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]) || ROLE_SCOPE.projectAdminViewerProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminViewerProjectKeys[number]))
+      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]))
       : SCOPE_PROJECTS;
   const visibleTeams = currentRole === "Project Member"
     ? currentProject.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number]))

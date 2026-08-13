@@ -1,6 +1,6 @@
 # DEV Fix Handoff — DevInt Audit Phase 0–6
 
-> **Access-model supersession (2026-08-10):** Authorization findings from the 2026-08-09 re-test remain historical. Current acceptance must use Workspace Admin plus per-Project `Admin`/`Editor`/`Viewer`/`No Access` and be re-tested with controlled assignments.
+> **Access-model supersession (2026-08-10, corrected to 3-level 2026-08-13):** Authorization findings from the 2026-08-09 re-test remain historical. Current acceptance must use Workspace Admin plus per-Project `Admin`/`Editor` (and an unassigned user for implicit No Access) and be re-tested with controlled assignments.
 
 **Latest re-test:** 2026-08-09
 

@@ -42,7 +42,7 @@ Approved model:
 
 - `Workspace Admin` is the only company-level authority.
 - Workspace Admin is assigned internally, is not a Project member and is excluded from Project user lists.
-- Normal users receive `Admin`, `Editor`, `Viewer` or `No Access` independently per Project.
+- Normal users receive `Admin` or `Editor` independently per Project; absence of a Project row means implicit No Access. (Access model is now 3-level: Workspace Admin / Admin / Editor; the former Viewer level is removed.)
 - Only Workspace Admin manages users, Projects, Teams, Project access and Team membership.
 - Permission Model is read-only; there is no editable E/R/D/H role matrix.
 
@@ -57,18 +57,18 @@ Approved model:
 - [x] Editor sees only assigned Projects and Teams.
 - [x] Editor can Create/Edit/Delete US/DE/Task and Quality Defects in assigned Teams.
 - [x] Editor can update Iteration Status in assigned Teams.
-- [x] Editor cannot access Timeboxes, Releases, Milestones, Team Status, Portfolio, Capacity or Reports.
+- [x] Editor cannot access Timeboxes, Releases, Milestones, Portfolio, Capacity or Reports.
+- [x] Editor views Team Status read-only for assigned Teams (view-only; cannot edit capacity or task fields).
 - [x] Editor does not see Project Users & Permissions.
-- [x] Viewer is project-wide read-only and has no Team membership.
 - [x] No Access Project is hidden and direct access is rejected safely.
 
 ### Access Journey Checklist
 
 - [x] `Users > User Details > Project Access` supports multiple Projects per user.
-- [x] Project Access uses Admin/Editor/Viewer/No Access.
+- [x] Project Access uses Admin/Editor (3-level model; No Access is implicit).
 - [x] Admin automatically displays All Teams.
 - [x] Editor requires one or more Team selections.
-- [x] Viewer/No Access do not select Teams.
+- [x] Team selection appears only for Editor.
 - [x] `Workspaces & Projects > Project > Users & Permissions` uses User, Status, Access Level and Action.
 - [x] Access Level remains a dropdown for Workspace Admin.
 - [x] Add Existing User selects a company user and initial access.
@@ -86,7 +86,7 @@ Approved model:
 - [x] Non-WA Project header shows contextual access badge.
 - [x] No global badge claims one normal-user role across all Projects.
 - [ ] DEV enforces the same scopes in API/service and not only in UI.
-- [ ] DEV verifies next-sign-in access timing.
+- [ ] DEV verifies next-request access timing.
 
 ## 4. P4.3 Settings & Audit
 

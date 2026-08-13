@@ -29,9 +29,9 @@ This addendum supersedes older global Project role wording in this Phase 0 docum
 
 - `Workspace Admin` is the only company-level authority and is assigned by internal/dev setup.
 - Normal users do not receive a global Project Admin/Project Member role.
-- Workspace Admin assigns `Admin`, `Editor`, `Viewer` or `No Access` independently for each Project.
+- Workspace Admin assigns `Admin` or `Editor` independently for each Project. A user with no `project_members` row has implicit No Access (the Project is hidden and direct URLs are denied).
 - Only Workspace Admin invites/disables users and manages Project access or Team membership.
-- Project access changes apply on next sign-in; company disable/removal applies on next refresh.
+- Project access changes apply on the user's next request; company disable/removal applies on next refresh.
 - Detailed capabilities are governed by `Phase 4/02_Roles_Permissions/SRS.md`.
 
 ## 1. Quyết định sản phẩm
@@ -231,7 +231,7 @@ List response contract:
 |---|---|---|---|
 | Invitation ID | `workspace_invitations.id` | Action resend/cancel | Hidden |
 | Email | `workspace_invitations.email` | Người được mời | Required, normalized, valid email |
-| Initial Project Access | Dev-defined invitation/access contract | Quyền ban đầu sau accept | Optional Project + Admin/Editor/Viewer + Editor Teams |
+| Initial Project Access | Dev-defined invitation/access contract | Quyền ban đầu sau accept | Optional Project + Admin/Editor + Editor Teams |
 | Status | `workspace_invitations.status` | Pending/accepted/expired/cancelled badge | Derived expired nếu now > expires_at và pending |
 | Invited by | `invited_by → users.full_name` | Audit display | Read-only |
 | Expires at | `expires_at` | Cho biết link còn hiệu lực | UTC → company timezone |
@@ -285,7 +285,7 @@ Không expose `POST /workspaces`, archive Workspace hoặc switch Workspace tron
 - Mọi project/team/work-item query bắt buộc scope theo fixed `workspace_id` lấy từ server context.
 - Không dùng workspace ID trong request payload làm nguồn authorization duy nhất.
 - Invitation token lưu hash, one-time và TTL đề xuất 7 ngày.
-- Project Access/Team membership changes có hiệu lực ở next sign-in; company disable/remove có hiệu lực ở next refresh và phải invalidate permission cache phù hợp.
+- Project Access/Team membership changes có hiệu lực ở next request (stricter than next sign-in); company disable/remove có hiệu lực ở next refresh và phải invalidate permission cache phù hợp.
 - Cross-tenant ID phải trả 403/404 theo security policy nhất quán, dù UI chỉ có một Company.
 
 ## 10. UI States

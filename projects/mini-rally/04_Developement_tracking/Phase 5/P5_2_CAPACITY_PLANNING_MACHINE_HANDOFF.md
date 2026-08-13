@@ -1,6 +1,6 @@
 # P5.2 Capacity Planning — Closed BA/Mockup Handoff
 
-> **Historical handoff notice (2026-08-10):** Any Project Admin/Project Member or editable Capacity-permission wording below is superseded. Current authorization is defined in `02_Capacity_Planning/SRS.md` and Phase 4 `02_Roles_Permissions/SRS.md`: Workspace Admin company-wide; assigned-Project Admin manage; Viewer read-only; Editor/No Access hidden.
+> **Historical handoff notice (2026-08-10, updated 2026-08-13 to 3-level):** Any Project Admin/Project Member or editable Capacity-permission wording below is superseded. Current authorization is defined in `02_Capacity_Planning/SRS.md` and Phase 4 `02_Roles_Permissions/SRS.md`: Workspace Admin company-wide; assigned-Project Admin manage; Editor/No Access hidden. (Access model is now 3-level: Workspace Admin / Admin / Editor; the former Viewer level is removed.)
 
 ## Resume status
 

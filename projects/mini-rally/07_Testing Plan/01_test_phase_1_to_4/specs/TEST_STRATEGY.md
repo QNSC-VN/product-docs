@@ -28,7 +28,7 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 | Team Board scope | Team Board, board drag/drop, WIP limits and board transition rules are Future Backlog only. |
 | Iteration metrics | Tasks active counts non-Completed child Tasks; Totals derive Plan Estimate from US/DE and Task Estimate/To Do from their child Tasks. |
 | Release Progress scope | Release Progress is excluded from Phase 3 list/detail and belongs to `Portfolio > Release Tracking`; Release Planning remains Future Backlog. |
-| Permission | WA is the only company authority; Admin/Editor/Viewer/No Access resolve independently per Project. UI gating is UX only; backend still enforces every action and scope. |
+| Permission | WA is the only company authority; Admin/Editor resolve independently per Project; a user with no Project row has implicit No Access. UI gating is UX only; backend still enforces every action and scope. |
 | Audit | Important mutations should create activity/audit events according to each module's scope. |
 
 ## 3. Test levels
@@ -48,7 +48,6 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 | Workspace Admin | Login, create/update, full happy path. |
 | Normal user with Admin in Project A | Verify All Teams and delivery management without Project/Team/access administration. |
 | Normal user with Editor in Project B/Team B1 | Verify Team-scoped delivery edits and hidden planning/administration surfaces. |
-| Normal user with Viewer in Project C | Verify project-wide read-only behavior and no Team membership. |
 | Same user with No Access in another Project | Verify navigation/search/direct URL isolation. |
 | At least 2 Projects | Verify context switch and project isolation. |
 | At least 2 Teams under one Project | Verify team filter and valid team assignment. |

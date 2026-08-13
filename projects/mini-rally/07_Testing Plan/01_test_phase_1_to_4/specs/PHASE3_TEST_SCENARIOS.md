@@ -29,8 +29,8 @@ Important scope rules:
 | P3-TS-010 | P0 | Task Dashboard inline edit | Open parent Work Item Detail -> Tasks tab; edit Task Name, State, Owner, To Do, Actuals and Estimate inline | Edits persist and remain on Task Dashboard | Not Run |
 | P3-TS-011 | P1 | Task detail still opens | Click a Task row from Task Dashboard | Task Detail opens and reflects latest inline edits | Not Run |
 | P3-TS-012 | P1 | Unsupported source states normalize | Load source task/work item states outside Team Status task enum | Display normalizes to Team Status task values per SRS | Not Run |
-| P3-TS-013 | P1 | Capacity edit | Edit member capacity where permitted | Capacity persists; Viewer cannot edit | Not Run |
-| P3-TS-014 | P0 | Viewer Team Status read-only | Open Team Status as Viewer in assigned Project | Values are readable; inline edit controls are absent and backend rejects mutation | Not Run |
+| P3-TS-013 | P1 | Capacity edit | Edit member capacity where permitted | Capacity persists; Editor cannot edit capacity or task fields in Team Status (view-only for assigned Teams; edit is Admin/WA only) | Not Run |
+| P3-TS-014 | P0 | Retired: project-wide read-only tier (Team Status) | N/A — no project-wide read-only tier exists in the 3-level model (Workspace Admin / Admin / Editor); Admin can edit, Editor is view-only for assigned Teams | Values are readable; inline edit controls are absent and backend rejects mutation | N/A (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor) |
 | P3-TS-015 | P0 | Team Board future guard | Inspect Track navigation and Phase 3 acceptance | Team Board is not required for Phase 3 pass; if visible, it is treated as Future Backlog | Not Run |
 | P3-TS-016 | P0 | Reopen child auto-reverses completed parent | Reopen a Task after the parent auto-completes | Task metrics recalculate and parent US/DE automatically moves from `Completed` to `In-Progress` | Pass (M4 rerun: Tasks active 8 -> 9; US-4821 Completed -> In-Progress) |
 | P3-TS-017 | P0 | Team Status and Task Dashboard share Task records | Edit a Task state on either screen and open the other | Same Task ID and latest state appear; no page-local duplicate is used | Pass (M4 runtime: TA-482106) |
@@ -53,7 +53,7 @@ Important scope rules:
 | P3-REL-012 | P0 | Reassignment refreshes artifacts and counters | Move Story/Defect from Release A to Release B | Item disappears from Release A artifacts, appears in Release B, and counters/roll-ups refresh | Not Run |
 | P3-REL-013 | P1 | Release Artifacts table behavior | Open Release Artifacts | Assigned Story/Defect rows use Backlog-style search/sort/resize/pagination/inline edit where permitted | Not Run |
 | P3-REL-014 | P1 | Release readiness is user-managed | Inspect Release readiness behavior | System does not auto-calculate readiness; user reads linked US/DE release notes and Release Notes | Not Run |
-| P3-REL-015 | P0 | Viewer Release read-only | Open Release dashboard/detail as Viewer in assigned Project | Values are readable; create/edit/assignment controls are absent and API rejects mutation | Not Run |
+| P3-REL-015 | P0 | Retired: project-wide read-only tier (Release) | N/A — no project-wide read-only tier exists in the 3-level model (Workspace Admin / Admin / Editor); both assignable levels can edit | Values are readable; create/edit/assignment controls are absent and API rejects mutation | N/A (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor) |
 | P3-REL-016 | P0 | Release Progress is not Phase 3 | Inspect Timeboxes Release list and detail | No Release Progress column, percentage or progress widget is present; tracking belongs to `Portfolio > Release Tracking` | Pass (M5.3 runtime) |
 
 ## P3-MS - Milestones
@@ -73,7 +73,7 @@ Important scope rules:
 | P3-MS-011 | P0 | Reject artifact outside scope | Attempt assign Story/Defect outside selected Project/Team scope | Assignment is rejected | Not Run |
 | P3-MS-012 | P0 | Milestone artifact independent from Release | Add/remove Story/Defect from Milestone | Release assignment, Iteration assignment, Backlog rank and Work Item identity do not change | Pass (M5.3 runtime) |
 | P3-MS-013 | P1 | Same Story/Defect in multiple Milestones | Assign same Story/Defect to multiple valid Milestones | Multiple Milestone relations are allowed when scope rules pass | Not Run |
-| P3-MS-014 | P0 | Viewer Milestone read-only | Open Milestone dashboard/detail as Viewer in assigned Project | Values are readable; create/edit/artifact controls are absent and API rejects mutation | Not Run |
+| P3-MS-014 | P0 | Retired: project-wide read-only tier (Milestone) | N/A — no project-wide read-only tier exists in the 3-level model (Workspace Admin / Admin / Editor); both assignable levels can edit | Values are readable; create/edit/artifact controls are absent and API rejects mutation | N/A (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor) |
 | P3-MS-015 | P0 | Release and Milestone creation order is independent | Create either object first, then link Releases to a Milestone | Creation order does not block either object; linking creates a many-to-many relation rather than ownership | Pass (M5.3 runtime) |
 | P3-MS-016 | P0 | Work Item supports multiple Milestones | Add two valid Milestones to one Story/Defect | Both relations persist while the Work Item still has zero or one Release | Not Run |
 | P3-MS-017 | P0 | Related Milestone add options | Assign a Release to a Work Item and open Milestone multi-select | Existing selections remain visible; new options contain only Milestones related to the selected Release | Pass (M5.3 runtime) |
@@ -100,7 +100,7 @@ Important scope rules:
 | P3-QA-014 | P0 | Fixed In Build | Edit Fixed In Build | Optional manual text persists; no required format/blocking validation | Not Run |
 | P3-QA-015 | P1 | Flow State independent from Defect State | Edit Flow State without changing Defect State | Flow State uses shared US/DE catalog, mirrors Schedule State and persists independently from Defect State | Pass (M3 runtime: DE-1142 Flow Accepted -> Backlog Schedule Accepted) |
 | P3-QA-016 | P1 | Bulk actions future only | If bulk-action placeholder is visible, attempt action | Placeholder is disabled/future and does not execute mutation | Not Run |
-| P3-QA-017 | P0 | Viewer Quality read-only | Open Quality Defect dashboard/detail as Viewer in assigned Project | Values are readable; create/edit/state controls are absent and API rejects mutation | Not Run |
+| P3-QA-017 | P0 | Retired: project-wide read-only tier (Quality) | N/A — no project-wide read-only tier exists in the 3-level model (Workspace Admin / Admin / Editor); both assignable levels can edit | Values are readable; create/edit/state controls are absent and API rejects mutation | N/A (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor) |
 | P3-QA-018 | P0 | Quality uses reconciled status catalog | Inspect Schedule/Flow values and create a Defect | Both fields default to `Idea`, mirror each other and use exactly `Idea/Defined/In-Progress/Completed/Accepted/Release` | Not Run |
 
 ## Phase 3 smoke path

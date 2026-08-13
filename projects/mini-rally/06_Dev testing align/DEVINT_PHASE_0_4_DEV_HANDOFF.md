@@ -4,7 +4,7 @@ Date: 2026-07-24
 
 > **C1-C10 alignment notice — 2026-08-09:** Status counts below are the historical Phase 0-4 snapshot. Current results and counts are in `07_Testing Plan/02_test_phase_5_6/PHASE_0_6_AUDIT_TRACKER.xlsx`; the correction rows in this handoff remain valid only where they match the C1-C10 section.
 
-> **Project Access supersession — 2026-08-10:** The old three-global-role and editable E/R/D/H requirements in this historical handoff are replaced by `04_Developement_tracking/Phase 4/02_Roles_Permissions/SRS.md`. Current baseline: internal Workspace Admin plus Admin/Editor/Viewer/No Access independently per Project; only WA manages users, Projects, Teams and access.
+> **Project Access supersession — 2026-08-10 (corrected to 3-level 2026-08-13):** The old three-global-role and editable E/R/D/H requirements in this historical handoff are replaced by `04_Developement_tracking/Phase 4/02_Roles_Permissions/SRS.md`. Current baseline: internal Workspace Admin plus per-Project `Admin`/`Editor`; "No Access" is implicit (no `project_members` row → Project hidden). The former `Viewer` level is removed. Only WA manages users, Projects, Teams and access.
 
 Source tracker: `06_Dev testing align/DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx`
 
@@ -91,7 +91,7 @@ These block BA acceptance first.
 
 | Gap ID | Phase | Area | Dev fix expected |
 |---|---|---|---|
-| GAP-P1-USER-004 | Phase 4 | Project Access | Replace legacy/persona/global Project roles with internal Workspace Admin plus Admin/Editor/Viewer/No Access per Project. Permission Model is read-only; no custom E/R/D/H editing. |
+| GAP-P1-USER-004 | Phase 4 | Project Access | Replace legacy/persona/global Project roles with internal Workspace Admin plus per-Project `Admin`/`Editor` (no `project_members` row = implicit No Access; former `Viewer` level removed). Permission Model is read-only; no custom E/R/D/H editing. |
 | GAP-P1-CREATE-003 | Phase 1 | Work Item Create | **Closed / Not a Defect.** Team is optional: blank = Project backlog, selected Team = Team backlog; only linked Teams are listed. |
 | GAP-P1-CREATE-008 | Phase 1 | Work Item Create | New Work Item must default Schedule State and Flow State to `Idea`. Preserve verified persistence for other fields. |
 | GAP-P1-WID-003 | Phase 1 | Work Item Detail | Release field must support zero/one/many Releases, not single-select only. |
@@ -159,7 +159,7 @@ These are not current product failures until dev/test provides the required cont
 | GAP-P4-NOTIF-001 | Phase 4 | No controlled notification rows for audit user | Seed assignment/mention notifications or provide safe sender/recipient pair; then retest count, cards and filters. |
 | GAP-P4-NOTIF-002 | Phase 4 | No controlled notification rows for read-state testing | After rows exist, retest single-read, mark-all, badge/count update, reload persistence and session restore. |
 | GAP-P4-NOTIF-003 | Phase 4 | No safe recipient/sender test pair | Provide dedicated Editor recipient and sender in an accessible Project/Team; retest popup/list/route/access filtering. |
-| GAP-P4-RBAC-003 | Phase 4 | No controlled non-WA test accounts | Provide normal users with Admin, Editor, Viewer and No Access across at least two Projects; include explicit Editor Team assignments. |
+| GAP-P4-RBAC-003 | Phase 4 | No controlled non-WA test accounts | Provide normal users with `Admin` and `Editor` access across at least two Projects (a user with no `project_members` row exercises implicit No Access); include explicit Editor Team assignments. |
 
 ## 7. Future Backlog / do not fix now
 
