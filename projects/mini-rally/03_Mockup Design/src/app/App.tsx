@@ -15,10 +15,9 @@ import { CapacityPlanningPage } from "./pages/CapacityPlanningPage";
 import { ReleasesPage } from "./pages/ReleasesPage";
 import { ReportsPage } from "./pages/ReportsPage";
 import { NotificationsPage } from "./pages/NotificationsPage";
-import { SettingsPage, type RoleActionRow, PROD_ROLE_ACTION_MATRIX } from "./pages/SettingsPage";
+import { SettingsPage } from "./pages/SettingsPage";
 import { WorkItemDetailPage } from "./pages/WorkItemDetailPage";
 import { LoginPage } from "./pages/LoginPage";
-import { ProjectsPage } from "./pages/ProjectsPage";
 import { AccessStatePage } from "./pages/AccessStatePage";
 
 function formatAuditTimestamp(date: Date) {
@@ -50,15 +49,9 @@ export default function App() {
   const [epics, setEpics] = useState<Epic[]>(EPICS);
   const [features, setFeatures] = useState<Feature[]>(FEATURES);
   const [capacityPlans, setCapacityPlans] = useState<CapacityPlan[]>(CAPACITY_PLANS_DATA);
-  // Saved role permission matrix. Owned here rather than inside SettingsPage so
-  // that saving it in Settings > Workspace actually changes what other screens
-  // allow - Capacity Planning reads the temporary capacity_planning:manage
-  // Full/View row from it.
-  const [permissionMatrix, setPermissionMatrix] = useState<RoleActionRow[]>(PROD_ROLE_ACTION_MATRIX);
   const [activeItem, setActiveItem] = useState<WorkItem | null>(null);
   const [showFullDetail, setShowFullDetail] = useState(false);
   const [fullDetailItem, setFullDetailItem] = useState<WorkItem | null>(null);
-  const [projectCreateRequest, setProjectCreateRequest] = useState(0);
   const [accessState, setAccessState] = useState<"access-denied" | "not-found" | null>(null);
   const unreadCount = NOTIFICATIONS.filter(notification => !notification.read).length;
 
@@ -360,7 +353,7 @@ export default function App() {
   }, [workItems]);
   function handleItemClick(item: WorkItem) { setActiveItem(previous => previous?.id === item.id ? null : item); }
   function navigateTo(page: Page) {
-    if (currentRole === "Project Member" && !["home", "backlog", "track", "portfolio", "releaseTracking", "capacityPlanning", "notifications", "settings"].includes(page)) {
+    if (currentRole === "Editor" && !["home", "projects", "backlog", "track", "quality", "notifications", "settings"].includes(page)) {
       setAccessState("access-denied");
       setActiveItem(null);
       closeFullDetail();
@@ -372,8 +365,12 @@ export default function App() {
     closeFullDetail();
   }
   function changeScope(project: ScopeProject, team: string) {
-    if (currentRole === "Project Member") {
-      if (project.key !== ROLE_SCOPE.projectMemberProjectKey || !ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number])) return;
+    if (currentRole === "Editor") {
+      if (project.key !== ROLE_SCOPE.editorProjectKey || !ROLE_SCOPE.editorTeams.includes(team as typeof ROLE_SCOPE.editorTeams[number])) return;
+    }
+    if (currentRole === "Admin") {
+      const canOpenProject = ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]);
+      if (!canOpenProject) return;
     }
     setCurrentProject(project);
     setCurrentTeam(team);
@@ -383,12 +380,20 @@ export default function App() {
   }
   function changeRole(nextRole: Role) {
     setCurrentRole(nextRole);
-    if (nextRole === "Project Member") {
-      const memberProject = SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.projectMemberProjectKey) ?? SCOPE_PROJECTS[0];
+    if (nextRole === "Editor") {
+      const memberProject = SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.editorProjectKey) ?? SCOPE_PROJECTS[0];
       setCurrentProject(memberProject);
-      setCurrentTeam(ROLE_SCOPE.projectMemberTeams[0]);
-      if (!["home", "backlog", "track", "portfolio", "releaseTracking", "capacityPlanning", "notifications", "settings"].includes(currentPage)) setAccessState("access-denied");
+      setCurrentTeam(ROLE_SCOPE.editorTeams[0]);
+      if (!["home", "projects", "backlog", "track", "quality", "notifications", "settings"].includes(currentPage)) setAccessState("access-denied");
       else setAccessState(null);
+    } else if (nextRole === "Admin") {
+      const allowedProjectKeys = ROLE_SCOPE.adminProjectKeys as readonly string[];
+      if (!allowedProjectKeys.includes(currentProject.key)) {
+        const adminProject = SCOPE_PROJECTS.find(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number])) ?? SCOPE_PROJECTS[0];
+        setCurrentProject(adminProject);
+      }
+      setCurrentTeam("All Teams");
+      setAccessState(null);
     } else {
       setAccessState(null);
       if (currentTeam !== "All Teams") setCurrentTeam("All Teams");
@@ -397,7 +402,7 @@ export default function App() {
     closeFullDetail();
   }
   function openFullDetail(item: WorkItem) {
-    if (currentRole === "Project Member" && item.project !== ROLE_SCOPE.projectMemberProjectKey) {
+    if (currentRole === "Editor" && item.project !== ROLE_SCOPE.editorProjectKey) {
       setAccessState("access-denied");
       setActiveItem(null);
       closeFullDetail();
@@ -424,24 +429,24 @@ export default function App() {
     setIsAuthenticated(false);
   }
   function renderPage() {
-    const projectReadOnly = currentRole === "Project Admin" && !ROLE_SCOPE.projectAdminProjectKeys.includes(currentProject.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]);
+    const projectReadOnly = currentRole === "Admin" && !ROLE_SCOPE.adminProjectKeys.includes(currentProject.key as typeof ROLE_SCOPE.adminProjectKeys[number]);
     switch (currentPage) {
       case "home": return <HomePage role={currentRole} onNavigate={navigateTo} />;
-      case "projects": return <ProjectsPage role={currentRole} createRequest={projectCreateRequest} onCreateRequestHandled={() => setProjectCreateRequest(0)} />;
+      case "projects": return <SettingsPage role={currentRole} projectReadOnly={projectReadOnly} initialTab="workspaceProjects" />;
       case "backlog": return <BacklogPage role={currentRole} project={currentProject} team={currentTeam} iterations={iterations} releases={releases} features={features} items={workItems} onCreateItem={createWorkItem} onUpdateItem={updateWorkItem} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
       case "iterations": return <IterationsPage role={currentRole} readOnly={projectReadOnly} iterations={iterations} releases={releases} milestones={milestones} workItems={workItems} onCreateIteration={createIteration} onUpdateIteration={updateIteration} onCreateRelease={createRelease} onUpdateRelease={updateRelease} onCreateMilestone={createMilestone} onUpdateMilestone={updateMilestone} onUpdateWorkItem={updateWorkItem} />;
       case "track": return <TrackPage key="track" title="Iteration" role={currentRole} readOnly={projectReadOnly} projectKey={currentProject.key} iterations={iterations} onCreateItem={createWorkItem} onUpdateIteration={updateIteration} items={workItems} tasks={tasks} onUpdateItem={updateWorkItem} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
-      case "teamBoard": return <TeamBoardPage role={currentRole} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
+      case "teamBoard": return <TeamBoardPage role={currentRole} readOnly={projectReadOnly} projectKey={currentProject.key} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
       case "teamStatus": return <TeamStatusPage role={currentRole} readOnly={projectReadOnly} items={workItems} tasks={tasks} onUpdateTask={updateTask} onOpenFull={openFullDetail} />;
       case "quality": return <QualityPage role={currentRole} readOnly={projectReadOnly} projectKey={currentProject.key} items={workItems} onUpdateItem={updateWorkItem} activeItem={activeItem} onItemClick={handleItemClick} onOpenFull={openFullDetail} />;
       case "portfolio": return <PortfolioPage role={currentRole} project={currentProject} team={currentTeam} portfolioTypeFilter={portfolioTypeFilter} releases={releases} epics={epics} features={features} workItems={workItems} tasks={tasks} milestones={milestones} onCreateEpic={createEpic} onUpdateEpic={updateEpic} onCreateFeature={createFeature} onUpdateFeature={updateFeature} onUpdateItem={updateWorkItem} onCreateItem={createWorkItem} onOpenFull={openFullDetail} />;
       case "releaseTracking": return <ReleaseTrackingPage project={currentProject} team={currentTeam} releases={releases} iterations={iterations} features={features} workItems={workItems} onOpenWorkItem={openFullDetail} />;
-      case "capacityPlanning": return <CapacityPlanningPage role={currentRole} project={currentProject} releases={releases} features={features} workItems={workItems} capacityPlans={capacityPlans} permissionMatrix={permissionMatrix} onCreateCapacityPlan={createCapacityPlan} onUpdateCapacityPlan={updateCapacityPlan} onPublishCapacityPlan={publishCapacityPlan} />;
+      case "capacityPlanning": return <CapacityPlanningPage role={currentRole} project={currentProject} releases={releases} features={features} workItems={workItems} capacityPlans={capacityPlans} onCreateCapacityPlan={createCapacityPlan} onUpdateCapacityPlan={updateCapacityPlan} onPublishCapacityPlan={publishCapacityPlan} />;
       case "releasePlanning": return <ReleasePlanningPlaceholder />;
       case "releases": return <ReleasesPage role={currentRole} readOnly={projectReadOnly} />;
       case "reports": return <ReportsPage role={currentRole} readOnly={projectReadOnly} projectKey={currentProject.key} team={currentTeam} iterations={iterations} items={workItems} tasks={tasks} />;
       case "notifications": return <NotificationsPage onOpenWorkItem={openNotificationWorkItem} />;
-      case "settings": return <SettingsPage role={currentRole} projectReadOnly={projectReadOnly} permissionMatrix={permissionMatrix} onSavePermissionMatrix={setPermissionMatrix} />;
+      case "settings": return <SettingsPage role={currentRole} projectReadOnly={projectReadOnly} />;
     }
   }
 
@@ -455,7 +460,7 @@ export default function App() {
         {accessState
           ? <AccessStatePage variant={accessState} onBack={() => { setAccessState(null); setCurrentPage("backlog"); }} />
           : showFullDetail && fullDetailItem
-            ? <WorkItemDetailPage item={fullDetailItem} role={currentRole} readOnly={currentRole === "Project Admin" && !ROLE_SCOPE.projectAdminProjectKeys.includes((fullDetailItem.project ?? "") as typeof ROLE_SCOPE.projectAdminProjectKeys[number])} project={currentProject} team={currentTeam} iterations={iterations} releases={releases} milestones={milestones} features={features} tasks={tasks.filter(task => task.parentWorkItemId === fullDetailItem.id)} onCreateTask={createTask} onUpdateTask={updateTask} onUpdateItem={updateWorkItem} onBack={closeFullDetail} onMinimize={minimizeFullDetail} />
+            ? <WorkItemDetailPage item={fullDetailItem} role={currentRole} readOnly={currentRole === "Admin" && !ROLE_SCOPE.adminProjectKeys.includes((fullDetailItem.project ?? "") as typeof ROLE_SCOPE.adminProjectKeys[number])} project={currentProject} team={currentTeam} iterations={iterations} releases={releases} milestones={milestones} features={features} tasks={tasks.filter(task => task.parentWorkItemId === fullDetailItem.id)} onCreateTask={createTask} onUpdateTask={updateTask} onUpdateItem={updateWorkItem} onBack={closeFullDetail} onMinimize={minimizeFullDetail} />
             : renderPage()}
       </div>
     </div>

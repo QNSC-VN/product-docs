@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P3-TEAM-STATUS` |
 | Status | Ready for Development |
-| Updated date | 2026-07-12 |
+| Updated date | 2026-08-14 |
 | Scope | `Track > Team Status` |
 | Priority | P3.1 - required |
 | Depends on | Phase 1 Work Item base, Phase 2.1 Backlog Enhancement, Phase 2.2 Timeboxes > Iterations, Phase 2.3 Iteration Status |
@@ -20,6 +20,8 @@ Team Status provides a Rally-like team execution dashboard for one selected Iter
 This screen is not a board. It is a dense status table grouped by member/owner. Team Board is moved to Backlog for the future and is not required for the current Agile management MVP.
 
 BA rule revision 2026-07-19: Team Status recalculates parent progress/roll-up after each Task state change. It auto-completes the parent only when all child Tasks are `Completed`; if a Task is reopened from that all-completed state, it recalculates metrics and automatically moves the parent Story/Defect to `In-Progress`.
+
+BA live-retest confirmation 2026-08-14: Team Status uses only active members of the Team selected in the top context filter. Every persisted child Task whose parent US/DE belongs to the selected Iteration is counted once. A null Task Owner is grouped under `Unassigned`; a non-member must not be presented as a current Team member. Task State controls display the full labels `Defined`, `In-Progress`, `Completed`.
 
 ## 2. Reference Documents
 
@@ -37,12 +39,10 @@ BA rule revision 2026-07-19: Team Status recalculates parent progress/roll-up af
 ## 3. Actors
 
 - Workspace Admin.
-- Project Manager / Scrum Master.
-- Product Owner / BA.
-- Developer / QA.
-- Viewer.
+- Project `Admin`.
+Project `Editor` does not enter Team Status. A user without a Project assignment cannot see or directly access Team Status.
 
-Current mockup uses Workspace Admin. Production must enforce permissions in the API even when the UI hides or disables edit controls.
+Phase 4 access baseline applies. Workspace Admin and Admin may view/update Team Status in allowed Project scope; Editor and unassigned users do not access Team Status. Production must enforce permissions in the API even when the UI hides controls.
 
 ## 4. Terminology
 
@@ -50,7 +50,7 @@ Current mockup uses Workspace Admin. Production must enforce permissions in the 
 |---|---|
 | Team Status | P3.1 screen under `Track` showing team execution status for one Iteration. |
 | Iteration | Timebox/Sprint-like record created under `Plan > Timeboxes > Iterations`. |
-| Member group | One owner/member row with expandable task rows underneath. |
+| Member group | One active selected-Team member row with expandable task rows underneath; null-owner Tasks use a separate `Unassigned` row with 0h Capacity. |
 | Task row | A task-level execution row assigned to a member. The row displays a task ID, task name, work product, release, state, estimates and owner. |
 | Work Product | The parent Story/Defect/Feature referenced by a task row. Displayed as `US...` or `DE...` in the Work Product column. |
 | Capacity | Member capacity in hours for the selected Iteration. Editable inline at member-group level. |
@@ -84,6 +84,11 @@ Rules:
 - `US...` and `DE...` values belong in the Work Product column.
 - Work Product column must identify the parent work product and show a truncated title.
 - Task State options are exactly `Defined`, `In-Progress`, `Completed`.
+- The visible control uses the full Task State labels; a selected value must not collapse to only `D`, `P` or `C`.
+- Team membership comes from the active membership of the Team selected in the top context filter. Do not create an outside-Team member group from stale Task ownership.
+- Task scope comes from parent membership: every persisted Task whose parent US/DE belongs to the selected Iteration is counted once. Task has no independent Iteration assignment.
+- Null-owner Tasks appear under `Unassigned` with 0h Capacity and must never fall back to the authenticated user or another named member.
+- Estimate, To Do and Actual are independent values. State changes do not mutate any of these fields.
 - Task State options are separate from US/DE state and are only `Defined`, `In-Progress`, `Completed`. Invalid/legacy source values must be rejected or migrated before rendering; Team Status must not silently normalize them page by page.
 - When a task row is changed to `Completed`, the system recalculates the referenced Work Product (`US` or `DE`) task roll-up/progress.
 - A single completed task must not automatically set the parent Work Product status to `Completed` if other child Tasks under the same parent are still not `Completed`.
@@ -118,7 +123,7 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 - Authorized users can inline edit Task Name, Task State, Owner, To Do, Actuals and Estimate directly from the Task Dashboard table.
 - Task State options in the Task Dashboard are the same task-level values used by Team Status: `Defined`, `In-Progress`, `Completed`.
 - Inline Task Dashboard edits update the task row without forcing the user to open Task Detail.
-- Project Admin outside managed Project can open and read the Task Dashboard, but inline edit controls are disabled or read-only.
+- Editor and unassigned users cannot open Team Status/Task Dashboard.
 - Clicking the Task ID still opens Task Detail; editing inline fields must not accidentally open Task Detail.
 
 ## 6. Functional Requirements
@@ -132,6 +137,8 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-005 | Changing Iteration refreshes the grouped table data and totals. |
 | P3-TS-FR-006 | Page does not show the Team Status search input. |
 | P3-TS-FR-007 | Page does not show a KPI strip above the table. |
+| P3-TS-FR-007A | Team Status permits an explicit Filters control and pagination. It must not show a local Search Tasks input or a Show Fields/column chooser. |
+| P3-TS-FR-007B | Filters affect displayed rows, but the Totals row always covers the full selected Iteration scope, never only the current page. |
 | P3-TS-FR-008 | Main content is a dense resizable table aligned with the Iteration Status table template. |
 | P3-TS-FR-009 | Header typography, row height and font size must match the approved Iteration Status dense table style. |
 | P3-TS-FR-010 | Table columns are: Rank, ID, Task Name, Work Product, Release, State, Capacity, Estimate, ToDo, Actuals, Owner. |
@@ -152,7 +159,7 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-025 | Release column displays the release assigned to the task/work product. |
 | P3-TS-FR-026 | Estimate, ToDo and Actuals are shown as numeric hour values. |
 | P3-TS-FR-027 | Owner column displays the task owner name. |
-| P3-TS-FR-028 | Viewer can read the page but cannot edit Capacity, Task Name or Task State. |
+| P3-TS-FR-028 | Editor and unassigned users cannot open the page or mutate Capacity, Task Name or Task State. |
 | P3-TS-FR-029 | User without edit permission sees non-editable values or disabled controls. |
 | P3-TS-FR-030 | Inline edit failure must show field-level or toast error and revert or keep the previous persisted value. |
 | P3-TS-FR-031 | Row click opens Work Item Detail without losing the selected Iteration context. |
@@ -163,9 +170,13 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-036 | Parent Story/Defect auto-completion must not remove the user's ability to manually change the parent status from existing Work Item edit surfaces. |
 | P3-TS-FR-037 | Work Item Detail `Tasks` tab acts as the Task Dashboard for the selected parent Story/Defect. |
 | P3-TS-FR-038 | Authorized users can inline edit Task Name, State, Owner, To Do, Actuals and Estimate from the Task Dashboard table. |
-| P3-TS-FR-039 | Project Admin outside managed Project can read the Task Dashboard but cannot inline edit Task fields. |
+| P3-TS-FR-039 | Editor and unassigned users do not access Team Status/Task Dashboard; direct access and mutation are rejected safely. |
 | P3-TS-FR-040 | Clicking Task ID opens Task Detail; inline editing fields must not trigger Task Detail navigation. |
 | P3-TS-FR-041 | Reopening a Task after all child Tasks had been Completed must recalculate metrics and automatically set the parent Story/Defect status to `In-Progress`. This applies even when the parent had been manually promoted to `Accepted`; `Accepted` is not exempt from the reopen roll-up. |
+| P3-TS-FR-042 | Member rows come only from active membership of the Team selected in the top context filter; outside-Team owners are not shown as current Team members. |
+| P3-TS-FR-043 | Every persisted child Task under a selected-Iteration US/DE is counted once; null Owner uses an `Unassigned` group with 0h Capacity. |
+| P3-TS-FR-044 | Task Estimate, To Do and Actual are independently displayed/edited; Task State changes do not modify them. |
+| P3-TS-FR-045 | Inline Task State controls display the full labels `Defined`, `In-Progress`, `Completed`. |
 
 ## 7. Screen Mapping With Approved Mockup
 
@@ -177,12 +188,14 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | Search input | Removed | No Team Status-specific quick search in P3.1 |
 | KPI strip | Removed | No KPI cards above table in P3.1 |
 | Table header | Dense header with sort icon and resize handle | Same visual template as Iteration Status |
-| Totals row | Capacity, Estimate, ToDo, Actuals totals | Calculated from filtered groups |
+| Filters | Owner/State filters are allowed | Filter displayed rows; no local search and no Show Fields |
+| Pagination | Rows-per-page and previous/next controls are allowed | Pages task results without changing full-Iteration Totals |
+| Totals row | Capacity, Estimate, ToDo, Actuals totals | Calculated from the full selected Iteration scope, not only current page |
 | Member row | Owner avatar/name/task count, progress bar, inline Capacity | Group by task owner/member |
 | Task row ID | Type badge `Task` plus `TA-...` | Task-level identity |
 | Task Name | Inline editable input | Updates task title |
 | Work Product | Parent `US/DE` ID and title | Link/reference to parent Story/Defect |
-| State | Dropdown with `Defined`, `In-Progress`, `Completed` | Updates task state and refreshes parent work product roll-up |
+| State | Inline dropdown/control with full labels `Defined`, `In-Progress`, `Completed` | Updates task state and refreshes parent work product roll-up |
 | Capacity | Empty on task row, editable on member group row | Member/iteration capacity, not per-task capacity |
 | Estimate/ToDo/Actuals | Numeric hours | From task estimate/remaining/actual rollups |
 | Collapse | Arrow only | No boxed border around arrow |
@@ -274,10 +287,10 @@ type TeamStatusTaskRowDto = {
 | Release | `tasks[].release.name` | Release relation | No in P3.1 | Nullable -> blank |
 | State | `tasks[].state` | Task execution state | Yes | Only Defined/In-Progress/Completed |
 | Capacity | `groups[].capacityHours` | Member iteration capacity | Yes | Group row only; numeric >= 0 |
-| Estimate | `tasks[].estimateHours` / group total | Task estimate | No in P3.1 | Default 0 |
+| Estimate | `tasks[].estimateHours` / group total | Independent Task estimate | Yes for authorized Task Dashboard/Team Status flow | Default 0 |
 | ToDo | `tasks[].todoHours` / group total | Remaining task hours | No in P3.1 | Default 0 |
 | Actuals | `tasks[].actualHours` / group total | Time tracking or task actuals | No in P3.1 | Default 0 |
-| Owner | `tasks[].owner.displayName` | Task owner | No in P3.1 | Required for grouped rows; unassigned can appear as `Unassigned` only if backend supports it |
+| Owner | `tasks[].owner.displayName` | Task owner | Yes for authorized flow | Named owner must be active member of selected Team; null always renders `Unassigned` |
 
 ### 8.4 Capacity Storage
 
@@ -323,9 +336,11 @@ Rules:
 
 - Validate that the user can access the requested Project/Team.
 - Validate that the Iteration belongs to the requested Project/Team.
-- Return groups ordered by owner display name or configured team order.
+- Return active selected-Team member groups ordered by configured Team order or owner display name, followed by `Unassigned` when scoped null-owner Tasks exist.
+- Never substitute the authenticated user for a null Task owner and never render a stale/outside-Team owner as a current Team member.
 - Return task rows ordered by rank, then task key.
 - Return empty groups only if product decides to show all members; approved P3.1 mockup shows members with tasks.
+- Filtering and pagination may be server-side or client-side, but response totals must represent the full selected Iteration scope.
 
 ### 9.2 Update Member Capacity
 
@@ -397,7 +412,7 @@ Rules:
 - If all child Tasks under the same parent Story/Defect are now `Completed`, automatically update the parent Story/Defect status to `Completed`.
 - If the update reopens a Task from an all-completed parent roll-up, automatically update the parent Story/Defect status to `In-Progress`.
 - Reject updates when the task does not belong to the selected Project/Team/Iteration context.
-- Reject Viewer or unauthorized role mutation even if the UI allows a direct API call.
+- Reject Editor or unassigned-user mutation even if a direct API call is attempted.
 
 ### 9.4 Error Contract
 
@@ -412,7 +427,7 @@ Required validation cases:
 | Capacity < 0 | 400 field validation error |
 | Empty title | 400 field validation error |
 | Unsupported task state | 400 field validation error |
-| Viewer patch attempt | 403 permission error |
+| Editor/unassigned-user patch attempt | 403 permission error |
 | Task not in selected context | 404 or 403, based on existing API convention |
 
 ## 10. Calculation Rules
@@ -436,15 +451,15 @@ All calculations must use the same filtered task set returned by the selected Pr
 
 ## 11. Permissions
 
-| Role/permission | Read Team Status | Edit Capacity | Edit Task Name | Edit Task State |
+| Authority / Project Access | Read Team Status | Edit Capacity | Edit Task Name | Edit Task State |
 |---|---:|---:|---:|---:|
 | Workspace Admin | Yes | Yes | Yes | Yes |
-| Project Manager / Scrum Master | Yes | Yes | Yes | Yes |
-| Product Owner / BA | Yes | Optional by product permission | Optional by product permission | Optional by product permission |
-| Developer / QA | Yes | No by default | Own tasks only if permission allows | Own tasks only if permission allows |
-| Viewer | Yes | No | No | No |
+| Admin in assigned Project | Yes | Yes | Yes | Yes |
+| Editor in assigned Project | Hidden | No | No | No |
+| Editor in assigned Project | No | No | No | No |
+| Unassigned user | No | No | No | No |
 
-If the production RBAC model does not yet support field-level permissions, enforce a simple `can_edit_team_status` permission and keep Viewer read-only.
+This mapping is fixed by Project Access Level; there is no field-level permission editor in the MVP.
 
 ## 12. Acceptance Criteria
 
@@ -474,10 +489,13 @@ If the production RBAC model does not yet support field-level permissions, enfor
 24. Task Dashboard supports inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
 25. Task Dashboard inline controls do not trigger Task Detail navigation; Task ID remains the explicit navigation control.
 26. Capacity is inline editable at member group level for authorized users.
-27. Viewer can read Team Status and Task Dashboard but cannot edit Capacity, Task Name, Task State or Task Dashboard fields.
+27. Editor and unassigned users cannot open Team Status/Task Dashboard or mutate its fields.
 28. Inline edit validation errors are visible and do not silently corrupt table data.
 29. Row click opens the existing detail flow without triggering when clicking inline controls.
 30. Team Board, drag/drop, WIP limits and board transition rules are not required for P3.1.
+31. Team member rows match active membership of the selected Team; `Unassigned` is separate and has 0h Capacity.
+32. Every persisted child Task of scoped US/DE is counted once and its full State label is inline editable.
+33. Task Estimate, To Do and Actual remain independent through State changes.
 
 ## 13. Test Scenarios
 
@@ -502,13 +520,16 @@ If the production RBAC model does not yet support field-level permissions, enfor
 | P3-TS-TS-017 | Edit inline field in Task Dashboard | Task Detail does not open |
 | P3-TS-TS-018 | Source state Accepted is returned by backend | UI displays Completed |
 | P3-TS-TS-019 | Source state Idea is returned by backend | UI displays Defined |
-| P3-TS-TS-020 | Viewer opens Team Status | Values are readable but inline edit controls are disabled/read-only |
-| P3-TS-TS-021 | Viewer calls PATCH task API directly | API returns 403 |
+| P3-TS-TS-020 | Editor/unassigned user opens Team Status | Navigation is hidden or access is denied safely |
+| P3-TS-TS-021 | Editor/unassigned user calls PATCH task API directly | API returns 403 |
 | P3-TS-TS-022 | Request Iteration from another Team | API rejects with validation/access error |
 | P3-TS-TS-023 | Click task row outside inline inputs | Existing detail route opens |
 | P3-TS-TS-024 | Click State dropdown | Row detail does not open |
 | P3-TS-TS-025 | Empty Iteration has no tasks | Page shows empty table state without crashing |
 | P3-TS-TS-026 | Reopen one Task after all child Tasks completed | Task state persists; metrics recalculate; parent US/DE status becomes In-Progress |
+| P3-TS-TS-027 | Compare Settings Team membership with Team Status | Only active members of the selected Team appear as named groups |
+| P3-TS-TS-028 | Use a null-owner Task under a scoped parent | Task appears under `Unassigned` with 0h Capacity and is not attributed to a named member |
+| P3-TS-TS-029 | Edit Task State with non-zero Estimate/To Do/Actual | State persists; all three hour values remain unchanged |
 
 ## 14. Development Task Breakdown
 
@@ -519,7 +540,7 @@ If the production RBAC model does not yet support field-level permissions, enfor
 | P3-TS-03 | Implement capacity storage | Upsert member capacity by Project/Team/Iteration/User |
 | P3-TS-04 | Implement task patch behavior | Update task title/state from Team Status |
 | P3-TS-05 | Implement parent Work Product roll-up and status automation | Task state changes recalculate parent progress; all completed -> parent Completed; reopen -> parent In-Progress |
-| P3-TS-06 | Implement permission guards | Read/edit permissions and Viewer read-only enforcement |
+| P3-TS-06 | Implement permission guards | WA/Admin access plus Editor/unassigned hidden-and-denied enforcement |
 | P3-TS-07 | Build Team Status route/page | `Track > Team Status` page with approved layout |
 | P3-TS-08 | Build Iteration selector reuse | Same selector pattern as Iteration Status |
 | P3-TS-09 | Build grouped dense table | Header, totals row, group rows, task rows |

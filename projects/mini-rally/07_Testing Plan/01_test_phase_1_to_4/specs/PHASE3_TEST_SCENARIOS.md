@@ -19,9 +19,9 @@ Important scope rules:
 |---|---|---|---|---|---|
 | P3-TS-001 | P0 | Open Team Status | Open `Track -> Team Status` | Dedicated Team Status page opens; it is not Team Board | Not Run |
 | P3-TS-002 | P0 | Project/Team/Iteration context | Select Project/Team and Iteration | Team Status data is filtered by selected context and Iteration | Not Run |
-| P3-TS-003 | P0 | Group by member/owner | Open Team Status with assigned Tasks | Rows are grouped by member/owner; task rows remain task-level rows | Not Run |
+| P3-TS-003 | P0 | Selected-Team membership and grouping | Select a Team with active members, assigned Tasks and a null-owner Task | Only active members of the selected Team are member groups; every counted Task renders once; null-owner Tasks render under `Unassigned` with 0h capacity; no outside-Team member group appears | Fail confirmed 2026-08-14 |
 | P3-TS-004 | P1 | No local search/KPI strip | Inspect Team Status header | Local Team Status search input and KPI strip are not shown | Not Run |
-| P3-TS-005 | P1 | Task state options | Open task state inline control | Options are exactly `Defined`, `In-Progress`, `Completed` | Pass (M4 runtime) |
+| P3-TS-005 | P1 | Task state options | Open task state inline control | Every counted Task row renders and offers exactly the full labels `Defined`, `In-Progress`, `Completed` inline | Fail confirmed 2026-08-14: counted Task row/control absent |
 | P3-TS-006 | P0 | Inline edit Task name/state | Edit Task Name and State from Team Status | Values persist; parent roll-up refreshes | Partial (M4 runtime passed State synchronization; Name not exercised) |
 | P3-TS-007 | P0 | Partial task completion does not auto-complete parent | Complete only one child Task while other child Tasks remain not Completed | Parent Story/Defect does not auto-complete | Pass (M4 initial US-4821 state with 4/6 completed) |
 | P3-TS-008 | P0 | All Tasks completed auto-completes parent | Complete all child Tasks under a Story/Defect | Parent Story/Defect auto-completes to `Completed` | Pass (M4 runtime: US-4821) |
@@ -29,8 +29,8 @@ Important scope rules:
 | P3-TS-010 | P0 | Task Dashboard inline edit | Open parent Work Item Detail -> Tasks tab; edit Task Name, State, Owner, To Do, Actuals and Estimate inline | Edits persist and remain on Task Dashboard | Not Run |
 | P3-TS-011 | P1 | Task detail still opens | Click a Task row from Task Dashboard | Task Detail opens and reflects latest inline edits | Not Run |
 | P3-TS-012 | P1 | Unsupported source states normalize | Load source task/work item states outside Team Status task enum | Display normalizes to Team Status task values per SRS | Not Run |
-| P3-TS-013 | P1 | Capacity edit | Edit member capacity where permitted | Capacity persists; viewer/read-only user cannot edit | Not Run |
-| P3-TS-014 | P0 | Out-of-scope Project Admin read-only | Open Team Status and Task Dashboard as Project Admin outside managed Project | Values are readable; inline edit controls are hidden/disabled; backend rejects mutation | Not Run |
+| P3-TS-013 | P1 | Capacity edit | Edit member capacity as WA/Admin | Capacity persists; Editor/unassigned users cannot open or mutate Team Status | Not Run |
+| P3-TS-014 | P0 | Unauthorized Team Status isolation | Open Team Status as Editor or unassigned user | Navigation is hidden or access is denied safely; backend rejects mutation | Not Run |
 | P3-TS-015 | P0 | Team Board future guard | Inspect Track navigation and Phase 3 acceptance | Team Board is not required for Phase 3 pass; if visible, it is treated as Future Backlog | Not Run |
 | P3-TS-016 | P0 | Reopen child auto-reverses completed parent | Reopen a Task after the parent auto-completes | Task metrics recalculate and parent US/DE automatically moves from `Completed` to `In-Progress` | Pass (M4 rerun: Tasks active 8 -> 9; US-4821 Completed -> In-Progress) |
 | P3-TS-017 | P0 | Team Status and Task Dashboard share Task records | Edit a Task state on either screen and open the other | Same Task ID and latest state appear; no page-local duplicate is used | Pass (M4 runtime: TA-482106) |
@@ -51,10 +51,11 @@ Important scope rules:
 | P3-REL-010 | P0 | Assign Story/Defect to Release | Assign a Story/Defect from Backlog or Work Item Detail | Item appears in Release Artifacts and remains same Backlog work item | Pass (M5.3 runtime: US-4821) |
 | P3-REL-011 | P0 | One active Release per Story/Defect | Assign same Story/Defect to a different Release | Old Release assignment is replaced; no duplicate active Release assignment remains | Pass (M5.3 runtime: single releaseId) |
 | P3-REL-012 | P0 | Reassignment refreshes artifacts and counters | Move Story/Defect from Release A to Release B | Item disappears from Release A artifacts, appears in Release B, and counters/roll-ups refresh | Not Run |
-| P3-REL-013 | P1 | Release Artifacts table behavior | Open Release Artifacts | Assigned Story/Defect rows use Backlog-style search/sort/resize/pagination/inline edit where permitted | Not Run |
+| P3-REL-013 | P1 | Release Artifacts assignment display | Assign US, DE and Feature from Backlog/Work Item Detail or Portfolio Feature, then open Release Artifacts | Direct US/DE/Feature assignments appear after reload; Task/Epic do not | Fail confirmed 2026-08-15: existing US/DE add/remove persists, but FE-6 assigned to RE-2 is absent from RE-2 Artifacts |
+| P3-REL-FB-001 | Future Backlog | Add New Item from Release Artifacts | When reopened, create US/DE/Feature from Release Artifacts | Shared Backlog/Portfolio create flow opens with current Release prefilled; Create with details opens the same created item | Future Backlog — BA decision 2026-08-15 |
 | P3-REL-014 | P1 | Release readiness is user-managed | Inspect Release readiness behavior | System does not auto-calculate readiness; user reads linked US/DE release notes and Release Notes | Not Run |
-| P3-REL-015 | P0 | Out-of-scope Project Admin read-only | Open Release dashboard/detail as Project Admin outside managed Project | Values are readable; inline edit/create/assignment is hidden/disabled and API rejects mutation | Not Run |
-| P3-REL-016 | P0 | Release Progress is not Phase 3 | Inspect Timeboxes Release list and detail | No Release Progress column, percentage or progress widget is present; tracking remains Phase 5 `Portfolio > Release Planning` | Pass (M5.3 runtime) |
+| P3-REL-015 | P0 | Unauthorized Release isolation | Open Release dashboard/detail as Editor or unassigned user | Navigation is hidden or access is denied safely; API rejects mutation | Not Run |
+| P3-REL-016 | P0 | Release Progress is not Phase 3 | Inspect Timeboxes Release list and detail | No Task Roll-up, Accepted progress, Burndown or other progress widget is present; tracking belongs only to `Portfolio > Release Tracking` | Fail confirmed 2026-08-14: Task Roll-up is still shown |
 
 ## P3-MS - Milestones
 
@@ -68,12 +69,13 @@ Important scope rules:
 | P3-MS-006 | P1 | Searchable selection modals | Open Projects/Teams/Releases selectors | Modal supports search and checkbox selection | Not Run |
 | P3-MS-007 | P0 | Derived target dates | Link Releases with dates | Target Start Date derives from earliest linked Release start; Target End Date derives from latest linked Release date and both are read-only while linked | Pass (M5.3 runtime: 2026-07-01–2026-08-31) |
 | P3-MS-008 | P0 | No readiness checklist | Inspect Milestone detail | No readiness checklist is required or shown for Phase 3.3 | Not Run |
-| P3-MS-009 | P0 | Milestone Artifacts tab | Open Artifacts tab | Right metadata panel is hidden; assigned Story/Defect table is shown | Pass (M5.3 runtime) |
+| P3-MS-009 | P0 | Milestone Artifacts assignment display | Assign US/DE/Feature/Epic from their normal create/detail surfaces, then open Artifacts | Direct items appear; Feature/Epic descendants enter inherited scope once and existing rollups remain unchanged | Fail confirmed 2026-08-15: FE-6 retains MS-1 after Save/reload but is absent from MS-1 Artifacts; inherited Feature/Epic scope cannot be accepted |
+| P3-MS-FB-001 | Future Backlog | Add New Item from Milestone Artifacts | When reopened, create US/DE/Feature/Epic from Milestone Artifacts | Shared Backlog/Portfolio create flow opens with current Milestone prefilled; Create with details opens the same created item | Future Backlog — BA decision 2026-08-15 |
 | P3-MS-010 | P0 | Assign Story/Defect artifact | Assign Story/Defect within Milestone Project/Team scope | Artifact appears in Milestone Artifacts using Backlog-style presentation | Pass (M5.3 runtime: US-4821) |
 | P3-MS-011 | P0 | Reject artifact outside scope | Attempt assign Story/Defect outside selected Project/Team scope | Assignment is rejected | Not Run |
 | P3-MS-012 | P0 | Milestone artifact independent from Release | Add/remove Story/Defect from Milestone | Release assignment, Iteration assignment, Backlog rank and Work Item identity do not change | Pass (M5.3 runtime) |
 | P3-MS-013 | P1 | Same Story/Defect in multiple Milestones | Assign same Story/Defect to multiple valid Milestones | Multiple Milestone relations are allowed when scope rules pass | Not Run |
-| P3-MS-014 | P0 | Out-of-scope Project Admin read-only | Open Milestone dashboard/detail as Project Admin outside managed Project | Values are readable; create/edit/artifact assignment is hidden/disabled and API rejects mutation | Not Run |
+| P3-MS-014 | P0 | Unauthorized Milestone isolation | Open Milestone dashboard/detail as Editor or unassigned user | Navigation is hidden or access is denied safely; API rejects mutation | Not Run |
 | P3-MS-015 | P0 | Release and Milestone creation order is independent | Create either object first, then link Releases to a Milestone | Creation order does not block either object; linking creates a many-to-many relation rather than ownership | Pass (M5.3 runtime) |
 | P3-MS-016 | P0 | Work Item supports multiple Milestones | Add two valid Milestones to one Story/Defect | Both relations persist while the Work Item still has zero or one Release | Not Run |
 | P3-MS-017 | P0 | Related Milestone add options | Assign a Release to a Work Item and open Milestone multi-select | Existing selections remain visible; new options contain only Milestones related to the selected Release | Pass (M5.3 runtime) |
@@ -100,7 +102,7 @@ Important scope rules:
 | P3-QA-014 | P0 | Fixed In Build | Edit Fixed In Build | Optional manual text persists; no required format/blocking validation | Not Run |
 | P3-QA-015 | P1 | Flow State independent from Defect State | Edit Flow State without changing Defect State | Flow State uses shared US/DE catalog, mirrors Schedule State and persists independently from Defect State | Pass (M3 runtime: DE-1142 Flow Accepted -> Backlog Schedule Accepted) |
 | P3-QA-016 | P1 | Bulk actions future only | If bulk-action placeholder is visible, attempt action | Placeholder is disabled/future and does not execute mutation | Not Run |
-| P3-QA-017 | P0 | Out-of-scope Project Admin read-only | Open Quality Defect dashboard/detail as Project Admin outside managed Project | Values are readable; create/edit/state mutation is hidden/disabled and API rejects mutation | Not Run |
+| P3-QA-017 | P0 | Unassigned Quality isolation | Open Quality Defect dashboard/detail without that Project assignment | Project Defects are hidden and direct access/mutation is denied safely | Not Run |
 | P3-QA-018 | P0 | Quality uses reconciled status catalog | Inspect Schedule/Flow values and create a Defect | Both fields default to `Idea`, mirror each other and use exactly `Idea/Defined/In-Progress/Completed/Accepted/Release` | Not Run |
 
 ## Phase 3 smoke path

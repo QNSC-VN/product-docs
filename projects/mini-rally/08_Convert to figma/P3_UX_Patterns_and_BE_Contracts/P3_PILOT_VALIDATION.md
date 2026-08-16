@@ -1,5 +1,7 @@
 # Plan 3 — Pilot Validation
 
+> Historical pilot evidence. `Backlog as Project Member` describes the original frame name only; current product behavior uses Editor access scoped to assigned Teams.
+
 ## Method
 
 Every pattern was validated in two passes before being marked complete, the same protocol used in Plan 2:

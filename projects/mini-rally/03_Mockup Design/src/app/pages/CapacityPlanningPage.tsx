@@ -10,21 +10,19 @@ import {
   PRELIMINARY_ESTIMATE_POINT_FALLBACK, PRELIMINARY_ESTIMATE_COUNT_FALLBACK,
 } from "../model";
 import { EmptyState, TypeBadge } from "../components/shared";
-import { type RoleActionRow, permissionAllows } from "./SettingsPage";
 
 type UnitMode = CapacityPlan["viewBy"];
 
 /**
  * Two independent gates must both pass before a role may change a plan:
  * the temporary Capacity Planner Full/View permission from the saved role
- * matrix, and Project scope (a Project Admin only manages its assigned
+ * matrix, and Project scope (a Admin only manages its assigned
  * Projects). Passing the permission but failing scope, or vice versa, means
  * read-only. Capacity-planning action-level RBAC is intentionally deferred.
  */
-function canManageCapacityPlan(role: Role, projectKey: string, permissionMatrix: RoleActionRow[]) {
-  if (!permissionAllows(permissionMatrix, "capacity_planning:manage", role)) return false;
+function canManageCapacityPlan(role: Role, projectKey: string) {
   if (role === "Workspace Admin") return true;
-  if (role === "Project Admin") return ROLE_SCOPE.projectAdminProjectKeys.includes(projectKey as typeof ROLE_SCOPE.projectAdminProjectKeys[number]);
+  if (role === "Admin") return ROLE_SCOPE.adminProjectKeys.includes(projectKey as typeof ROLE_SCOPE.adminProjectKeys[number]);
   return false;
 }
 
@@ -703,13 +701,12 @@ type CapacityPlanningPageProps = {
   features: Feature[];
   workItems: WorkItem[];
   capacityPlans: CapacityPlan[];
-  permissionMatrix: RoleActionRow[];
   onCreateCapacityPlan: (input: NewCapacityPlanInput) => CapacityPlan;
   onUpdateCapacityPlan: (id: string, updater: (plan: CapacityPlan) => CapacityPlan) => void;
   onPublishCapacityPlan: (id: string, updateFields?: boolean) => void;
 };
 
-export function CapacityPlanningPage({ role, project, releases, features, workItems, capacityPlans, permissionMatrix, onCreateCapacityPlan, onUpdateCapacityPlan, onPublishCapacityPlan }: CapacityPlanningPageProps) {
+export function CapacityPlanningPage({ role, project, releases, features, workItems, capacityPlans, onCreateCapacityPlan, onUpdateCapacityPlan, onPublishCapacityPlan }: CapacityPlanningPageProps) {
   const [search, setSearch] = useState("");
   const [releaseFilter, setReleaseFilter] = useState("All");
   const [showCreate, setShowCreate] = useState(false);
@@ -732,18 +729,18 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
   const visiblePlans = projectPlans.filter(plan => {
     const matchesSearch = `${plan.id} ${plan.name} ${plan.release}`.toLowerCase().includes(search.toLowerCase());
     const matchesRelease = releaseFilter === "All" || plan.releaseId === releaseFilter;
-    // A Project Member only sees a plan once it is Published; Draft plans are
+    // A Editor only sees a plan once it is Published; Draft plans are
     // planning-in-progress and stay hidden from them entirely.
-    const visibleToRole = role !== "Project Member" || plan.status === "Published";
+      const visibleToRole = role !== "Editor";
     return matchesSearch && matchesRelease && visibleToRole;
   });
   const resolvedPlan = activePlanId ? capacityPlans.find(plan => plan.id === activePlanId) || null : null;
   // Mirrors the list rule above so a Draft plan cannot be reached by a Project
   // Member through stale state either.
-  const activePlan = resolvedPlan && role === "Project Member" && resolvedPlan.status !== "Published" ? null : resolvedPlan;
-  const canManageActivePlan = activePlan ? canManageCapacityPlan(role, activePlan.projectKey, permissionMatrix) : false;
+  const activePlan = resolvedPlan && role !== "Editor" ? resolvedPlan : null;
+  const canManageActivePlan = activePlan ? canManageCapacityPlan(role, activePlan.projectKey) : false;
   const canPublishActivePlan = canManageActivePlan;
-  const canCreatePlan = canManageCapacityPlan(role, project.key, permissionMatrix);
+  const canCreatePlan = canManageCapacityPlan(role, project.key);
   const editable = Boolean(activePlan && canManageActivePlan && activePlan.status === "Draft");
   const publishable = Boolean(activePlan && canPublishActivePlan && activePlan.status === "Draft");
 
@@ -935,8 +932,8 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
   }
 
   if (activePlan) {
-    const visibleTeams = role === "Project Member"
-      ? activePlan.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team.team as typeof ROLE_SCOPE.projectMemberTeams[number]))
+    const visibleTeams = role === "Editor"
+      ? activePlan.teams.filter(team => ROLE_SCOPE.editorTeams.includes(team.team as typeof ROLE_SCOPE.editorTeams[number]))
       : activePlan.teams;
     const sortedTeams = [...visibleTeams].sort((left, right) => teamSort === "capacity" ? right.capacity - left.capacity : left.team.localeCompare(right.team));
     const uniqueFeatureIdsInPlan = new Set(activePlan.allocations.map(allocation => allocation.featureId));
@@ -1270,9 +1267,9 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
                     <TeamHeaderCell>Planned Team Assignment</TeamHeaderCell>
                     <TeamHeaderCell>Team</TeamHeaderCell>
                     <TeamHeaderCell align="center">Dependencies</TeamHeaderCell>
-                    <TeamHeaderCell align="right">Complete</TeamHeaderCell>
                     <TeamHeaderCell align="right">Rollup</TeamHeaderCell>
                     <TeamHeaderCell align="right">Estimated</TeamHeaderCell>
+                    <TeamHeaderCell align="right">Complete</TeamHeaderCell>
                   </div>
                   {featureRows.map((row, rowIndex) => {
                     const teamAllocations = row.allocations.filter(allocation => allocation.team);
@@ -1369,13 +1366,13 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
                         </div>
                         <div className="truncate px-2">{projectLabel}</div>
                         <div className="flex justify-center px-2"><span className="rounded px-2 py-0.5 text-[11px]" style={{ border: "1px solid #c8d3e0", color: "#2f6fd6", backgroundColor: "#fff" }}>0</span></div>
-                        <MetricCell value={row.completed} pct={0} showPercent={false} />
                         <div className="flex items-center justify-end gap-1.5 px-2 text-right tabular-nums"><WarningIndicator messages={rollupWarnings} /><span>{formatCapacityNumber(row.rollup)}</span></div>
                         <div className="flex items-center justify-end gap-1.5 px-2 text-right tabular-nums">
                           <WarningIndicator messages={estimateWarnings} />
                           <span>{row.estimated > 0 ? formatCapacityNumber(row.estimated) : "—"}</span>
                           <EstimateSourceIndicator trace={{ current: row.estimateSource, allocated: allocatedEstimate, refined: typeof refinedEstimate === "number" && Number.isFinite(refinedEstimate) ? refinedEstimate : 0, preliminary: preliminaryEstimate, manual: hasManualAllocation }} />
                         </div>
+                        <MetricCell value={row.completed} pct={0} showPercent={false} />
                       </div>
                       {teamAllocations.length > 1 && teamAllocations.map(allocation => {
                         const teamMetric = getFeatureMetrics(row.feature, workItems, activePlan.viewBy, allocation.team || undefined);
@@ -1390,13 +1387,13 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
                             <div className="truncate px-2">{allocation.team}</div>
                             <div className="truncate px-2">{projectLabel}</div>
                             <div />
-                            <MetricCell value={teamMetric.complete} pct={0} showPercent={false} />
                             <div className="flex items-center justify-end gap-1.5 px-2 text-right tabular-nums"><WarningIndicator messages={allocationRollupWarnings} /><span>{formatCapacityNumber(teamMetric.rollup)}</span></div>
                             <div className="flex items-center justify-end gap-1.5 px-2 text-right tabular-nums">
                               <WarningIndicator messages={allocationEstimateWarnings} />
                               <span>{formatCapacityNumber(allocation.value)}</span>
                               <EstimateSourceIndicator trace={estimateTraceForAllocation(row.feature, allocation, activePlan.viewBy)} />
                             </div>
+                            <MetricCell value={teamMetric.complete} pct={0} showPercent={false} />
                           </div>
                         );
                       })}
@@ -1472,7 +1469,7 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
               <div>{plan.release}</div>
               <div><CapacityStatusBadge status={plan.status} /></div>
               <div>{plan.lastUpdated}</div>
-              <div className="text-right"><span className="px-2 py-1 rounded-sm" style={{ color: "#2f6fd6", border: "1px solid #c8d3e0" }}>{role === "Project Member" ? plan.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team.team as typeof ROLE_SCOPE.projectMemberTeams[number])).length : plan.teams.length}</span></div>
+              <div className="text-right"><span className="px-2 py-1 rounded-sm" style={{ color: "#2f6fd6", border: "1px solid #c8d3e0" }}>{role === "Editor" ? plan.teams.filter(team => ROLE_SCOPE.editorTeams.includes(team.team as typeof ROLE_SCOPE.editorTeams[number])).length : plan.teams.length}</span></div>
             </button>
           ))}
           {visiblePlans.length === 0 && <EmptyState title="No Capacity Plans" body="Create a single-Release plan, then add Teams and Features before setting allocations." icon={<BarChart2 size={18} />} />}

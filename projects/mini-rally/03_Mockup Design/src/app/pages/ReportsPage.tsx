@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, CheckCircle2, ChevronDown, ChevronLeft, ChevronRight, Download } from "lucide-react";
 import {
   Bar,
@@ -136,7 +136,10 @@ function average(values: number[]) {
 }
 
 function VelocityChart({ projectKey, team }: { projectKey: string; team: string }) {
-  const [velocityWindow, setVelocityWindow] = useState<5 | 10>(5);
+  const [velocityWindow, setVelocityWindow] = useState<5 | 10>(() => window.localStorage.getItem("mini-rally.velocity-window") === "5" ? 5 : 10);
+  useEffect(() => {
+    window.localStorage.setItem("mini-rally.velocity-window", String(velocityWindow));
+  }, [velocityWindow]);
   const completedIterations = useMemo(() => VELOCITY_DATA
     .filter(iteration => iteration.projectKey === projectKey && (team === "All Teams" || iteration.team === team) && iteration.hasScheduledItems && new Date(`${iteration.endDate}T23:59:59`).getTime() < Date.now())
     .sort((left, right) => left.endDate.localeCompare(right.endDate)), [projectKey, team]);
@@ -269,7 +272,7 @@ function TeamCapacity({ projectKey, team, iterations, selectedIteration, items, 
 }
 
 export function ReportsPage({ role, readOnly = false, projectKey, team = "All Teams", iterations, items, tasks }: { role: Role; readOnly?: boolean; projectKey: string; team?: string; iterations: IterationItem[]; items: WorkItem[]; tasks: TaskItem[] }) {
-  const canExport = !readOnly && role !== "Project Member";
+  const canExport = !readOnly && role !== "Editor";
   const [selectedReport, setSelectedReport] = useState<ReportView>("burndown");
   const availableIterations = useMemo(() => iterations.filter(iteration => iteration.projectKey === projectKey && (team === "All Teams" || iteration.team === team)), [iterations, projectKey, team]);
   const [selectedIterationId, setSelectedIterationId] = useState("IT-24-3");

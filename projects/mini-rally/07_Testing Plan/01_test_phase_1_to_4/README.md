@@ -34,7 +34,8 @@ When an older SRS conflicts with a later BA confirmation, the E2E test follows t
 
 ## Files
 
-- `BUSINESS_E2E_TEST_TRACKER.xlsx`: master execution, baseline, data and gap tracker.
+- `../PHASE_0_6_AUDIT_TRACKER.xlsx`: current master execution and status tracker for Phase 0–6.
+- `../03_Retest/DEV_HANDOFF_RETEST_PHASE_0_6.md`: current consolidated DEV handoff.
 - `BUSINESS_BASELINE.md`: concise status/cardinality/propagation rules used by the test.
 - `specs/`: test strategy, Phase 0–4 scenarios, E2E suites and traceability matrix.
 - `notes/`: one note per checkpoint or confirmed gap group.
@@ -71,5 +72,5 @@ When an older SRS conflicts with a later BA confirmation, the E2E test follows t
 - `E2E-07`: `TA-8` and `TA-9` were created once under US-12, defaulted Defined, inherited NXP/no-Team context, persisted after reload, and did not appear in Backlog.
 - Task count is inconsistent: the table has two rows and roll-up Estimate is 6h, but the tab still displays `0 Tasks`.
 - Create Task exposes editable Estimate without To Do/Actuals, and Task rows do not expose the confirmed inline editing controls.
-- BA confirmed all three Task gaps: count must equal the persisted child Task total, time fields must follow the defined `Estimate = To Do + Actuals` contract, and Task Dashboard must support inline editing.
+- BA confirmed all three Task gaps: count must equal the persisted child Task total, Estimate/To Do/Actual must remain independent after the one-time create copy, and Task Dashboard must support inline editing.
 - `E2E-08` is paused before execution because DevInt was turned off. Resume from Task time/status propagation using existing `TA-8` and `TA-9`; do not recreate the controlled Tasks.

@@ -699,7 +699,11 @@ export function IterationsPage({ role, readOnly = false, iterations, releases, m
     if (timeboxType === "Milestones" && column.key === "endDate") return { ...column, label: "Target End Date" };
     if (timeboxType === "Releases" && column.key === "endDate") return { ...column, label: "Release Date" };
     return column;
-  }).filter(column => timeboxType !== "Milestones" || ["name", "startDate", "endDate", "state"].includes(column.key)), [timeboxType]);
+  }).filter(column => {
+    if (timeboxType === "Milestones") return ["name", "startDate", "endDate", "state"].includes(column.key);
+    if (timeboxType === "Iterations" && column.key === "project") return false;
+    return true;
+  }), [timeboxType]);
   const tableWidth = displayColumns.reduce((total, column) => total + columnWidths[column.key], 0) + 40;
   const showColumn = (key: IterationColumnKey) => displayColumns.some(column => column.key === key);
 
@@ -712,7 +716,10 @@ export function IterationsPage({ role, readOnly = false, iterations, releases, m
   const filteredIterations = useMemo(() => {
     const normalized = search.trim().toLowerCase();
     const filtered = listItems.filter(iteration => {
-      const matchesSearch = !normalized || [iteration.name, iteration.theme, iteration.project, iteration.state].some(value => String(value).toLowerCase().includes(normalized));
+      const searchableValues = timeboxType === "Iterations"
+        ? [iteration.name, iteration.theme, iteration.state]
+        : [iteration.name, iteration.theme, iteration.project, iteration.state];
+      const matchesSearch = !normalized || searchableValues.some(value => String(value).toLowerCase().includes(normalized));
       const matchesState = timeboxType !== "Iterations" || stateFilter === "All" || iteration.state === stateFilter;
       return matchesSearch && matchesState;
     });

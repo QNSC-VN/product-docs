@@ -1,5 +1,7 @@
 # Phase 6 - Reports > Team Capacity
 
+> **Project Access:** Workspace Admin and assigned-Project `Admin` can open this read-only report. `Editor` and unassigned users cannot open Reports. Viewer/selectable No Access are Future Backlog.
+
 ## 1. Scope boundary
 
 Team Capacity is a read-only report for one selected Iteration. It reuses Team Status capacity and Task-hour data and does not create a second planning or capacity-editing workflow.
@@ -45,7 +47,9 @@ Build the member list as the union of:
 
 This ensures a member with planned capacity but no Tasks remains visible, and a Task owner without a capacity record is not silently dropped. A missing capacity record displays `0h` and should be treated as a planning/data-quality gap, not inferred from Task hours.
 
-Unassigned Tasks, if supported by the shared Task model, appear under an `Unassigned` group with `0h` capacity.
+Every Task with a null Owner appears under an `Unassigned` group with `0h` capacity. It must never be attributed to the signed-in user, a current member, or any other named member. A Task owner who is not an active member of the selected Team may remain visible as a task-only row with `0h` capacity, but must not be represented as an active Team member.
+
+Task `Estimate`, `To Do` and `Actual` are independent current values. On Task creation only, an entered Estimate copies once to a blank To Do; completing or reopening a Task never changes any of these values.
 
 ## 5. Logical data contract
 
@@ -126,6 +130,8 @@ type TeamCapacityHours = {
 4. A member with `60h` capacity and no scoped Tasks displays `60h / 0h / 0h / 0h`.
 5. A Task owner with no capacity record remains visible with `0h` capacity and their Task-hour totals.
 6. If a Task has Estimate `6h`, ToDo `2h` and Actual `8h`, the report displays those values as-is; it does not cap Actual or derive ToDo.
+7. A null-owner Task contributes only to `Unassigned` with `0h` capacity and never inflates a named member's totals.
+8. Completing or reopening a Task does not alter the report's Estimate, ToDo or Actual values unless a user explicitly edits those fields.
 
 ## 8. DEV handoff requirements
 

@@ -15,31 +15,31 @@ Same template and rule as `P4_SCREEN_CONTRACTS.md` / `P5_SCREEN_CONTRACTS.md`: U
 | Navigation | Clicking a notification or "Go to item" opens the related Work Item Detail. If the target is no longer accessible, this must resolve to the shared Not Found/Access Denied state (`P3_RBAC_AND_SYSTEM_STATES.md`), never a raw error. |
 | Audit | Not in scope — Notifications are excluded from the Audit Log's event scope (Settings/Audit SRS §8, "excluded event scope" list implicitly; notifications aren't administrative/settings actions). |
 
-## Contract 14 — Roles & Permissions Matrix (`SCR-09`)
+## Contract 14 — Permission Model (`SCR-09`)
 
 | Field | Value |
 |---|---|
-| Context required | Workspace Admin session. Screen is entirely `H` (hidden) for Project Admin/Project Member per RBAC SRS §3.8 and `workspace_settings:view`/`permission_matrix:edit` matrix rows. |
-| Read model | Full `Screen`/`Action`/`Permission`/`WA`/`PA`/`PM` matrix — 75 rows in the mockup baseline (`PROD_ROLE_ACTION_MATRIX`); Figma shows 12 representative rows covering every distinct visual case (see `P6_PROGRESS.md` for the exact selection rationale). **Not exhaustive** — always check the mockup source for a specific row not shown in Figma. |
-| Enumerations | `E`/`R`/`D`/`H` per cell (`Permission State Chip`). `Locked` rows (Auth/App Shell/Notifications/Personal) never become editable regardless of edit mode — a business rule, not a UI accident (SRS §2 "System baseline rows display a lock and never become dropdowns in matrix Edit mode"). |
-| Actions | Edit (unlocks PA/PM cells as dropdowns; WA column and locked rows stay fixed); Save (persists, returns to read-only display, creates an audit event). |
-| Mutation states | `idle` (locked display) → `editing` (dropdowns active for unlocked PA/PM cells) → on Save: persists and returns to `idle`. No `validation-error` state exists — any `E`/`R`/`D`/`H` value is always valid for any cell. |
-| Authorization | `E` for Workspace Admin only (`role === "Workspace Admin"` gates `canEditPermissionMatrix` in the mockup exactly). Editing one row's `E`/`R`/`D`/`H` per role must not change any other row's permission code — action independence is a confirmed business rule (SRS §2), not incidental. |
+| Context required | Signed-in user. Workspace Admin sees the full explanation; a normal user can see `My Permissions` for their own Project assignments. |
+| Read model | One company authority (`Workspace Admin`) and four contextual Project Access Levels: `Admin`, `Editor`, `Viewer`, `No Access`; includes scope and allowed outcomes per feature. |
+| Enumerations | UI outcomes are `Allowed`, `Read-only` and `Hidden`. `Disabled` is reserved for temporary validation/lifecycle state and is not an Access Level. |
+| Actions | None. Permission Model is explanatory and read-only. Access is changed only through Users > Project Access or Project > Users & Permissions by Workspace Admin. |
+| Mutation states | N/A — read-only surface. |
+| Authorization | The displayed model never grants access. Effective authorization is calculated from Workspace Admin status or the user's Access Level in the active Project. |
 | Navigation | None — this is a standalone configuration screen. |
-| Audit | **Required.** Saving matrix changes must create an audit event identifying actor, changed role, screen/action, old state, new state and time (SRS §3.8). This is one of the five event types Audit Log (`SCR-13`) is scoped to include. |
+| Audit | N/A. Project-access changes are audited at the management journey where Workspace Admin saves them. |
 
-## Contract 15 — Settings: Workspace / Teams / User Management (`SCR-10`, `SCR-11`, `SCR-12`)
+## Contract 15 — Settings: Workspace / Workspaces & Projects / Users (`SCR-10`, `SCR-11`, `SCR-12`)
 
 | Field | Value |
 |---|---|
-| Context required | Workspace Admin session for all three — entirely `H` for Project Admin/Project Member (SRS Settings & Audit §3.2, §7). |
-| Read model | **Workspace Settings**: Company Name (editable), Workspace Slug/Company Scope/Workspace Admin (read-only display). **Teams**: Name/Project/Lead/Members/Status/Updated. **User Management**: Name/Email/Phone/Role/Status/Last Login, searchable by name/phone/email, filterable by role. |
+| Context required | Workspace Settings and Users require Workspace Admin. Workspaces & Projects is available to normal users, limited to Projects/Teams they can access. |
+| Read model | **Workspace Settings**: Company Name, Workspace Slug/Company Scope and internal Workspace Admin display. **Workspaces & Projects**: Project tree, Details, Users & Permissions and Teams. **Users**: Name/Email/Phone/Disabled/Planner/Last Login plus User Details and Project Access. |
 | Enumerations | Team status reuses `Entity Status Badge` `Active`/`Deactive`. User status reuses the same component's `Active`/`Invited`/`Deactive` variants — these variants existed in the library since P4 specifically anticipating this screen (`MACHINE_HANDOFF.md`). |
-| Actions | Workspace Settings: Save Changes. Teams: Create/Edit Team, Deactivate/Restore (destructive, see Contract 16). User Management: Invite User, click a row to open User Details (Name/Role/Status/Phone editable, Email read-only, Remove User Access destructive). |
+| Actions | Workspace Admin: edit Workspace Settings; CRUD Projects/Teams; invite/disable users; assign Project Access and Team membership. Project `Admin`: read-only Details/Teams/Users & Permissions for its assigned Project. Editor/Viewer see only their accessible Project/Team context. |
 | Mutation states | Standard `idle`→`submitting`→`success`/`server-error` per the shared mutation state machine (`P3_UI_API_CONTRACTS.md`). Workspace Settings save must create an audit event (SRS §3.4). |
-| Authorization | Workspace Admin only for all three screens, no partial-access variant — unlike Project Admin's Manage Projects nuance (full CRUD in assigned projects, read-only elsewhere), there is no "assigned subset" concept for workspace-level Teams/Users/Settings; it's binary WA-vs-everyone-else. |
-| Navigation | Entry points are fixed and singular per SRS: top-right gear only (never via the workspace dropdown's Manage Projects, which is Project-scoped only per the reconciled P4-SET-02 decision). |
-| Audit | User Management and Teams mutations are all in the Audit Log's included event scope (invite, info/role/status/team-allocation update, removal/deactivation; team create/edit/status changes handled the same way per SRS §8). |
+| Authorization | Only Workspace Admin mutates company users, Project structure, Team structure, Project Access or Team membership. Project `Admin` does not gain structural management from its delivery access. Workspace Admin is not listed as a Project member or candidate. |
+| Navigation | Single entry point through the top-right Settings gear; no duplicate Manage Projects route. |
+| Audit | Successful administrative changes to Workspace, Projects, Teams, users, Project Access and Team membership are included. |
 
 ## Contract 16 — Destructive Confirmation Pattern (applies across `SCR-11`, `SCR-12`, Manage Projects)
 
@@ -55,14 +55,14 @@ Same template and rule as `P4_SCREEN_CONTRACTS.md` / `P5_SCREEN_CONTRACTS.md`: U
 
 | Field | Value |
 |---|---|
-| Context required | Workspace Admin session; `H` for Project Admin/Project Member (project-level audit visibility is explicitly deferred to a future P4.3 refinement per SRS §3.7). |
+| Context required | Workspace Admin session; hidden for all normal Project access levels. |
 | Read model | Time (weekday, month, day, year, hour, minute, second) / Actor / Detail — a single readable sentence, deliberately with **no separate Action or Entity column** (SRS §8, a confirmed simplification, not an oversight). |
 | Enumerations | None — Detail is free text describing the event. |
 | Actions | Search by actor name; search by time text. No create/edit/delete actions exist for audit rows — the log is read-only by design. |
 | Mutation states | N/A — read-only surface. |
 | Authorization | View-only, Workspace Admin only. No role can mutate audit entries under any circumstance. |
 | Navigation | None. |
-| Audit | N/A (this screen *is* the audit surface). Included event scope: Workspace Settings save, user invite/info/role/status/team-allocation update, user removal/deactivation, role permission matrix save, team administrative changes. Excluded: all work item/task/defect field changes, notes/mentions/attachments/watchers, iteration/sprint/release execution activity, reporting/portfolio activity. |
+| Audit | N/A (this screen *is* the audit surface). Included event scope: Workspace Settings save, Project/Team administrative changes, user invite/info/status changes, Project Access and Team membership changes, user removal/deactivation. Excluded: delivery-item edits, notes/mentions/attachments/watchers, iteration/release execution and reporting activity. |
 
 ## Open questions added by P6
 
@@ -70,7 +70,7 @@ These extend Q-01…Q-14 from prior plans.
 
 | ID | Question | Why it matters |
 |---|---|---|
-| Q-15 | Should Project Admin/Project Member's Settings sidebar fully omit WA-only items, or show them locked-with-a-lock-icon (as the current mockup renders)? | SRS wording says "do not see" (implying hidden/`H`); the mockup code renders `opacity-40` + lock icon (a `D`-style visible-but-disabled treatment). Resolved for this pass by treating the SRS as authoritative per Plan 0's source precedence — Figma's PA/PM App Shell should omit these items — but this is worth a BA confirmation since the mockup's simulation behavior may be intentional (so BA/testers can see every surface exists while validating the role switcher). |
+| Q-15 | Resolved 2026-08-10: how are non-WA settings shown? | `Workspaces & Projects` remains visible but scoped/read-only so a user can understand Project Access and Team context. WA-only mutation controls and company-management surfaces are hidden. |
 | Q-16 | What should the "blocked delete" dependency modal look like when a Project/Team/user removal is prevented by linked data? | SRS §9 requires this behavior but no Figma composition exists yet for it (nor does the mockup appear to fully implement it based on available source). Carries forward the same gap flagged as Q-10 in Plan 4. |
 
 ## Coverage note

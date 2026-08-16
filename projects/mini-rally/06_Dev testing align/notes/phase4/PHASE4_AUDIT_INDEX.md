@@ -3,7 +3,9 @@
 Date: 2026-07-24
 Environment: `https://rally-dev.qnsc.vn/`
 Baseline: Phase 4 SRS + mockup + confirmed Phase 4 tracking/checklist
-Tracker: `DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx`
+Current tracker: `07_Testing Plan/PHASE_0_6_AUDIT_TRACKER.xlsx`
+
+> **Historical evidence notice — 2026-08-10:** This file preserves what was audited on 2026-07-24. Its three-global-role and editable E/R/D/H wording is no longer the current requirement. Retests must use `Phase 4/02_Roles_Permissions/SRS.md`: Workspace Admin plus per-Project Admin/Editor/Viewer/No Access, with WA-only Project/Team/user-access administration.
 
 ## Scope
 
@@ -45,7 +47,7 @@ All Phase 4 classifications and correction directions were BA confirmed on 2026-
 | P4-SET-03 | Retest Passed | Project Settings has one entry point via Manage Projects | None |
 | P4-SET-04 | Gap Confirmed | Columns/filter work; event scope/detail mismatch | GAP-P4-SET-003 |
 | P4-SET-05 | Gap Confirmed | Team/User confirmation flows absent or unreachable | GAP-P4-SET-004 |
-| P4-SET-06 | Gap Confirmed | Notification Preferences placeholder is outside approved Phase 4 scope | GAP-P4-SET-005 |
+| P4-SET-06 | Gap Confirmed | Notification Preferences remains Future Backlog; current Settings entry must be removed/hidden | GAP-P4-SET-005 |
 
 ## Key Business Mismatches
 
@@ -59,8 +61,9 @@ All Phase 4 classifications and correction directions were BA confirmed on 2026-
 
 ### User Management
 
-- Approved list columns: Name, Email, Phone number, Role, Status, Last Login.
-- DevInt replaces Phone number with Teams.
+- Approved list columns: Name, Email, Role, Status, Last Login.
+- Phone is required only in User Detail/Profile; Teams must not be a list column.
+- DevInt's missing Phone list column is not a defect; the Teams list column and missing Phone in User Detail remain defects.
 - Unsupported/blank roles are still present.
 - Non-admin detail must support Name, Phone number, Role and Status; Email remains read-only.
 - Remove User Access must exist and use typed confirmation.

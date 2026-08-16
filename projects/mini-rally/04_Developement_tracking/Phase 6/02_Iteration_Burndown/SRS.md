@@ -1,5 +1,7 @@
 # Phase 6 - Reports > Iteration Burndown
 
+> **Project Access:** Workspace Admin and assigned-Project `Admin` can open this read-only report. `Editor` and unassigned users cannot open Reports. Viewer/selectable No Access are Future Backlog.
+
 ## 1. Scope boundary
 
 Iteration Burndown displays execution progress for one selected Iteration. It uses Task hours for remaining and ideal work, plus accepted Story/Defect points on a separate axis.

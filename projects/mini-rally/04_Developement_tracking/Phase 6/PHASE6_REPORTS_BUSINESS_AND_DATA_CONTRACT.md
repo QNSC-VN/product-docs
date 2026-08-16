@@ -1,5 +1,7 @@
 # Phase 6 Reports - Business and Data Contract
 
+> **Authorization baseline (2026-08-14):** Reports are available to Workspace Admin and assigned-Project `Admin`; they remain read-only. `Editor` and unassigned users cannot open Reports. Viewer is Future Backlog. Server-side queries must enforce the selected Project boundary.
+
 ## 1. Document control
 
 | Attribute | Value |
@@ -83,6 +85,8 @@ Team Capacity is a read-only report projection of the same capacity and Task-hou
 - It must not maintain a separate capacity store.
 - Capacity is persisted by Project, Team, Iteration and Member.
 - Estimate, ToDo and Actual are current Task values in the selected scope.
+- The three Task hour fields are independent after the one-time create behavior: when Estimate is entered and To Do is blank, creation copies Estimate to To Do once. Task completion/reopen never changes the hour fields.
+- A null-owner Task is reported only under `Unassigned` with `0h` capacity and is never attributed to a named member.
 - Changing the Iteration or global Team context recalculates every total and row.
 
 Detailed contract: `04_Team_Capacity/SRS.md`.

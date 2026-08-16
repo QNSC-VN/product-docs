@@ -6,115 +6,101 @@
 |---|---|
 | Phase | Phase 4 - Collaboration & Governance |
 | Current delivery slice | Feature-by-feature BA handoff |
-| Company scope | Single-company: `ACME Space Inc.` |
+| Company scope | Single company: `ACME Space Inc.` |
 | Overall status | `PHASE 4 BA/MOCKUP READY; DEV NOT STARTED` |
 | Production implementation | Not started |
-| Last updated | 2026-07-16 |
+| Last updated | 2026-08-10 |
 
 BA working rule:
 
-- Phase 4 is split into 3 features and will be handled one feature at a time.
-- Within a feature, complete one task, then wait for BA confirmation before starting the next task.
-- If any business question appears, ask BA before deciding.
-- Team Board remains Future Backlog and is not part of Phase 4 core scope.
+- Phase 4 is split into three features and handled one feature at a time.
+- Within a feature, complete one task and wait for BA confirmation before the next task.
+- Ask BA whenever a business question appears.
+- Team Board, configurable Workflow Status, Labels and Notification Preferences remain Future Backlog.
 
 ## 2. Phase 4 Features
 
 | Feature | Name | Purpose | BA status | Dev status |
 |---|---|---|---|---|
-| P4.1 | Notifications | In-app popup and Notification Center for US/DE assignment and Note mentions | Ready | Not started |
-| P4.2 | Roles & Permissions | Three-role RBAC, contextual access, action matrix and safe denied states | Ready | Not started |
-| P4.3 | Settings & Audit | Workspace settings, Phase 1 project settings alignment, user management, audit log and destructive confirmations | Ready | Not started |
+| P4.1 | Notifications | Assignment and Note-mention notification, popup, read state and route to US/DE | Ready | Not started |
+| P4.2 | Project Access & Permissions | Workspace Admin authority plus per-Project Admin/Editor; unassigned Project hidden/denied | Ready | Not started |
+| P4.3 | Settings & Audit | Workspace settings, Users, Workspaces & Projects, Permission Model, Audit and confirmations | Ready | Not started |
 
 ## 3. Status Legend
 
 | Status | Meaning |
 |---|---|
-| `PENDING` | Not yet started by BA |
-| `IN BA BASELINE` | BA is drafting scope from current roadmap/mockup |
-| `READY FOR BA REVIEW` | Draft is complete and waiting for BA confirmation before next task |
-| `READY` | BA/mockup/SRS are ready for development |
-| `NOT STARTED` | Production code not started |
+| `PENDING` | Not started |
+| `READY` | BA/SRS/mockup ready for development |
 | `IN PROGRESS` | Development in progress |
-| `BLOCKED` | Cannot continue without dependency/decision |
-| `DONE` | Code, tests and acceptance criteria passed |
-| `DEFERRED` | Moved out of current phase/slice |
+| `BLOCKED` | Cannot continue without a dependency or decision |
+| `DONE` | Implementation, tests and acceptance passed |
+| `DEFERRED` | Moved out of the current phase |
 
 ## 4. Development Task Plan - P4.1 Notifications
 
-| ID | Module | Task | Deliverable | Dependency | Estimate | Actual | Status |
-|---|---|---|---|---|---:|---:|---|
-| P4-NOTIF-01 | BA/SRS | Define notification scope and event taxonomy | `01_Notifications/SRS.md` baseline from roadmap and mockup | Phase 1-3 records | 1.0h | 1.0h | `DONE` |
-| P4-NOTIF-02 | Contract | Define Notification DTO and API contracts | List, mark read, mark all read, popup and route target contracts | P4-NOTIF-01 | 1.0h | 0h | `PENDING` |
-| P4-NOTIF-03 | Backend | Implement notification storage and query | Persist notifications, read/unread state, filters and pagination | P4-NOTIF-02 | 2.0h | 0h | `PENDING` |
-| P4-NOTIF-04 | Backend | Emit US/DE assignment events | Create notification when US/DE assignee becomes the current user | P4-NOTIF-03 | 1.5h | 0h | `PENDING` |
-| P4-NOTIF-05 | Backend | Emit US/DE Note mention events | Create notification when user is mentioned in a Note on a US/DE | P4-NOTIF-03 | 1.5h | 0h | `PENDING` |
-| P4-NOTIF-06 | Frontend | Notification bell and unread badge | Badge count sourced from API/session state | P4-NOTIF-02, P4-NOTIF-03 | 1.0h | 0h | `PENDING` |
-| P4-NOTIF-07 | Frontend | Notification center list and filters | All, Unread, Assigned and Mentions filters | P4-NOTIF-03 | 1.5h | 0h | `PENDING` |
-| P4-NOTIF-08 | Frontend | Read/unread interactions | Item click marks read; Mark all as read persists | P4-NOTIF-03, P4-NOTIF-07 | 1.0h | 0h | `PENDING` |
-| P4-NOTIF-09 | Frontend | Notification route to item | Card and Go to item open the related US/DE Work Item | P4-NOTIF-02, P4-NOTIF-07 | 1.0h | 0h | `PENDING` |
-| P4-NOTIF-10 | Frontend | In-app popup | New assignment/mention notification appears as popup for the recipient | P4-NOTIF-02, P4-NOTIF-03 | 1.0h | 0h | `PENDING` |
-| P4-NOTIF-11 | Security | Permission-aware notification access | Users only receive/read notifications for accessible workspace/project/team records | P4.2 baseline | 1.0h | 0h | `PENDING` |
-| P4-NOTIF-12 | Verification | Notification tests | API, permission, persistence and UI smoke tests | P4-NOTIF-01..11 | 2.0h | 0h | `PENDING` |
+| ID | Module | Task | Deliverable | Dependency | Status |
+|---|---|---|---|---|---|
+| P4-NOTIF-01 | BA/SRS | Define event scope | US/DE assignment and Note mention only | Phase 1 Work Items | `DONE` |
+| P4-NOTIF-02 | Contract | Define notification contract | List, filters, read, popup and target route | P4-NOTIF-01 | `PENDING` |
+| P4-NOTIF-03 | Backend | Persist notifications | Recipient isolation, read state and pagination | P4-NOTIF-02 | `PENDING` |
+| P4-NOTIF-04 | Backend | Emit assignment event | Assigned user receives one notification | P4-NOTIF-03 | `PENDING` |
+| P4-NOTIF-05 | Backend | Emit Note mention event | Mentioned user receives popup/list entry | P4-NOTIF-03 | `PENDING` |
+| P4-NOTIF-06 | Frontend | Notification Center | Bell, unread count, filters and read actions | P4-NOTIF-02..05 | `PENDING` |
+| P4-NOTIF-07 | Frontend | Route to item | Open related US/DE from card and popup | P4-NOTIF-06 | `PENDING` |
+| P4-NOTIF-08 | Security | Permission-aware delivery | Do not expose inaccessible Project/Team items | P4.2 | `PENDING` |
+| P4-NOTIF-09 | Verification | Notification tests | Event, recipient, state, route and denied-target tests | P4-NOTIF-01..08 | `PENDING` |
 
-## 5. Development Task Plan - P4.2 Roles & Permissions
+## 5. Development Task Plan - P4.2 Project Access & Permissions
 
-| ID | Module | Task | Deliverable | Dependency | Estimate | Actual | Status |
-|---|---|---|---|---|---:|---:|---|
-| P4-RBAC-01 | BA/SRS | Define role model and permission matrix | Three-role baseline: Workspace Admin, Project Admin and Project Member; Project Admin manages assigned Project list and views other Projects read-only | Phase 0-4 access rules | TBD | 2.0h | `DONE` |
-| P4-RBAC-02 | BA/SRS | Define effective permission business rules | Three-role-only mockup, contextual role simulation, independent actions, fixed notifications, system/governance rules, effective timing, audit, and safe Access Denied/Not Found states | P4-RBAC-01 | TBD | 3.5h | `DONE` |
-| P4-RBAC-03 | Backend | Enforce workspace/project membership | Access-denied behavior and data isolation | P4-RBAC-02 | TBD | 0h | `PENDING` |
-| P4-RBAC-04 | Backend | Enforce action-level permissions | Create/edit/delete/archive/restore/read-only guards | P4-RBAC-02 | TBD | 0h | `PENDING` |
-| P4-RBAC-05 | Frontend | Gate routes, menus and actions | Disabled/hidden UI states plus 403 page handling | P4-RBAC-02 | TBD | 0h | `PENDING` |
-| P4-RBAC-06 | Verification | RBAC regression tests | PA cross-project read-only, PM project/team isolation, unauthorized mutation rejection and context switching | P4-RBAC-01..05 | TBD | 0h | `PENDING` |
+| ID | Module | Task | Deliverable | Dependency | Status |
+|---|---|---|---|---|---|
+| P4-RBAC-01 | BA/SRS | Define authority model | WA plus independent Admin/Editor per Project; no assignment means hidden/denied | Phase 0-4 access rules | `DONE` |
+| P4-RBAC-02 | BA/SRS | Define capabilities | Fixed company/structure and delivery-feature baseline | P4-RBAC-01 | `DONE` |
+| P4-RBAC-03 | BA/SRS + Mockup | User-centric access journey | User Details > Project Access | P4-RBAC-02 | `DONE` |
+| P4-RBAC-04 | BA/SRS + Mockup | Project-centric access journey | Project > Users & Permissions | P4-RBAC-02 | `DONE` |
+| P4-RBAC-05 | BA/SRS + Mockup | Team-creation access journey | Add Team with Admin/Editor assignment | P4-RBAC-02 | `DONE` |
+| P4-RBAC-06 | Mockup | Demo access views | WA, Admin and Editor navigation/scope | P4-RBAC-01..05 | `DONE` |
+| P4-RBAC-07 | Backend | Enforce Project and Team scope | No cross-Project/Team data leakage | P4-RBAC-02 | `PENDING` |
+| P4-RBAC-08 | Backend | Enforce actions | WA structure authority and delivery feature guards | P4-RBAC-02 | `PENDING` |
+| P4-RBAC-09 | Frontend | Gate routes, data and controls | Enabled/read-only/hidden/disabled presentation | P4-RBAC-07..08 | `PENDING` |
+| P4-RBAC-10 | Verification | Access regression tests | All access levels, synchronization and denied-state coverage | P4-RBAC-01..09 | `PENDING` |
 
 ## 6. Development Task Plan - P4.3 Settings & Audit
 
-| ID | Module | Task | Deliverable | Dependency | Estimate | Actual | Status |
-|---|---|---|---|---|---:|---:|---|
-| P4-SET-01 | BA/SRS + Mockup | Workspace Settings | Single-company workspace/company settings, WA-only access, editable company name and readonly slug/admin baseline | P4-RBAC-02 | TBD | 0.5h | `DONE` |
-| P4-SET-02 | BA/SRS + Mockup | Project Settings | Reuse Phase 1 Manage > Projects create/edit/archive baseline; document single entry point and Phase 4 role context | P4-SET-01 | TBD | 0.25h | `DONE` |
-| P4-SET-03 | BA/SRS + Mockup | Workflow Status | Deferred: project-specific workflow configuration moves to Future Backlog; default Agile statuses remain baseline | P4-SET-02 | TBD | 0.25h | `DEFERRED` |
-| P4-SET-04 | BA/SRS + Mockup | Labels | Deferred: label management moves to Future Backlog; no label assignment/filtering flow in Phase 4 | P4-SET-02 | TBD | 0.25h | `DEFERRED` |
-| P4-SET-05 | BA/SRS + Mockup | Team/User Management | Move Team and User administration to top-right Settings gear; Manage Projects keeps Projects only | P4-SET-02 | TBD | 0.75h | `DONE` |
-| P4-SET-06 | BA/SRS + Mockup | Audit Log | WA-only administrative/settings audit with Time, Actor and Detail columns | P4-SET-05 | TBD | 0.5h | `DONE` |
-| P4-SET-07 | BA/SRS + Mockup | Destructive Confirmations | Confirmation modal for archive/restore/deactivate/delete/remove actions | P4-SET-06 | TBD | 0.5h | `DONE` |
+| ID | Module | Task | Deliverable | Dependency | Status |
+|---|---|---|---|---|---|
+| P4-SET-01 | BA/SRS + Mockup | Workspace Settings | WA-only company fields and read-only internal WA | P4-RBAC-02 | `DONE` |
+| P4-SET-02 | BA/SRS + Mockup | Workspaces & Projects | One Project/Team/access administration entry | P4-RBAC-03..05 | `DONE` |
+| P4-SET-03 | BA/SRS + Mockup | Workflow Status | Default Agile statuses only | P4-SET-02 | `DEFERRED` |
+| P4-SET-04 | BA/SRS + Mockup | Labels | No active tagging flow | P4-SET-02 | `DEFERRED` |
+| P4-SET-05 | BA/SRS + Mockup | Users | Company directory, User Details and Project Access | P4-RBAC-03 | `DONE` |
+| P4-SET-06 | BA/SRS + Mockup | Permission Model | Read-only access-level explanation | P4-RBAC-02 | `DONE` |
+| P4-SET-07 | BA/SRS + Mockup | Audit Log | WA-only Time, Actor and Detail | P4-SET-01..06 | `DONE` |
+| P4-SET-08 | BA/SRS + Mockup | Destructive confirmations | Project/Team/user/access guardrails | P4-SET-02..07 | `DONE` |
+| P4-SET-09 | Backend/Frontend | Implement Settings | Persist and authorize approved settings flows | P4-RBAC-07..09 | `PENDING` |
+| P4-SET-10 | Verification | Settings/Audit tests | Field, access, confirmation and audit coverage | P4-SET-09 | `PENDING` |
 
 ## 7. Current Task Gate
 
-Current active task:
-
-| Task | Status | BA confirmation needed before next task |
-|---|---|---|
-| P4-NOTIF-01 | Done / BA confirmed | No |
-| P4-RBAC-01 | Done / BA confirmed | No |
-| P4-RBAC-02 | Done / BA confirmed | No |
-| P4-SET-01 | Done / BA confirmed | No |
-| P4-SET-02 | Done / BA confirmed | No |
-| P4-SET-03 | Deferred - project workflow config moved to Future Backlog | No |
-| P4-SET-04 | Deferred - label management moved to Future Backlog | No |
-| P4-SET-05 | Done / BA confirmed | No |
-| P4-SET-06 | Done / BA confirmed | No |
-| P4-SET-07 | Done / BA confirmed | No |
-| Phase 4 Closeout | Done - BA/mockup baseline reviewed and ready | No |
+| Feature | BA/SRS | Mockup | Business confirmation | Development |
+|---|---:|---:|---:|---:|
+| P4.1 Notifications | Complete | Complete | Confirmed | Not started |
+| P4.2 Project Access & Permissions | Complete | Complete | Confirmed | Not started |
+| P4.3 Settings & Audit | Complete | Complete | Confirmed | Not started |
 
 ## 8. Phase 4 Closeout Summary
 
-Phase 4 is closed for BA, business-rule and mockup scope.
+BA-confirmed scope:
 
-| Area | Closeout result |
-|---|---|
-| P4.1 Notifications | Ready - assignment and Note mention notifications, approved filters, unread behavior, popup and route to related US/DE verified |
-| P4.2 Roles & Permissions | Ready - three-role model, context-based PA/PM behavior, editable E/R/D/H matrix and safe access states verified |
-| P4.3 Settings & Audit | Ready - workspace settings, user management, administrative audit and destructive confirmation flows verified |
-| Production implementation | Not started - contract, backend, frontend integration and production verification tasks remain `PENDING` |
-| Deferred from Phase 4 | Workflow Status, Labels and Team Board remain Future Backlog |
-| Phase 5 boundary | Portfolio, top-level Release Tracking and Reports remain Phase 5; extend RBAC after those surfaces are defined |
+- Notifications are limited to US/DE assignment and Note mentions and route to the related Work Item.
+- Workspace Admin is the only company-level authority and is internally assigned.
+- Normal users receive Admin or Editor independently per Project.
+- Only Workspace Admin manages company users, Projects, Teams, Project access and Team membership.
+- Admin manages delivery in assigned Projects with All Teams, while Project structure remains read-only.
+- Editor edits approved delivery work only in assigned Teams.
+- A user without Project assignment cannot see the Project and direct access is denied; Viewer/selectable No Access are Future Backlog.
+- User, Project and Team access journeys share one assignment source.
+- Audit Log remains WA-only/read-only. BA accepted the current mixed administrative/security event presentation; exact event scope/detail formatting is Not Required.
 
-Closeout verification on 2026-07-17:
-
-- Mockup production build passed.
-- Browser smoke test passed for Notifications filters and click-through routing.
-- Browser smoke test passed for WA, PA assigned/cross-project read-only and PM restricted navigation/context.
-- Browser smoke test passed for Workspace Settings, User Management, role matrix Edit/Save, Audit Log and destructive confirmation modals.
-- No runtime console errors were observed during the closeout smoke test.
+Phase 4 remains `BA/MOCKUP READY`. Production implementation, persistence, security enforcement and runtime acceptance remain development/QA work.

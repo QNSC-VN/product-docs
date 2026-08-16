@@ -1,5 +1,7 @@
 # Prompt 4 — Advanced Screens: Work Item Detail, Quality, Portfolio, Release, Reports, Notifications, Settings
 
+> **Historical UI prompt:** The Roles & Permissions matrix and persona-role rules below are superseded. Current Settings uses Users, Workspaces & Projects and a read-only Permission Model.
+
 Using the existing global design system and Rally-inspired app shell, create the advanced screens for the Mini Rally / Agile Work Management Tool.
 
 Keep all screens consistent with:

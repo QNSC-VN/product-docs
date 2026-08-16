@@ -1,8 +1,8 @@
 # Mini Rally — Reconciliation DEV Handoff
 
-**Effective date:** 2026-07-28
-**Status:** Active Phase 0–4 handoff. Phase 5 is now BA/mockup closed and has its own implementation handoff at `../Phase 5/PHASE5_DEV_HANDOFF.md`.
-**Scope:** Phase 0–4 frontend behavior, business rules, DevInt verification and UAT. Use the dedicated Phase 5 handoff, not this document, to implement Phase 5. Database, schema and infrastructure remain outside this Phase 0–4 handoff.
+**Effective date:** 2026-08-14
+**Status:** Active cross-phase Phase 0–6 business and DevInt handoff. Phase-specific SRS remains the implementation detail authority.
+**Scope:** Phase 0–6 frontend behavior, business rules, DevInt verification and UAT. Database, schema and infrastructure remain outside this handoff.
 
 ## 1. Documents DEV must use
 
@@ -10,8 +10,8 @@
 2. `../Mini_Rally_Product_Plan.xlsx` — product roadmap, BA tasks, DEV tasks and dependencies.
 3. `../Phase 5/PHASE5_DEV_HANDOFF.md` — closed Phase 5 implementation authority.
 4. Relevant `../Phase */.../SRS.md` and phase mockup checklist.
-5. `../../06_Dev testing align/DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx` — DevInt gap execution.
-6. `../../07_Testing Plan/01_test_phase_1_to_4/specs/` and `../../07_Testing Plan/01_test_phase_1_to_4/BUSINESS_E2E_TEST_TRACKER.xlsx` — Phase 0-4 business acceptance.
+5. `../../07_Testing Plan/03_Retest/DEV_HANDOFF_RETEST_PHASE_0_6.md` — current consolidated DevInt Fail/Partial gaps and DEV actions.
+6. `../../07_Testing Plan/01_test_phase_1_to_4/specs/` and `../../07_Testing Plan/02_test_phase_5_6/` — Phase 0–6 business acceptance and retest evidence.
 
 If wording conflicts, use the source-of-truth document and raise the mismatch to BA before implementing a new interpretation.
 
@@ -20,11 +20,11 @@ If wording conflicts, use the source-of-truth document and raise the mismatch to
 ### Navigation and project context
 
 - Product supports multiple Projects; data and page context must follow the selected Project.
-- `Settings gear > Workspace > Project Management` contains Projects only.
+- Project management exists only at `Settings gear > Workspaces & Projects`; remove the standalone `Manage Projects` navigation/page entry.
 - Teams and User Management also live under the Settings gear.
 - `Track > Iteration Status` is list-only. Team Board and Iteration Board are Future Backlog.
 - Phase 3 Release management remains under `Plan > Timeboxes`.
-- Closed Phase 5 is Portfolio-only: Portfolio Items and Capacity Planning. Release Planning and Release Tracking are excluded. Reports are a future observation direction only and are not authorized by the Phase 5 handoff.
+- Portfolio contains Portfolio Items, Capacity Planning and Phase 6 Release Tracking. Release Planning remains Future Backlog. Phase 6 Reports are active under Reports.
 - Phase 3 Release management remains the only Release create/edit registry; no Portfolio screen duplicates it.
 
 ### Work item and task lifecycle
@@ -34,7 +34,8 @@ If wording conflicts, use the source-of-truth document and raise the mismatch to
 - A newly created Story/Defect defaults both fields to `Idea`; changing either field mirrors the other.
 - Defect keeps a separate Defect State in addition to Schedule/Flow State.
 - Task State uses `Defined`, `In-Progress`, `Completed` and Task is always a child of Story/Defect.
-- Task `Estimate`, `To Do` and `Actual` are independent hour fields. If the Owner enters Estimate first, copy the same value to To Do once. After that first copy, editing one field must not auto-recalculate the others. Marking a Task `Completed` sets To Do to 0; reopening does not auto-restore To Do.
+- Task `Estimate`, `To Do` and `Actual` are independent hour fields. On Task creation only, copy entered Estimate once to a blank To Do. After creation, editing one field or changing Task State never changes the others.
+- Work Item and Task Owner default to `Unassigned`. A selected Team allows `Unassigned` plus its active members; No Team allows only `Unassigned`.
 - All child Tasks Completed auto-set the parent to Completed. Reopening any Task auto-sets the parent to In-Progress.
 - Automatic status changes are convenience behavior; an authorized user can still change the parent status manually.
 - Task Dashboard supports inline edit. Task count and iteration Task Active use all persisted child Tasks in scope.
@@ -60,9 +61,15 @@ If wording conflicts, use the source-of-truth document and raise the mismatch to
 - A Story/Defect has zero or one Release and zero or many Milestones.
 - A Story/Defect has zero or one Portfolio Feature. Creating a Story/Defect from a Feature uses the same Work Item creation template as Backlog and pre-fills the Feature field.
 - Selecting a Release filters new Milestone options to related Milestones; changing Release does not silently delete existing Milestone selections.
+- Release Artifacts show directly assigned Story/Defect/Feature from existing Backlog/Work Item Detail/Portfolio assignment. Milestone Artifacts show direct Story/Defect/Feature/Epic and de-duplicated descendants inherited through Feature/Epic for the existing rollups. Artifact-origin `Add New Item` and its shared Work Item/Portfolio Item `Create with details` journey are Future Backlog by BA decision 2026-08-15.
+- Timeboxes > Release Detail contains no Task Roll-up, accepted-progress or burndown widgets; all Release progress belongs to `Portfolio > Release Tracking`.
 - Capacity Planning maps Rally child Project/Scrum Team rows to Mini Rally Teams under the selected Project, but Project scope only stores the plan; Teams are added through Project Breakdown.
 - A Capacity Plan is unique per `Project + Release`, starts as Draft, and can be Published. Draft allocation rows are plan-specific, may split one Feature across multiple Teams, and use fixed manual `allocation.value` entered in the Capacity Plan; Feature has no Plan Estimate and allocation must not derive from Preliminary Estimate mapping. `Publish Without Updating Fields` changes visibility only; `Publish` also writes Release and planned dates to allocated Features, never overwrites Feature Project/Team, and must not cascade Release or Team to child Story/Defect.
 - Feature Detail progress uses two denominator families: `Percent Done by...` and left-side `Total Accepted Children` Points/Count meter use live current child Story/Defect totals; `Estimated Progress by...` uses Feature top-down refined fields (`refinedEstimate`, `refinedWorkItemCountEstimate`) or Preliminary Estimate fallback. These refined fields are Feature progress inputs only, not Capacity allocation inputs.
+- Capacity `Planned Team Assignment`, `Teams by Total` and the Team Capacity rail use the same Plan allocation ledger. The inline selector supports zero/one-Team assign, change and Unassign; multi-Team split uses Allocate. Portfolio Feature owning Team remains separate.
+- Team Status shows only active members of its selected Team plus `Unassigned` for null-owner scoped Tasks; Team Capacity also attributes null-owner hours only to `Unassigned`.
+- Project Key is required, unique, immutable, normalized to uppercase alphanumeric, and limited to 1–10 characters.
+- Audit Log exact event coverage and business-sentence formatting are Not Required for current acceptance.
 
 ## 3. Required DEV execution order
 
@@ -70,8 +77,8 @@ If wording conflicts, use the source-of-truth document and raise the mismatch to
 2. Close Phase 2 Iteration lifecycle, scope and metrics gaps.
 3. Close Phase 3 Team Status, Release/Milestone and Quality gaps.
 4. Implement and DevInt Phase 4 governance after Phase 0–3 critical paths are stable.
-5. Phase 5 BA/mockup work is closed: P5.1 Portfolio Items and P5.2 Capacity Planning were accepted; Release Tracking was removed from scope; P5.4 published the dedicated handoff.
-6. Start Phase 5 production analysis/implementation only from `../Phase 5/PHASE5_DEV_HANDOFF.md`.
+5. Close Phase 5 Portfolio Items and Capacity Planning gaps from their SRS and dedicated handoff.
+6. Close Phase 6 Release Tracking and Reports gaps from the Phase 6 SRS/data contract.
 7. Preserve the confirmed delivery gate for any future feature or rule change: propose -> BA confirm -> align docs -> implement -> verify -> BA accept -> close.
 
 The task-level order, owners, proposed dates and acceptance criteria are maintained in `../Mini_Rally_Product_Plan.xlsx`.
@@ -89,8 +96,8 @@ The task-level order, owners, proposed dates and acceptance criteria are maintai
 ## 5. Deferred — do not implement implicitly
 
 - Team Board, Iteration Board, drag/drop and WIP rules.
-- Release Tracking, Reports, Theme/deeper hierarchy and Portfolio Overview.
-- Release burnup/trend until trustworthy historical snapshots exist.
+- Theme/deeper hierarchy and Portfolio Overview.
+- Release Tracking production historical accuracy until trustworthy snapshots or auditable history exist; the Phase 6 UI/business feature itself is active.
 - Release Planning, Multi-Release/Plan of Plans, multiple what-if plans for the same Project+Release, automatic rebalance and velocity-driven automatic capacity.
 - Database/schema/infra design or persistence implementation decisions.
 

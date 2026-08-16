@@ -39,16 +39,17 @@ App Shell
 | [`layout.tsx`](../../../03_Mockup%20Design/src/app/components/layout.tsx) | `TopNav`, `ContextBar`, hierarchy selector | App Shell components |
 | [`LoginPage.tsx`](../../../03_Mockup%20Design/src/app/pages/LoginPage.tsx) | Public Login layout | Authenticated shell boundary |
 
-Nếu SRS này mâu thuẫn với prompt cũ, dùng quyết định reconciliation: **Plan chứa Backlog và Timeboxes; Track chứa Iteration Status (List-only); không có top-level Releases hoặc Team Board; Portfolio là menu có `Release Planning` thuộc Future Backlog Phase 5**.
+Nếu SRS này mâu thuẫn với prompt cũ, dùng quyết định reconciliation: **Plan chứa Backlog và Timeboxes; Track chứa Iteration Status (List-only) và Team Status; không có top-level Releases hoặc Team Board; Portfolio là menu có `Portfolio Items`, `Capacity Planning`, `Release Tracking`. `Release Planning` thuộc Future Backlog và không xuất hiện như active menu item.**
 
 ## 3. Actor
 
-> A2 reconciliation: Phase 0-4 role terminology follows the Phase 4 RBAC baseline: Workspace Admin, Project Admin and Project Member. Older PO/BA/Developer/QA/Viewer labels are workflow personas only and must not be used as the permission model.
+> Access reconciliation 2026-08-14: `Workspace Admin` là quyền cấp công ty duy nhất. User thường chỉ nhận `Admin` hoặc `Editor` riêng cho từng Project. User không có assignment thì Project bị ẩn và direct access bị từ chối. `Viewer` và selectable `No Access` thuộc Future Backlog.
 
-- Authenticated User: tất cả role.
-- Workspace Admin: thấy workspace-level Settings.
-- Project Manager: thấy project-level Settings.
-- PO/BA, Developer, QA, Viewer: chỉ thấy module được cấp quyền.
+- Authenticated User: user có session hợp lệ.
+- Workspace Admin: thấy toàn bộ administration và mọi Project/Team.
+- Admin Access Level: thấy Project được gán, All Teams và các module delivery; cấu trúc Project/Team/access là read-only.
+- Editor Access Level: chỉ thấy Project và Team được gán cùng các module delivery được phép chỉnh sửa.
+- Unassigned user: không thấy Project và không truy cập được direct URL; đây không phải Access Level để chọn.
 - Anonymous User: không được render authenticated shell.
 
 ## 4. Navigation Information Architecture
@@ -68,11 +69,13 @@ Track
   └── Team Status
 Quality
 Portfolio
-  └── Release Planning (Phase 5 / Future Backlog / Coming Soon)
+  ├── Portfolio Items
+  ├── Capacity Planning
+  └── Release Tracking
 Reports
 ```
 
-No top-level `Releases` navigation is active. Release Management belongs under `Plan > Timeboxes`; `Portfolio > Release Planning` is a Phase 5/Future Backlog entry point and must not become a second Release create/edit source in Phase 0-4. `Settings` và `Notifications` là global actions, không nằm trong main navigation.
+No top-level `Releases` navigation is active. Release Management belongs under `Plan > Timeboxes`; `Release Planning` remains Future Backlog and is not an active menu item. `Settings` và `Notifications` là global actions, không nằm trong main navigation.
 
 ## 5. Route Specification
 
@@ -158,7 +161,7 @@ Nguồn sự thật:
 |---|---|---|
 | Top navigation | `TopNav` | Chuyển từ `currentPage` state sang URL router |
 | Workspace hierarchy dropdown | `TopNav` trong `components/layout.tsx` | Workspace cố định → accessible Projects → Teams |
-| Main menu | `NAV_ITEMS` trong `components/layout.tsx` | Home → Plan (Backlog, Timeboxes) → Track (Iteration Status List-only) → Quality → Portfolio (Release Planning Future Backlog) → Reports; không có top-level Releases/Team Board |
+| Main menu | `NAV_ITEMS` trong `components/layout.tsx` | Home → Plan (Backlog, Timeboxes) → Track (Iteration Status, Team Status) → Quality → Portfolio (Portfolio Items, Capacity Planning, Release Tracking) → Reports; không có top-level Releases/Team Board/Release Planning |
 | Context bar | `ContextBar`, `CtxSelect` | Selector thật; sync URL/query |
 | User menu | `TopNav` user dropdown | Bỏ demo role switch trong production |
 | Settings icon | `TopNav` | Gate bằng permission |
@@ -174,7 +177,7 @@ App Shell không sở hữu bảng riêng. Nó đọc dữ liệu từ:
 | `workspace_members` + `workspaces` | Fixed company context và membership |
 | `project_members` + `projects` | Project selector và project access |
 | `teams`, `team_members`, `project_teams` | Team context và Project–Team access mapping |
-| `roles`, `permissions`, `role_permissions` | Effective permissions |
+| `roles`, `permissions`, `role_permissions` | Workspace Admin authority only; normal-user Project capabilities come from fixed Access Level policy |
 | `notifications` | Unread badge, triển khai ở Phase 4 |
 | `saved_filters` | Saved Views, triển khai sau core |
 
@@ -188,8 +191,9 @@ Tham chiếu schema: [`mini_rally_database_design.md`](../../../01_DB%20design/m
 | Email | `session.user.email` | `users.email` | Nhận diện account trong menu/profile | Read-only trong shell; normalized lowercase |
 | Avatar | `session.user.avatarUrl` | `users.avatar_url` | Avatar header | Nullable; null → initials từ `full_name` |
 | Account status | `session.user.status` | `users.status` | Quyết định có render authenticated shell | Chỉ `active` được render shell |
-| Effective role label | `session.role.name` | `workspace_members.role_id → roles.name` và project role nếu route project | Hiển thị role context | Chỉ là display; authorization dùng permission codes |
-| Permission codes | `session.effectivePermissions[]` | `workspace_members/project_members → roles → role_permissions → permissions.code` | Gate menu/action/route | Không render từ role name hard-code trong production |
+| Workspace authority | `session.workspaceAuthority` | Internal `user_role_assignments → roles.code` | Nhận biết Workspace Admin | Chỉ có `workspace_admin`; normal user nhận `null` |
+| Selected Project Access | `session.projectAccessLevel` | Assignment của Project đang chọn | Hiển thị trong My Permissions và gate Project route/action | `admin`, `editor`; không có assignment = Project ẩn/direct access denied |
+| Effective capabilities | `session.effectiveCapabilities[]` | Workspace Admin grant hoặc fixed policy của `project_members.access_level` + Team membership | Gate menu/action/route | Backend tính theo current Project/Team; không dùng global Project role name |
 | Unread count | `notificationUnreadCount` | `notifications.user_id`, `read_at IS NULL` | Badge notification | Derived `COUNT(*)`; không lưu count riêng |
 | Session expiry | `session.expiresAt` | `auth_sessions.expires_at` | Refresh/redirect login | Không hiển thị mặc định; dùng cho session lifecycle |
 
@@ -268,10 +272,12 @@ Project context response phải gồm project summary, workspace summary, member
 
 - UI hide/disable chỉ phục vụ UX; API luôn enforce lại.
 - Không được render dữ liệu cũ sau khi permission/context đổi.
-- Khi role bị hạ trong phiên, query cache nhạy cảm phải clear và route phải re-evaluate.
-- Workspace Admin có workspace settings.
-- PM có project settings trong project được assign.
-- Viewer không có create/edit/settings actions.
+- Khi Project Access hoặc company status có hiệu lực, query cache nhạy cảm phải clear và route phải re-evaluate.
+- Workspace Admin có toàn bộ Workspace Settings, Users, Project/Team CRUD, access assignment và Audit Log.
+- Admin/Editor chỉ thấy Project/Team thuộc effective access; không tự động thấy Project khác.
+- Admin có delivery management trong Project được gán nhưng không chỉnh Project/Team/access structure.
+- Editor chỉ mutation delivery data trong Team được gán.
+- User không được gán Project không thấy Project trong navigation, selector, search hoặc cached result; direct access bị từ chối an toàn.
 
 ## 12. UI States
 
@@ -300,8 +306,8 @@ Mỗi context selector/page outlet phải cover:
 2. Refresh ở `/backlog` vẫn mở Backlog và đúng context.
 3. Back/Forward đổi active navigation chính xác.
 4. Đổi project khiến page data đổi và không còn dữ liệu project cũ.
-5. Viewer không thấy Settings và truy cập URL trực tiếp nhận 403 page.
-6. Hạ role từ Admin xuống Viewer khi đang ở Audit/Settings phải redirect.
+5. User chỉ thấy Project được gán Admin/Editor; direct URL ngoài scope nhận Access Denied/Not Found an toàn.
+6. Đổi Access Level làm mất quyền vào route hiện tại phải redirect khi quyền mới có hiệu lực.
 7. Page con throw exception chỉ làm hỏng page outlet; TopNav vẫn hoạt động.
 8. Menu đúng thứ tự đã chốt; Plan đứng sau Home và Backlog là item con mặc định.
 

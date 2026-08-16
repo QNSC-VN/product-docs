@@ -1,5 +1,7 @@
 # Plan 3 — Live Progress
 
+> Historical Figma progress evidence. The original Workspace Admin/Project Admin/Project Member variants are superseded for product behavior by the 2026-08-10 per-Project Admin/Editor/Viewer/No Access baseline. Do not reuse the old role labels for new screens.
+
 ## Current item
 
 **Plan 3 is complete.** All of P3.a–P3.i are done and validated. `P3_UI_API_CONTRACTS.md`, `P3_RBAC_AND_SYSTEM_STATES.md` and `P3_PILOT_VALIDATION.md` are written. Status is `AWAITING PLAN 3 CONFIRMATION` — per `AI_EXECUTION_WORKFLOW.md`, do not start Plan 4 until the user sends `CONFIRM PLAN 3` or an equally unambiguous approval.

@@ -1,5 +1,7 @@
 # Phase 0 — Development Tracking
 
+> **Current access/navigation addendum (2026-08-10):** Project/user/team administration is now centralized at top-right Settings. `Workspaces & Projects` is the single Project-management route. `Permission Model` replaces the former editable Roles & Permissions concept. Older observations below remain historical.
+
 > **⚠️ SUPERSEDED (2026-06-20):** This 1.5-day single-company prototype is **no longer the project foundation**. It is replaced by [`05_Architecture/FOUNDATION_PHASE.md`](../../05_Architecture/FOUNDATION_PHASE.md) (modular monolith, multi-tenant foundation, NestJS/TS). Kept for historical reference only.
 
 ## 1. Tracking Information
@@ -158,7 +160,7 @@ Kết luận: **đạt BA acceptance đã chốt**: fixed Company/no Workspace c
 - Company → Project context hiển thị được; chọn Project cập nhật context thành `NXP · All Teams`.
 - Project list, search và status filter hoạt động. Không tick AC list vì chưa có đủ dữ liệu/controls để kiểm chứng pagination và chưa thể chứng minh nguồn DB chỉ từ UI.
 - 404 state pass. Không tick AC error states vì chưa kiểm chứng đủ 403, loading và generic error/retry.
-- Duplicate key `NXP` và invalid key một ký tự đều bị reject; Edit hiển thị Project Key là immutable.
+- Duplicate key vẫn bị reject và Edit hiển thị Project Key là immutable. BA chấp nhận DevInt normalize uppercase, cho phép key 1–10 ký tự A-Z/0–9 và cap input vượt 10 ký tự.
 - Project `TEST — Testing adding project` đã được tạo thành công trên PROD. Lần thử tạo thêm key `BA622` thất bại bằng `Request failed (502)`; cần theo dõi tính ổn định của API.
 - Tài khoản `admin@acme.dev` thấy các mục Workspace Settings, User Management, Roles & Permissions và Audit Log ở trạng thái disabled; cần kiểm tra RBAC/UI gating.
 - Browser không ghi nhận runtime error, nhưng target vẫn expose TanStack Router/Query Devtools và asset `/node_modules/.vite/deps`; chưa đủ bằng chứng đây là production build nên không tick AC này.

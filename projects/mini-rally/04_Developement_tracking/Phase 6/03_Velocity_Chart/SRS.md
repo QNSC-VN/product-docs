@@ -1,5 +1,7 @@
 # Phase 6 - Reports > Velocity
 
+> **Project Access:** Workspace Admin and assigned-Project `Admin` can open this read-only report. `Editor` and unassigned users cannot open Reports. Viewer/selectable No Access are Future Backlog.
+
 ## 1. Scope boundary
 
 Velocity compares point outcomes for recent completed Iterations and explicitly separates work accepted on time, accepted late, and still not accepted.
@@ -86,7 +88,7 @@ If fewer than three eligible Iterations exist, Last/Best/Worst use all available
 
 - Report title: `Velocity - Accepted Iterations`.
 - Team context line: `Team: {Team Name|All Teams}` and it updates from the global Team selector.
-- Window selector: `Last 5 sprints` and `Last 10 sprints`; default is Last 5.
+- Window selector: `Last 5 sprints` and `Last 10 sprints`; default is Last 10. The user's selected window persists after reload.
 - Compact centered summary: `Averages over Last N Iterations`, with Last 3, Best 3 and Worst 3.
 - Chart: vertical stacked bars with a horizontal/connected dark-green Trend line.
 - Legend: Accepted During Iteration, Accepted After Iteration, Not Accepted, Trend value.
@@ -102,7 +104,8 @@ If fewer than three eligible Iterations exist, Last/Best/Worst use all available
 4. If an item is now in `Release` with an accepted date before the Iteration end, it remains in During.
 5. Moving a Story out of a completed Iteration changes that bar immediately on the next query.
 6. Switching Last 5 to Last 10 changes both displayed bars and calculations to the selected window.
-7. With During values `[36, 51, 43, 52, 34]`, Last 3 uses `[43, 52, 34]`, Best 3 uses `[51, 52, 43]`, and Worst 3 uses `[36, 43, 34]`.
+7. First use opens Last 10; after the user selects Last 5 or Last 10, reload restores that selected window.
+8. With During values `[36, 51, 43, 52, 34]`, Last 3 uses `[43, 52, 34]`, Best 3 uses `[51, 52, 43]`, and Worst 3 uses `[36, 43, 34]`.
 
 ## 8. Logical field requirement
 

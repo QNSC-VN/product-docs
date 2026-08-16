@@ -1,71 +1,61 @@
-# Phase 0 — Mockup Coverage Checklist
+# Phase 0 - Mockup Coverage Checklist
 
-Ngày đồng bộ: 2026-06-20
+Synced date: 2026-08-10
 
-## Quyết định đã chốt
+## Confirmed Foundation
 
-- Workspace là root context người dùng nhìn thấy; không dùng `Company/Organization` làm nhãn UI hiện tại.
-- App context: `Workspace → Project → Team`.
-- Team thuộc Workspace và có thể liên kết với nhiều Project qua `project_teams`.
-- Main navigation: `Home → Plan → Track → Quality → Portfolio → Reports`.
-- `Plan` chứa Backlog và Timeboxes; `Track` chứa Iteration Status List-only. Không có top-level `Releases` hoặc Team Board trong active navigation. `Portfolio > Release Planning` là Future Backlog Phase 5.
-- Backlog chỉ tập trung US/DE; không chứa Sprint planning.
+- Workspace is the fixed root context visible to users.
+- App hierarchy is `Workspace -> Project -> Team`.
+- A Team belongs to one parent Project in the current Mini Rally MVP.
+- Main navigation is `Home -> Plan -> Track -> Quality -> Portfolio -> Reports` according to effective Project Access.
+- Plan contains Backlog and Timeboxes; Track contains Iteration Status and Team Status.
+- Team Board and Iteration Board remain Future Backlog.
+
+## Access Reconciliation
+
+- Workspace Admin is the only company-level authority and is assigned internally.
+- Normal users receive Admin or Editor independently per Project.
+- Only Workspace Admin manages Users, Projects, Teams, Project access and Team membership.
+- Admin receives All Teams and delivery authority in assigned Projects; structure is read-only.
+- Editor sees assigned Projects/Teams and approved delivery-editing surfaces.
+- A user without a Project assignment cannot see or directly access that Project.
+- The current authority is `Phase 4/02_Roles_Permissions/SRS.md`.
 
 ## Coverage
 
-| Module | Screen/state | Trạng thái | Mockup source |
+| Module | Screen/state | Status | Mockup source |
 |---|---|---:|---|
-| Authentication | Login — Microsoft SSO | ✅ | `pages/LoginPage.tsx` |
-| Authentication | SSO redirect/callback simulation + loading | ✅ | `pages/LoginPage.tsx` |
-| Authentication | Sign out → Login | ✅ | `App.tsx`, `components/layout.tsx` |
-| Authentication | Forgot Password | Future Backlog | Local-auth scope deferred under Microsoft SSO baseline |
-| Authentication | Reset Password + invalid/expired token | Future Backlog | Local-auth scope deferred under Microsoft SSO baseline |
-| Authentication | Session Expired | ⬜ | Chưa có |
-| Authentication | Edit Profile / Change Password | 🟡 | Profile prototype remains; Change Password is Future Backlog under SSO baseline |
-| App Shell | Authenticated TopNav/Breadcrumb/Page outlet | ✅ | `components/layout.tsx`, `App.tsx` |
-| App Shell | Workspace → Project → Team dropdown | ✅ | `components/layout.tsx` |
-| App Shell | 403 Access Denied | ⬜ | Chưa có |
-| App Shell | 404 Not Found | ⬜ | Chưa có |
-| App Shell | Global Error/Retry/Loading | ⬜ | Chưa có |
-| Workspace | Workspace selector | ✅ | Hierarchy dropdown |
-| Workspace | Workspace Settings/User table | 🟡 | `pages/SettingsPage.tsx` |
-| Workspace | Workspace List/Create/Edit/Archive | N/A | Ngoài phạm vi single-company MVP |
-| Workspace | Invite lifecycle/Suspend/Remove confirmation | ⬜ | Chưa có |
-| Project | Project selector/Project Health/Settings | 🟡 | Layout, Home, Settings |
-| Project | Project List/Create/Edit | ✅ | `pages/ProjectsPage.tsx` |
-| Project | Archive/Restore | ✅ | Local actions + confirmation trong `ProjectsPage` |
-| Project | Project Overview | ⬜ | Chưa có screen riêng |
-| Project | Project Members/read-only archived state | ⬜ | Chưa có |
-| Team | Team shown under Project in dropdown | ✅ | `components/layout.tsx` |
-| Team | Team List/Create/Edit/Archive | ⬜ | Chưa có |
-| Team | Team Members/Lead | ⬜ | Chưa có |
-| Team | Link Team to multiple Projects | ⬜ | Chưa có |
+| Authentication | Microsoft SSO Login/callback/sign out | Done | `LoginPage.tsx`, `App.tsx`, `layout.tsx` |
+| Authentication | Forgot/Reset/Change Password | Future Backlog | Microsoft SSO baseline |
+| App Shell | Authenticated TopNav, breadcrumb and page outlet | Done | `layout.tsx`, `App.tsx` |
+| App Shell | Access-aware Workspace/Project/Team dropdown | Done | `layout.tsx` |
+| App Shell | Access Denied and Not Found | Done | `AccessStatePage.tsx`, `App.tsx` |
+| Workspace | Fixed Workspace Settings | Done | `SettingsPage.tsx` |
+| Workspace | Workspace create/archive/switch | N/A | Single-company MVP |
+| Users | Company list/search/details/invite | Done | `SettingsPage.tsx` |
+| Users | Per-Project Access rows and review | Done | `SettingsPage.tsx` |
+| Project | Workspace/Project/Team administration tree | Done | `WorkspaceProjectsPanel.tsx` |
+| Project | Create/Edit/Archive/Restore/Delete | Done | `WorkspaceProjectsPanel.tsx` |
+| Project | Details and estimation settings | Done | `WorkspaceProjectsPanel.tsx` |
+| Project | Users & Permissions | Done | `WorkspaceProjectsPanel.tsx` |
+| Team | List/Create/Edit/Deactivate/Restore | Done | `WorkspaceProjectsPanel.tsx` |
+| Team | Members and Access on Add/Edit Team | Done | `WorkspaceProjectsPanel.tsx` |
+| Project Access | WA/Admin/Editor demo views | Done | `model.ts`, `layout.tsx`, `SettingsPage.tsx` |
 
-## DB ↔ UI Mapping Coverage
+## Permission Acceptance
 
-| SRS | Mapping đã mô tả | Trạng thái |
-|---|---|---:|
-| App Shell | Session/user header, permission, unread badge, Workspace–Project–Team tree, UI-only state, navigation-tree DTO | ✅ |
-| Authentication | Microsoft SSO entry, callback/session response, logout, protected route/session guard, sensitive fields | ✅ |
-| Workspace Context | Workspace settings, member list, invitation list/form, derived fields, pagination DTO, indexes | ✅ |
-| Project | Project list, Create/Edit form, member list, Team links, archive/restore, DTO, aggregate/index rules | ✅ |
+- [x] WA sees all administration and every Project/Team.
+- [x] WA is excluded from Project membership lists.
+- [x] Admin sees assigned Project and All Teams but cannot mutate structure/access.
+- [x] Editor sees only assigned Project/Teams.
+- [x] Unassigned-user hidden/denied behavior is defined in SRS and test pack; Viewer/selectable No Access are Future Backlog.
+- [x] User Details and Project Users & Permissions use one shared session state.
+- [x] Add Team can set Admin/Editor access and synchronize membership.
+- [ ] Production API/service enforcement remains DEV/QA verification.
 
-Definition: ✅ nghĩa là SRS chỉ rõ UI field, API DTO, DB source/target, mục đích, validation/editability và null/derived handling. Khi UI thêm hoặc bỏ field, SRS mapping tương ứng phải được update trong cùng change set.
+## Production Notes
 
-## Thứ tự mockup tiếp theo
-
-```text
-Project Overview/Members
-→ Team Management + Project linking
-→ Member Management
-→ 403/404/Error states
-→ Profile
-→ Future Backlog: Forgot/Reset Password, Change Password
-```
-
-## Lưu ý production
-
-- Login mockup mô phỏng Microsoft SSO redirect/callback; không dùng demo Admin credential hoặc local password trong current scope.
-- Local `currentPage` và `isAuthenticated` phải được thay bằng router + session API.
-- Permission phải do backend enforce; UI gating chỉ phục vụ UX.
-- Tất cả list production dùng server-side pagination/filter và tenant isolation.
+- Frontend role-switch and local state are mockup evidence only.
+- Backend must enforce Project, Team and action scope; UI gating is only UX.
+- Production lists require authorized server-side filtering and pagination.
+- Project access changes take effect next sign-in; company disable/removal takes effect next refresh.

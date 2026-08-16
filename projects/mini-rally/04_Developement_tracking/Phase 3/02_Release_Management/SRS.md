@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P3-RELEASE-MANAGEMENT` |
 | Status | Ready for Development |
-| Updated date | 2026-07-12 |
+| Updated date | 2026-08-15 |
 | Scope | `Plan > Timeboxes > Releases` and Release detail direction |
 | Priority | P3.2 - required |
 | Depends on | Phase 1 Work Item base, Phase 2.1 Backlog Enhancement, Phase 2.2 Timeboxes/Iterations, Phase 2.3 Iteration Status |
@@ -31,16 +31,17 @@ Release Management is Project-level, not Team-level. A Release may still display
 | P3-REL-DC-006 | Timebox dashboard supports inline edit | Decided |
 | P3-REL-DC-007 | Timebox dashboard columns support resize/expand | Decided |
 | P3-REL-DC-008 | Release detail layout includes Theme and Notes rich text areas on the left | Decided |
-| P3-REL-DC-009 | Release detail right panel includes Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate, Task Roll-up, Accepted and Version | Decided |
+| P3-REL-DC-009 | Release detail right panel includes Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate and Version; Task Roll-up/Accepted progress belongs only to Portfolio > Release Tracking | Decided |
 | P3-REL-DC-010 | Version is optional | Decided |
 | P3-REL-DC-011 | Plan Estimate is manually entered | Decided |
 | P3-REL-DC-012 | Accepted releases can still be edited by authorized users | Decided |
 | P3-REL-DC-013 | Release assignment is supported from both Backlog and Release surfaces | Decided |
 | P3-REL-DC-014 | A US/DE work item can be assigned to only one Release at a time | Decided |
-| P3-REL-DC-015 | Release has an Artifacts view that shows assigned US/DE work items using the Backlog table presentation | Decided |
+| P3-REL-DC-015 | Release has an Artifacts view that shows directly assigned US/DE and Feature items | Decided |
 | P3-REL-DC-016 | Release detail includes a `Release Notes` rich text area for readiness notes gathered from assigned US/DE notes | Decided |
 | P3-REL-DC-017 | Reassigning a US/DE from one Release to another replaces the old Release assignment and refreshes old/new Release artifact views | Decided |
-| P3-REL-DC-018 | Release Progress/Tracking is not Phase 3.2 scope; it belongs to `Portfolio > Release Planning` Future Backlog | Decided |
+| P3-REL-DC-018 | Release Artifacts `Add New Item` can create US, DE or Feature with the current Release prefilled | Future Backlog by BA decision 2026-08-15 |
+| P3-REL-DC-019 | Release Progress/Tracking is not Phase 3.2 scope; it belongs to `Portfolio > Release Tracking`. Release Planning remains separate Future Backlog scope. | Decided |
 
 ## 3. Business Flow
 
@@ -62,17 +63,18 @@ Release assignment flow:
 Backlog / Work Item Detail or Release detail assigns Story/Defect items to a Release
 -> System enforces one active Release assignment per Story/Defect
 -> If the item already belongs to another Release, system replaces the old assignment
--> Release dashboard shows roll-up values from assigned work items
--> Release Artifacts view lists the assigned Story/Defect items
--> Release detail shows task roll-up, accepted totals and Release Notes
+-> Release Artifacts view lists directly assigned Story/Defect/Feature items
+-> Release detail keeps metadata and Release Notes; progress is shown only in Portfolio > Release Tracking
 ```
+
+Creating a new Artifact from the Release Artifacts tab is Future Backlog. The active flow assigns Release from existing Story/Defect or Feature create/detail surfaces.
 
 ## 4. Functional Requirements
 
 | ID | Requirement |
 |---|---|
 | P3-REL-FR-001 | User can open `Plan > Timeboxes` and select `Releases`. |
-| P3-REL-FR-002 | `Plan > Timeboxes > Releases` is the only Phase 3 Release management surface. Top-level `Releases` is absent; `Portfolio > Release Planning` is Future Backlog Phase 5 and not a second create/edit source. |
+| P3-REL-FR-002 | `Plan > Timeboxes > Releases` is the only Release create/edit surface. Top-level `Releases` is absent; `Portfolio > Release Tracking` is read-only tracking/reporting, while Release Planning remains Future Backlog. |
 | P3-REL-FR-003 | Release list is filtered by current Project context. |
 | P3-REL-FR-004 | Release list columns use the Timeboxes dashboard template: Name, Theme, Start Date, End/Release Date, Project, Planned Velocity, Task Estimate, State. |
 | P3-REL-FR-005 | Release dashboard supports inline edit for Name, Theme, Start Date, Release Date, Project, Planned Velocity, Task Estimate and State. |
@@ -88,27 +90,29 @@ Backlog / Work Item Detail or Release detail assigns Story/Defect items to a Rel
 | P3-REL-FR-015 | `Create with details` opens Release detail page. |
 | P3-REL-FR-016 | Release detail left side shows `Theme` rich text editor. |
 | P3-REL-FR-017 | Release detail left side shows `Notes` rich text editor. |
-| P3-REL-FR-018 | Release detail right panel shows Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate, Task Roll-up, Accepted and Version. |
+| P3-REL-FR-018 | Release detail right panel shows Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate and Version. |
 | P3-REL-FR-019 | Release detail Project field is required. |
 | P3-REL-FR-020 | Release detail State field is required and uses `Planning`, `Active`, `Accepted`. |
 | P3-REL-FR-021 | Release detail Start Date and Release Date are required. |
 | P3-REL-FR-022 | Release detail Plan Estimate is manually entered by authorized users. |
-| P3-REL-FR-023 | Release detail Task Roll-up displays Estimate, To Do and Actual values from assigned tasks/work items. |
-| P3-REL-FR-024 | Accepted displays accepted work total for the Release. |
+| P3-REL-FR-023 | Release detail must not show Task Roll-up, Burndown or another Release progress widget. |
+| P3-REL-FR-024 | Accepted/progress totals are displayed only in `Portfolio > Release Tracking`, not in Timeboxes > Release Detail. |
 | P3-REL-FR-025 | Version is editable optional text. |
-| P3-REL-FR-026 | Viewer can read Release list/detail but cannot inline edit. |
+| P3-REL-FR-026 | Editor and unassigned users cannot open Release list/detail or mutate Release data. |
 | P3-REL-FR-027 | Backend must enforce edit permissions; UI disabled state is not sufficient. |
 | P3-REL-FR-028 | User can assign Story/Defect work items to a Release from Backlog and Work Item Detail. |
 | P3-REL-FR-029 | User can manage assigned Story/Defect work items from the Release detail/artifact surface. |
 | P3-REL-FR-030 | A Story/Defect can have only one active Release assignment. |
 | P3-REL-FR-031 | If user moves a Story/Defect from one Release to another, system must replace the old Release assignment. |
-| P3-REL-FR-032 | Release Artifacts view shows assigned Story/Defect work items using the Backlog dashboard presentation. |
+| P3-REL-FR-032 | Release Artifacts view shows directly assigned Story/Defect and Feature items. US/DE rows reuse Backlog presentation; Feature rows reuse Portfolio identity/presentation. |
 | P3-REL-FR-033 | Release Artifacts view supports the same core dashboard behavior as Backlog: search, sort, resizable columns, pagination and inline edit where fields are editable. |
 | P3-REL-FR-034 | Release detail includes a `Release Notes` rich text area separate from Theme and Notes. |
 | P3-REL-FR-035 | Release readiness is user-managed from assigned US/DE release notes and the Release Notes field; system does not calculate readiness in Phase 3.2. |
 | P3-REL-FR-036 | After Release reassignment, the moved item disappears from the previous Release Artifacts view after refresh/refetch. |
-| P3-REL-FR-037 | Phase 3 Release list/detail must not add a Release Progress column/widget; Progress is deferred to Phase 5 `Portfolio > Release Planning`. |
+| P3-REL-FR-037 | Phase 3 Release list/detail must not add a Release Progress column/widget; progress/tracking belongs to `Portfolio > Release Tracking`. |
 | P3-REL-FR-038 | After Release reassignment, old and new Release counters/roll-ups are recalculated and the user sees success or error feedback. |
+| P3-REL-FR-039 | **Future Backlog:** Release Artifacts provides `Add New Item` with Type limited to User Story, Defect and Feature; the current Release is prefilled and preserved by Create/Create with details. |
+| P3-REL-FR-040 | A Feature directly assigned to the Release appears in Artifacts even when it has no child Story/Defect in that Release. |
 
 ## 5. Screen Mapping With Mockup
 
@@ -121,8 +125,9 @@ Backlog / Work Item Detail or Release detail assigns Story/Defect items to a Rel
 | Dashboard rows | Inline inputs/selects | Local mock state now; production PATCH/API persistence |
 | State field | `Planning / Active / Accepted` | Release lifecycle enum |
 | Detail left | Theme, Notes | Rich text fields; sanitized HTML/Markdown based on existing editor policy |
-| Detail right | Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate, Task Roll-up, Accepted, Version | Release metadata and roll-up fields |
-| Artifacts view | Backlog-style item table | Shows Story/Defect items assigned to the Release |
+| Detail right | Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate, Version | Release metadata only; no progress roll-up |
+| Artifacts view | Mixed item table | Shows directly assigned Story/Defect/Feature items; no Task |
+| Add New Item | Future Backlog | Type US/DE/Feature; current Release prefilled; reuses the normal Backlog/Portfolio create and Create-with-details screens |
 | Release Notes | Rich text notes area | User-maintained release readiness notes collected from assigned US/DE notes |
 
 ## 6. Data Model And Field Mapping
@@ -141,8 +146,6 @@ Backlog / Work Item Detail or Release detail assigns Story/Defect items to a Rel
 | State | `state` | `releases.state` | Yes | Planning, Active, Accepted |
 | Planned Velocity | `plannedVelocity` | `releases.planned_velocity` | Yes | Number >= 0 |
 | Plan Estimate | `planEstimate` | `releases.plan_estimate` | Yes | Manual numeric input >= 0 |
-| Task Roll-up | `taskRollup` | Assigned work item/task aggregation | No | Estimate/To Do/Actual |
-| Accepted | `accepted` | Accepted assigned work roll-up | No | Number >= 0 |
 | Version | `version` | `releases.version` | Yes | Optional |
 | Release Notes | `releaseNotes` | `releases.release_notes` | Yes | Optional rich text/text |
 
@@ -235,7 +238,7 @@ Rules:
 - `state` must be one of `Planning`, `Active`, `Accepted`.
 - `releaseDate` must be greater than or equal to `startDate`.
 - `projectId` must be accessible to the current user.
-- Viewer mutation must return 403.
+- Editor or unassigned-user mutation must return 403.
 
 ### 7.4 Get Release Detail
 
@@ -262,7 +265,7 @@ type ReleaseDetailDto = ReleaseListItemDto & {
 
 ### 7.5 List Release Artifacts
 
-Release artifacts are the Story/Defect work items assigned to the Release.
+Release artifacts are the User Story, Defect and Feature items directly assigned to the Release. Tasks never appear as Release artifacts.
 
 ```http
 GET /api/releases/{releaseId}/artifacts?search={search}&page={page}&pageSize={pageSize}&sort={field}:{direction}
@@ -281,9 +284,10 @@ type ReleaseArtifactListResponse = {
 
 Rules:
 
-- Artifact rows use the same display contract as the Backlog dashboard where possible.
-- Only Story/Defect work items are valid Release artifacts in Phase 3.2.
+- Story/Defect artifact rows use the Backlog display contract where possible; Feature rows use the Portfolio identity and fields appropriate to the shared table.
+- Only User Story, Defect and Feature are valid Release artifact types. Task and Epic are excluded.
 - A Story/Defect can be assigned to only one Release at a time.
+- A Feature can be assigned to only one Release at a time and appears directly in that Release's Artifacts list.
 - Assigning a Story/Defect to a new Release replaces the previous Release assignment.
 - The previous Release Artifacts view must no longer show the moved item after refresh/refetch.
 - Old and new Release roll-ups/counters must be recalculated after reassignment.
@@ -292,15 +296,26 @@ Rules:
 - Release readiness is not system-calculated from artifacts in Phase 3.2.
 - Release progress percentage, zero-state, formula and recalculation are not system-calculated/displayed in Phase 3.2.
 
+### 7.6 Future Backlog — Add New Release Artifact
+
+This journey is not required for the current Phase 3 acceptance. Users currently assign a Release from an existing Story/Defect or Feature surface.
+
+`Add New Item` supports three types:
+
+- User Story and Defect reuse the Backlog create flow.
+- Feature reuses the Portfolio Feature create flow.
+- The current Release is prefilled and retained in the created record.
+- `Create` creates exactly one item and returns to Artifacts; `Create with details` creates exactly one item and opens that item's Detail.
+
 ## 8. Permissions
 
-| Role/permission | Read Release | Create Release | Inline Edit | Detail Edit |
+| Authority / Project Access | Read Release | Create Release | Inline Edit | Detail Edit |
 |---|---:|---:|---:|---:|
 | Workspace Admin | Yes | Yes | Yes | Yes |
-| Project Manager | Yes | Yes | Yes | Yes |
-| Product Owner / BA | Yes | Yes if configured | Yes if configured | Yes if configured |
-| Developer / QA | Yes | No by default | No by default | No by default |
-| Viewer | Yes | No | No | No |
+| Admin in assigned Project | Yes | Yes | Yes | Yes |
+| Editor in assigned Project | Hidden | No | No | No |
+| Editor in assigned Project | No | No | No | No |
+| Unassigned user | No | No | No | No |
 
 ## 9. Acceptance Criteria
 
@@ -313,14 +328,16 @@ Rules:
 7. Create Release modal State options are `Planning`, `Active`, `Accepted`.
 8. `Create with details` opens Release detail.
 9. Release detail has Theme and Notes rich text areas.
-10. Release detail right panel includes Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate, Task Roll-up, Accepted and Version.
-11. Viewer can read but cannot mutate Release list/detail fields.
+10. Release detail right panel includes Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate and Version; it does not show Task Roll-up, Accepted progress or Burndown.
+11. Editor and unassigned users cannot open or mutate Release list/detail fields.
 12. Backend rejects invalid state and invalid date ranges.
-13. Release Artifacts view lists Story/Defect work items assigned to the Release.
-14. Backlog and Release detail can both assign Story/Defect work items to a Release.
+13. Release Artifacts view lists directly assigned Story/Defect/Feature items and excludes Tasks/Epics.
+14. Backlog/Work Item Detail and Portfolio Feature surfaces can assign supported items to a Release; Release Artifacts reflects those assignments.
 15. System enforces one active Release per Story/Defect.
 16. Release Notes is editable and separate from Theme and Notes.
 17. Reassigning a Story/Defect removes it from the previous Release Artifacts view after refresh/refetch and recalculates old/new Release counters.
+18. **Future Backlog:** Add New Item creates one US/DE/Feature with the current Release prefilled; Create with details opens the same created identity.
+19. A directly assigned Feature appears even without a matching child Work Item.
 
 ## 10. Test Scenarios
 
@@ -333,23 +350,26 @@ Rules:
 | P3-REL-TS-005 | Click Create Release | Modal opens with Release selected and Type disabled |
 | P3-REL-TS-006 | Try to switch Type in modal | Type cannot be changed |
 | P3-REL-TS-007 | Create Release with invalid date range | Validation error |
-| P3-REL-TS-008 | Viewer edits inline via UI | Control is disabled/read-only |
-| P3-REL-TS-009 | Viewer calls PATCH API | API returns 403 |
+| P3-REL-TS-008 | Editor/unassigned user opens Release Management | Navigation hidden or access denied safely |
+| P3-REL-TS-009 | Editor/unassigned user calls PATCH API | API returns 403 |
 | P3-REL-TS-010 | Open Release detail | Theme/Notes and right-panel fields are shown |
 | P3-REL-TS-011 | Assign a Story to a Release from Backlog | Story appears in Release Artifacts |
 | P3-REL-TS-012 | Assign the same Story to another Release | Previous Release assignment is replaced; old and new Release artifact lists/counters refresh |
-| P3-REL-TS-013 | Open Release Artifacts | Assigned Story/Defect rows use Backlog-style table behavior |
+| P3-REL-TS-013 | Open Release Artifacts | Directly assigned Story/Defect/Feature rows appear; Task/Epic do not |
 | P3-REL-TS-014 | Edit Release Notes | Notes persist separately from Theme and Notes |
+| P3-REL-TS-015 | Future Backlog: Add New Item > US/DE/Feature | When reopened, one item is created with current Release prefilled and appears in Artifacts |
+| P3-REL-TS-016 | Open Release Detail | No Task Roll-up, Accepted progress or Burndown widget is rendered |
 
 ## 11. BA Confirmations
 
 | ID | Question | Current recommendation |
 |---|---|---|
 | P3-REL-Q01 | What is the final Release readiness rule? | Confirmed: user manually gathers readiness information from linked US/DE release notes. |
-| P3-REL-Q02 | Is Release assignment managed from Backlog/Work Item Detail only, or also from Release detail? | Confirmed: support both Backlog/Work Item Detail and Release detail/artifact surface |
+| P3-REL-Q02 | Where is Release assignment managed in the current scope? | Confirmed: Backlog/Work Item Detail and Portfolio Feature surfaces; Release Artifacts is the reflected list |
 | P3-REL-Q03 | Can a Story/Defect be assigned to multiple Releases? | Confirmed: one active Release only |
-| P3-REL-Q04 | Does Release have artifacts? | Confirmed: Release Artifacts are assigned Story/Defect work items |
+| P3-REL-Q04 | Does Release have artifacts? | Confirmed: Release Artifacts are directly assigned Story/Defect/Feature items; Tasks/Epics are excluded |
 | P3-REL-Q05 | What happens when an item is moved between Releases? | Confirmed: one active Release is replaced; previous Release artifact list and counters must refresh |
+| P3-REL-Q06 | How can user create a new Artifact from Release Detail? | Future Backlog: Add New Item reuses Backlog/Portfolio creation, allows US/DE/Feature and prefills the current Release |
 
 ## 12. Ready Checklist
 
@@ -366,5 +386,6 @@ Rules:
 - [x] Release readiness rule confirmed.
 - [x] Release assignment surfaces confirmed.
 - [x] Release artifact behavior confirmed.
+- [x] Add New Item from Release Artifacts deferred to Future Backlog on 2026-08-15.
 - [x] One active Release per Story/Defect confirmed.
 - [x] Release reassignment refresh behavior confirmed.

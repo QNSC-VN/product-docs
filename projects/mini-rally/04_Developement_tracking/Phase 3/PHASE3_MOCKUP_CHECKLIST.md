@@ -43,7 +43,7 @@ Team Status approved behavior:
 - Task State options are exactly `Defined`, `In-Progress`, `Completed`.
 - Work Item Detail `Tasks` tab is the Task Dashboard and supports inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
 - Completing a task refreshes the referenced US/DE Work Product roll-up. Initial partial completion does not change parent status; when all child tasks are `Completed`, parent US/DE becomes `Completed`; reopening a Task from that state recalculates metrics and moves parent US/DE to `In-Progress`. Auto-roll-up does not remove manual parent status editing from existing Work Item edit surfaces.
-- Project Admin outside managed Project cannot mutate inline fields.
+- Editor and unassigned users do not access Team Status; only Workspace Admin/Admin may mutate inline fields.
 
 ## 3. Mockup Coverage Summary
 
@@ -66,7 +66,7 @@ Team Status approved behavior:
 | State dropdown | Defined/In-Progress/Completed only | Done | `TeamStatusPage.tsx` | Accepted/Release removed |
 | State propagation | Task state change refreshes parent US/DE roll-up | Documented | `01_Team_Status/SRS.md` | All completed -> parent Completed; reopened -> parent In-Progress |
 | Row click | Opens existing detail flow | Done in mockup | `TeamStatusPage.tsx`, `App.tsx` | Inline controls stop propagation |
-| Viewer read-only | No inline mutation for Viewer | Business rule | `01_Team_Status/SRS.md` | API must enforce |
+| Unauthorized access | No Team Status access or mutation for Editor/unassigned user | Business rule | `01_Team_Status/SRS.md` | API must enforce |
 
 ## 4. P3.1 Acceptance Checklist
 
@@ -106,8 +106,8 @@ Team Status approved behavior:
 - [ ] Parent US/DE remains manually editable from existing Work Item edit surfaces after auto-completion.
 - [ ] Task Dashboard inline edit persists Task Name, State, Owner, To Do, Actuals and Estimate without opening Task Detail.
 - [ ] Clicking Task ID in Task Dashboard opens Task Detail.
-- [ ] Viewer cannot edit via UI.
-- [ ] Viewer cannot mutate via direct API call.
+- [ ] Editor/unassigned user cannot access via UI.
+- [ ] Editor/unassigned user cannot mutate via direct API call.
 - [ ] Row click opens detail; inline controls do not trigger row navigation.
 - [ ] Totals row recalculates after capacity/task updates.
 - [ ] Table does not crash for empty Iteration result.
@@ -151,13 +151,14 @@ Team Status approved behavior:
 - User cannot change Type inside the create modal.
 - Create Release state dropdown uses `Planning`, `Active`, `Accepted`.
 - Release detail direction includes Theme and Notes rich text areas on the left.
-- Release detail right panel direction includes Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate, Task Roll-up, Accepted and Version.
+- Release detail right panel includes Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate and Version. It excludes Task Roll-up, Accepted progress and Burndown.
 - Version is optional.
 - Plan Estimate is manual input.
 - Accepted releases remain editable for authorized users.
 - Release readiness information is manually gathered by users from linked US/DE release notes.
 - Reassigning a Story/Defect from one Release to another removes it from the old Release artifact view, recalculates old/new Release counts and shows user feedback.
-- Release Progress is not added to Timeboxes Release list/detail; `Portfolio > Release Planning` owns that future scope.
+- Release Progress is not added to Timeboxes Release list/detail; `Portfolio > Release Tracking` owns tracking/reporting scope. Release Planning remains a separate Future Backlog item.
+- Release Artifacts shows directly assigned US/DE/Feature rows. Creating a new US/DE/Feature from this tab is Future Backlog; current assignment comes from Backlog/Work Item Detail or Portfolio Feature.
 
 ### P3.2 Development Must Verify
 
@@ -166,8 +167,8 @@ Team Status approved behavior:
 - [ ] Release State accepts only `Planning`, `Active`, `Accepted`.
 - [ ] Legacy release state values are normalized or rejected.
 - [ ] Create Release modal locks Type to Release.
-- [ ] Viewer cannot edit via UI.
-- [ ] Viewer cannot mutate via direct API call.
+- [ ] Editor/unassigned user cannot access via UI.
+- [ ] Editor/unassigned user cannot mutate via direct API call.
 - [ ] Release detail shows Theme, Notes and required right-panel fields.
 - [ ] Release readiness rule does not require system-calculated readiness in P3.2.
 - [ ] Reassigning a Story/Defect to another Release removes it from the previous Release artifact list and refreshes both Release counters.
@@ -186,7 +187,7 @@ Team Status approved behavior:
 - Milestone can link to multiple Releases.
 - Release can link to multiple Milestones; both records can be created independently.
 - Work Item supports one Release and multiple Milestones through a Milestone multi-select.
-- Milestone Artifacts are assigned US/DE Story/Defect work items and use the Backlog dashboard presentation.
+- Milestone Artifacts support direct US/DE/Feature/Epic assignment. Feature/Epic descendants are inherited for display and existing rollups, with stable-ID de-duplication.
 - Milestone artifact assignment is independent from Release assignment; adding/removing a Milestone artifact must not change Release assignment.
 - Changing Work Item Release preserves selected Milestones; selected values stay visible and only add-new Milestone options are related-filtered.
 - Story/Defect artifact assignment must be rejected if the item is outside the Milestone's selected Project/Team scope.
@@ -203,20 +204,22 @@ Team Status approved behavior:
 - [ ] Milestone can persist multiple linked Release IDs.
 - [ ] Milestone detail can open searchable Project, Team and Release selection modals from count summaries.
 - [x] Milestone Artifacts tab hides the right metadata panel.
-- [x] M5.3 confirmed: Release/Milestone Artifacts use assigned Story/Defect rows and the obsolete `Add artifact link/name` input is removed.
+- [x] Release/Milestone Artifacts use assigned item rows; obsolete free-text artifact link/name input is removed. Add New Item creation from either Artifact tab is Future Backlog.
 - [ ] Target Start Date recalculates when linked Releases change.
 - [ ] Target End Date recalculates when linked Releases change.
 - [ ] Target dates are manually editable with no linked Release and become derived/read-only when a Release is linked.
 - [ ] Milestone dashboard response includes only Name, Target Start Date, Target End Date and Status columns.
 - [ ] Milestone State accepts only `Planned`, `At Risk`, `Met`, `Missed`, `Cancelled`, `Completed`.
 - [ ] Owner is editable for authorized users.
-- [ ] Viewer cannot edit via UI.
-- [ ] Viewer cannot mutate via direct API call.
+- [ ] Editor/unassigned user cannot access via UI.
+- [ ] Editor/unassigned user cannot mutate via direct API call.
 
 ### P3.3 Development Must Verify - Artifacts
 
-- [ ] Milestone Artifacts query returns assigned Story/Defect work items.
-- [ ] Milestone Artifacts dashboard reuses Backlog-style row presentation.
+- [ ] Milestone Artifacts query returns direct Story/Defect/Feature/Epic and the de-duplicated inherited descendants of Feature/Epic.
+- [ ] Milestone Artifacts dashboard reuses source-compatible Backlog/Portfolio row presentation.
+- [ ] Release Artifacts shows direct US/DE/Feature assignments.
+- [ ] **Future Backlog:** Release/Milestone Add New Item reuses the shared Backlog/Portfolio create-with-details screens and prefills current Release/Milestone.
 - [ ] Milestone artifact assignment is independent from Release assignment.
 - [ ] Removing a Milestone artifact leaves Release assignment unchanged.
 - [ ] Work Item Milestone control is multi-select and supports one Work Item in multiple Milestone Artifact lists.

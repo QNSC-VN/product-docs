@@ -176,7 +176,7 @@ Included:
 | Metrics | Planned Velocity, Iteration End, Accepted, Defects, Tasks | Done | `IterationStatusPage.tsx` | Tasks counts non-Completed child Tasks from the scoped US/DE aggregate; NXP Sprint 24.3 smoke result = 10 active |
 | List scope | Show current Iteration Story/Defect work items only | Done | `IterationStatusPage.tsx`, `App.tsx` | Filters selected Iteration and current Project; child Tasks contribute only through parent aggregates and are not rows |
 | List columns | Selection, Rank, ID, Type, Name, Schedule State, Flow State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner | Done | `IterationStatusPage.tsx` | Per-row Defects column removed; Flow State added |
-| Totals row | Plan Est, Task Est, To Do totals below column header | Done | `IterationStatusPage.tsx` | Task Est is derived from child Task To Do + Actual |
+| Totals row | Plan Est, Task Est, To Do totals below column header | Done | `IterationStatusPage.tsx` | Task Est and To Do independently sum the corresponding child Task fields |
 | View mode | List only in Phase 0-4 | Done | `IterationStatusPage.tsx` | Active Board toggle removed; Board implementation retained only as Future Backlog |
 | Search/filter | Quick search plus Manage Filters | Done | `IterationStatusPage.tsx` | Inherits Backlog Enhancement |
 | Filter behavior | ID/Name/Plan Est/Task Est/To Do as input; Type/Schedule State/Flow State/Iteration/Blocked/Owner as dropdown | Done | `IterationStatusPage.tsx` | Multi-column combined filters |
@@ -192,7 +192,7 @@ Included:
 
 Follow-up notes to avoid scope loss:
 
-- Define permissions for PO/PM/Developer/Tester/Viewer.
+- Apply the approved Project Access model: WA/Admin edit; Editor edits assigned-Team Iteration Status; unassigned Project is hidden/direct access denied.
 - Move existing backlog items into an Iteration by updating the Work Item Iteration field from Backlog list or Work Item Detail.
 - Keep Team Board and Team Status out of Phase 2.
 - Keep Iteration Status Board view/toggle and Board drag/drop in Future Backlog; Phase 0-4 uses List only. Dedicated Start/Close and carry-over workflow is not required by the confirmed baseline.

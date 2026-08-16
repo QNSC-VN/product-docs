@@ -65,12 +65,12 @@
 | P1-08 | Detail | Work Item Detail read/update | Header, fields, Details tab, optimistic/save flow | P1-02 | 2.5h | 2.5h | `DONE` |
 | P1-09 | Detail | Sidebar field updates | Owner, Project, Team, Schedule State, Flow State, Defect-only Priority, Plan Estimate, Release, Iteration | P1-08 | 2.0h | 2.0h | `DONE` |
 | P1-10 | Detail | Collapse/summary panel behavior | Full detail ↔ summary panel state | P1-08 | 1.0h | 1.0h | `DONE` |
-| P1-11 | Detail | Permission/read-only rules | Viewer read-only, invalid project/team blocked | P1-08 | 1.0h | 1.0h | `DONE` |
+| P1-11 | Detail | Project/Team scope guards | Editor edits only assigned-Team Work Items; invalid project/team and unassigned Project access are blocked | P1-08 | 1.0h | 1.0h | `DONE` |
 | P1-12 | Task | Task List under Work Item | Full-width table, totals row, server data | P1-02 | 2.0h | 2.0h | `DONE` |
 | P1-13 | Task | Add Task modal | Name required, owner/estimate, create/create-with-details | P1-12 | 1.25h | 1.25h | `DONE` |
 | P1-14 | Task | Task Detail page | Details/Revision History tabs, left/right layout | P1-13 | 2.0h | 2.0h | `DONE` |
 | P1-15 | Task | Task parent/work product reassignment | Validate Work Product belongs to project/team scope | P1-14 | 1.0h | 1.0h | `DONE` |
-| P1-16 | Time | Estimate/To Do/Actual persistence | To Do/Actual editable; Estimate derived read-only = To Do + Actual; roll-up contract | P1-01, P1-12 | 1.5h | 1.5h | `A3 UPDATED` |
+| P1-16 | Time | Estimate/To Do/Actual persistence | Three editable independent fields; create-time Estimate -> To Do copy only when To Do blank; roll-up sums each field independently | P1-01, P1-12 | 1.5h | 1.5h | `BA UPDATED 2026-08-14` |
 | P1-17 | Time | Actual strategy decision | Actual nhập tay vào `actual_hours` trong Phase 1 | BA decided | 0.5h | 0.5h | `DECIDED` |
 | P1-18 | Content | Description/Notes/Release Notes rich text | Sanitized rich text persistence | P1-01, P1-08 | 2.0h | 2.0h | `DONE` |
 | P1-19 | Content | Attachments upload/list/delete | Metadata table + object storage contract | P1-08 | 2.0h | 2.0h | `DONE` |
@@ -153,7 +153,7 @@ P1-01 DB migration
 - [ ] Sidebar fields update và persist đúng DB.
 - [ ] Team đổi phải validate thuộc project.
 - [ ] Release/Iteration nullable và có option `Unscheduled`.
-- [ ] Viewer không sửa được field.
+- [ ] Editor chỉ sửa Work Item thuộc Team được gán; user không có Project assignment không thể mở Project hoặc Work Item của Project đó.
 
 ### Task
 

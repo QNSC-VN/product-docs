@@ -6,10 +6,10 @@
 |---|---|
 | Module ID | `P5-PORTFOLIO-ITEMS` |
 | Status | BA accepted; P5.1 Portfolio Items (`Epic -> Feature`) closed for BA/mockup scope |
-| Updated date | 2026-07-28 |
+| Updated date | 2026-08-14 |
 | Scope | `Portfolio > Portfolio Items` Epic + Feature hierarchy, Feature create/detail/children, Epic create/detail/children |
 | Priority | P5.1 - Portfolio Item foundation; Epic amendment is now part of the accepted P5.1 baseline |
-| Depends on | Phase 1 Backlog Work Item base (Story/Defect/Task), Phase 2 Backlog inline-edit and resizable-column conventions, Phase 3 Release Management (Target Release field), Phase 4 RBAC (`manageFeatures` permission gate) |
+| Depends on | Phase 1 Backlog Work Item base, Phase 2 list conventions, Phase 3 Release Management and Phase 4 Project Access |
 | Mockup source | `03_Mockup Design/src/app/pages/PortfolioPage.tsx` |
 | Not included | Theme/deeper custom Portfolio Item levels, Release Planning, Reports, API payloads and persistence design, "link/unlink existing Story-Defect" (removed, superseded by Add Item), drag-and-drop Rank reordering |
 
@@ -24,7 +24,7 @@ Portfolio Items gives leadership an Epic-and-Feature view of work above Story/De
 - Mini Rally uses a **two-level Portfolio Item hierarchy: Epic -> Feature**. Rally's level commonly named `Initiative` is labelled **Epic** in Mini Rally for product clarity.
 - A Feature is still the **only** Portfolio Item type that attaches directly to the Story/Defect hierarchy, matching Rally's rule that only the lowest Portfolio Item type links to User Stories. Epic rolls up through its child Features and never links directly to Story/Defect. Story, Defect and Task below Feature are unchanged from Phase 1/2.
 - A Feature does **not** store a Plan Estimate field. Feature progress indicators are read-only rollups computed from the Story/Defect linked to that Feature (see Â§6). The two `Estimated Progress by...` indicators compare accepted child work against optional top-down Feature forecasts (`Refined Estimate` and `Refined Work Item Count Estimate`) with a Preliminary Estimate fallback. Capacity Planning uses plan-specific allocation values entered inside the Capacity Plan.
-- `Portfolio Items` is the first entry in the top-nav `Portfolio` dropdown, ahead of `Release Planning`.
+- `Portfolio Items` is the first entry in the top-nav `Portfolio` dropdown, followed by `Capacity Planning` and `Release Tracking`. `Release Planning` remains Future Backlog and is not an active entry.
 - The Portfolio Items list has no page-level summary metrics strip (Features / Total Stories / Accepted Stories / Total Points was built, then explicitly removed per BA - "no need"). The page goes straight from the breadcrumb to the list toolbar.
 - Readiness is split: current UI presence means `Mockup Implemented`, not `Production Ready`. The Feature baseline and Epic amendment were BA accepted and P5.1 was re-closed for BA/mockup scope on 2026-07-28. API persistence, server-side authorization and production integration are not started.
 
@@ -42,7 +42,7 @@ Portfolio Items gives leadership an Epic-and-Feature view of work above Story/De
 | State | Yes | 11-value Portfolio Item State, see Â§7 |
 | Percent Done By Story Plan Estimate | No | Progress bar: accepted linked Story/Defect Plan Estimate / all current linked Story/Defect Plan Estimate; same live formula as Â§6 |
 | Percent Done By Story Count | No | Progress bar: accepted linked Story/Defect count / all current linked Story/Defect count; same live formula as Â§6 |
-| Project | Yes | Feature Project change resets Team to a valid Team in the new Project. Epic remains Project-level and changing its Project does not move child Features. |
+| Project | No | Inherited from the current Project context at creation and read-only afterward for both Feature and Epic. |
 | Team | Yes for Feature; No for Epic | Feature options are scoped to the Feature's current Project. Epic has no Team and shows child Feature count where applicable |
 | Owner | Yes | |
 
@@ -53,8 +53,8 @@ Portfolio Items gives leadership an Epic-and-Feature view of work above Story/De
 - The list toolbar starts with `Search portfolio items`, followed by `New Portfolio Item`, `Filter` and `Show Fields`. `Show Fields` controls which grid columns are visible. The old Active/Archived/All selector is removed; the current mockup list defaults to active items.
 - Every visible root row has a checkbox. Selecting rows exposes Backlog-style bulk `Edit` and `Delete` actions. `Edit` requires exactly one row. `Delete` archives the selected Portfolio Items rather than hard-deleting them; an Epic with active child Features is skipped and reported.
 - Every column is resizable (drag the column border) and sortable (click the column header).
-- Inline edit is gated by the `manageFeatures` permission. Feature supports Name, Release, State, Project, Team and Owner. Epic supports Name, State, Project and Owner; Epic has no Release or Team editor.
-- Workspace Admin can view and edit Epics/Features across all Projects. Project Admin can view and edit only Epics/Features in Projects they manage. Project Member can view assigned Project/Team Portfolio data read-only and cannot create, edit or archive Portfolio Items.
+- Inline edit follows effective Project Access. Feature supports Name, Release, State, Team and Owner. Epic supports Name, State and Owner; Project is read-only for both types, and Epic has no Release or Team editor.
+- Workspace Admin manages Portfolio across all Projects. Admin manages Portfolio in assigned Projects. Editor and unassigned users do not access Portfolio Items.
 - Feature Release options in list, create and detail are scoped to the Feature's current Project. Epic never exposes a Release selector in create, list inline edit or detail.
 - Clicking anywhere on an Epic or Feature row other than an inline-edit control, the Rank reorder buttons, or the expand chevron opens that item's Detail page.
 - Epic root rows keep Rank. Feature child rows revealed under an expanded Epic do not display Rank because their order is contextual to the parent preview; root Feature rows retain Rank.
@@ -62,8 +62,8 @@ Portfolio Items gives leadership an Epic-and-Feature view of work above Story/De
 
 ## 4. Create Feature
 
-- `New Portfolio Item` button is visible only to roles with the `manageFeatures` permission (not `Project Member`). It opens a menu with `New Epic` and `New Feature`.
-- Create modal fields: Project (select, cascades Team), Team (select, scoped to Project), Name (required), State (11-value Portfolio Item State, defaults to `No Entry`), Preliminary Estimate (T-shirt size, defaults to `No Entry`), Owner, Target Release (`Unscheduled` or a confirmed Release).
+- `New Portfolio Item` is visible only to Workspace Admin or Admin in the assigned Project. It opens `New Epic` and `New Feature`.
+- Create modal fields: Project (auto-filled from the current Project context and read-only), Team (select, scoped to that Project), Name (required), State (11-value Portfolio Item State, defaults to `No Entry`), Preliminary Estimate (T-shirt size, defaults to `No Entry`), Owner, Target Release (`Unscheduled` or a confirmed Release).
 - Two submit actions:
   - `Create Feature` - creates the Feature and returns to the Portfolio Items list.
   - `Create with details` - creates the Feature and immediately opens its Detail page.
@@ -95,7 +95,7 @@ Right rail, in order:
 | Field | Behavior |
 |---|---|
 | Owner | Select |
-| Project | Select; changing it resets Team to that Project's first Team |
+| Project | Read-only; inherited from the Project context used at creation |
 | Preliminary Estimate | T-shirt sizing value: No Entry, XS, S, M, L, XL |
 | Refined Estimate | Optional numeric top-down points forecast for `Estimated Progress by Story Points`; blank falls back to Preliminary Estimate mapping |
 | Refined Work Item Count Estimate | Optional numeric top-down child-count forecast for `Estimated Progress by Story Count`; blank falls back to Preliminary Estimate mapping |
@@ -132,7 +132,7 @@ Work Item Detail shows a `Feature` field in the right rail:
 - `Unassigned` is allowed.
 - The selectable Feature list is scoped to the Work Item's Project.
 - Archived Features are not offered as new assignment targets.
-- Changing a Work Item's Project clears the Feature if the existing Feature no longer belongs to that Project.
+- A Work Item's Project is selected during creation and is read-only after the Work Item is created. The user may change or clear the Feature, but every selectable Feature must belong to that fixed Project.
 
 Plan > Backlog is the planning backlog only. It shows Story/Defect rows whose Iteration is `Unscheduled`. Assigning a row to an Iteration removes it from Backlog and makes it visible in that Iteration's execution/status views. Moving it back to `Unscheduled` returns it to Backlog.
 
@@ -140,19 +140,18 @@ Plan > Backlog is the planning backlog only. It shows Story/Defect rows whose It
 
 Task `Estimate`, `To Do` and `Actual` are three independent hour fields:
 
-- If the Owner enters `Estimate` first, the system copies the same number of hours to `To Do` once.
+- On Task creation only, if `Estimate` is entered and `To Do` is blank, the system copies the same number of hours to `To Do` once.
 - After that first copy, `Estimate`, `To Do` and `Actual` do not auto-recalculate each other.
 - Owner fills `Actual` when work is done.
-- Marking a Task `Completed` sets `To Do` to 0.
-- Reopening a completed Task does not auto-restore `To Do`; the Owner must enter a new To Do value if remaining work exists.
+- Changing Task State, including completing or reopening it, never changes any of the three hour fields.
 
-This replaces the older task rule that displayed `Estimate = To Do + Actual`.
+This is the current cross-phase Task-hour contract.
 
 ### 5.5 Archive
 
 - Feature removal uses **Archive**, not hard delete.
-- Workspace Admin and the managing Project Admin may archive a Feature within their allowed Project scope.
-- Project Member cannot archive.
+- Workspace Admin and Admin may archive a Feature within allowed Project scope.
+- Editor and unassigned users cannot archive.
 - Archived Features remain available for history/audit, do not appear in the default active list and cannot receive newly created or newly assigned Story/Defect children.
 - Restoring an archived Feature is outside the P5.1 mockup baseline unless separately proposed and confirmed.
 
@@ -207,7 +206,7 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 | P5-PI-FR-002 | Portfolio Items list shows Rank, Type, ID, Name, Release, State, Percent Done By Story Plan Estimate, Percent Done By Story Count, Project, Team, Owner. |
 | P5-PI-FR-003 | Every list column is sortable and resizable. |
 | P5-PI-FR-027 | The two Portfolio Items list Percent Done columns render progress bars using the live child Story/Defect denominator formulas: accepted Plan Estimate over all current child Plan Estimate, and accepted child count over all current child count. |
-| P5-PI-FR-004 | User with `manageFeatures` can inline-edit Feature Name, Release, State, Project, Team and Owner; Epic Name, State, Project and Owner are inline-editable while Epic Release/Team are absent. |
+| P5-PI-FR-004 | User with `manageFeatures` can inline-edit Feature Name, Release, State, Team and Owner; Epic Name, State and Owner are inline-editable. Project is read-only after creation; Epic Release/Team are absent. |
 | P5-PI-FR-005 | User can reorder Features via Rank up/down controls. |
 | P5-PI-FR-006 | User can expand a Feature row to preview up to 5 linked Story/Defect without leaving the list. |
 | P5-PI-FR-007 | Clicking a Feature row (outside inline-edit/reorder/expand controls) opens Feature Detail. |
@@ -221,15 +220,15 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 | P5-PI-FR-015 | Feature Detail shows Owner and Project first in the right panel, shows Preliminary Estimate and optional refined top-down estimates without any Feature Plan Estimate field, moves the old Progress field to left Details as `Total Accepted Children`, and keeps progress indicators computed from linked Story/Defect plus the confirmed top-down denominator formulas. |
 | P5-PI-FR-026 | `Total Accepted Children` uses the same progress-meter visual format as the right-panel progress bars and lets the user switch between Points and Count. |
 | P5-PI-FR-016 | `Portfolio Items` is the first entry in the `Portfolio` nav dropdown. |
-| P5-PI-FR-017 | Portfolio visibility and edit actions follow Workspace Admin, managed-Project Project Admin and assigned-context read-only Project Member rules. |
+| P5-PI-FR-017 | Portfolio follows Phase 4 Project Access: WA all Projects; Admin manages assigned Projects; Editor and unassigned users are hidden. |
 | P5-PI-FR-018 | Every Release selector is limited to Releases belonging to the Feature's Project. |
 | P5-PI-FR-019 | Description, Notes, What Success Looks Like and attachment metadata have a session-level Feature data contract rather than display-only placeholders. |
 | P5-PI-FR-020 | Authorized users can Archive a Feature; the UI does not hard-delete it. |
 | P5-PI-FR-021 | Archived Features cannot receive new Story/Defect children and are hidden from the default active list. |
 | P5-PI-FR-022 | Story/Defect creation from Feature Detail reuses the Backlog Work Item creation flow and pre-fills the Feature field. |
-| P5-PI-FR-023 | Work Item Detail exposes a Project-scoped Feature field; invalid cross-Project Feature assignment is cleared when Project changes. |
+| P5-PI-FR-023 | Work Item Detail exposes an editable Project-scoped Feature field with `Unassigned`; Work Item Project is read-only after creation. |
 | P5-PI-FR-024 | Plan > Backlog shows only Unscheduled Story/Defect; assigning an Iteration removes the row from Backlog and moving it back to Unscheduled returns it. |
-| P5-PI-FR-025 | Task Estimate, To Do and Actual follow the independent-field rule: Estimate-first copies to To Do once, Completed sets To Do to 0, and reopening does not restore To Do. |
+| P5-PI-FR-025 | Task Estimate, To Do and Actual are independent editable fields. On Task creation only, Estimate is copied once to a blank To Do; later edits and Task State changes never recalculate or reset any hour field. |
 | P5-PI-FR-028 | Portfolio Items supports Epic rows above Feature rows in `All Teams` context. |
 | P5-PI-FR-029 | Team-specific context hides Epic rows and shows only Features for the selected Team. |
 | P5-PI-FR-030 | `New Portfolio Item` supports both `New Epic` and `New Feature`; Epic create has no Team field. |
@@ -254,12 +253,12 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 | P5-PI-Q05 | Is the Features/Total Stories/Accepted Stories/Total Points summary bar needed? | No - removed from the page entirely. |
 | P5-PI-Q06 | Should Story/Defect be linkable to a Feature after creation via a separate link/unlink picker? | No - membership is set only at creation (`Add Item`) or by editing the Story/Defect's own record; the picker was built, then explicitly removed. |
 | P5-PI-Q07 | What is the Feature State field's option set? | The 11-value Portfolio Item State list in Â§7, matching the real Rally Portfolio Item State field the BA referenced. |
-| P5-PI-Q08 | How is Portfolio access scoped? | Workspace Admin: all Projects editable; Project Admin: managed Projects editable; Project Member: assigned Project/Team read-only. |
+| P5-PI-Q08 | How is Portfolio access scoped? | Workspace Admin: all Projects editable; Admin: assigned Projects editable; Editor and unassigned users: hidden. |
 | P5-PI-Q09 | How is Feature removal handled? | Archive, never hard delete; archived Features retain history and cannot receive new children. |
 | P5-PI-Q10 | Are Release choices global? | No. Every Feature Release choice is scoped to the Feature's Project. |
 | P5-PI-Q11 | Should Feature children be represented as Work Items? | Yes. Children of a Feature are Story/Defect Work Items. Creating one inside a Feature uses the same Work Item template and pre-fills the Feature field. |
 | P5-PI-Q12 | What belongs in Plan > Backlog after Iteration assignment? | Only planned/unassigned Story/Defect work. Once a Work Item is assigned to an Iteration it leaves Backlog and appears under that Iteration; Unscheduled returns it to Backlog. |
-| P5-PI-Q13 | How should Task Estimate, To Do and Actual behave? | They are independent fields. Estimate-first copies to To Do once; complete sets To Do to 0; no later automatic recalculation or restore. |
+| P5-PI-Q13 | How should Task Estimate, To Do and Actual behave? | They are independent editable fields. On Task creation only, Estimate copies once to a blank To Do; after creation, changing any field or Task State never changes the other hour fields. |
 | P5-PI-Q14 | How should `Total Accepted Children` display accepted child rollup? | Use the same progress-meter visual style as `Percent Done by Story Plan Estimate`; user may toggle Points/Count. Points uses accepted child Plan Estimate over all current child Plan Estimate; Count uses accepted child count over all current child count. |
 | P5-PI-Q15 | Where should Preliminary Estimate scale/mapping be defined? | Deferred. BA confirmed it must be user-configurable under `Settings gear > Workspace > Project Management`, not hard-coded in Portfolio. Design and implementation will be confirmed later. |
 | P5-PI-Q16 | When should Epic rows display? | The Type selector has only Epic/Feature. Epic displays only in `All Teams`; specific Team + Epic shows `Filter not show item`, while specific Team + Feature shows that Team's Features. |
@@ -269,11 +268,11 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 
 1. User can open `Portfolio > Portfolio Items` and see the confirmed column set.
 2. All list columns are sortable and resizable.
-3. User with `manageFeatures` can inline-edit Feature Name, Release, State, Project, Team and Owner; Epic supports Name, State, Project and Owner only.
+3. User with `manageFeatures` can inline-edit Feature Name, Release, State, Team and Owner; Epic supports Name, State and Owner only. Project is inherited from current context and read-only after creation.
 4. Rank can be changed via up/down controls and the new order persists across a Rank-column sort.
 5. Expanding a Feature row previews up to 5 linked Story/Defect with State and Percent Done cells blank.
 6. Clicking a Feature row opens Feature Detail; inline-edit controls, Rank buttons and the expand chevron do not trigger navigation.
-7. `New Feature` creates a Feature via both `Create Feature` and `Create with details` paths.
+7. `New Feature` creates exactly one Feature via both paths. `Create Feature` returns to the list; `Create with details` opens the Detail page of the same newly created Feature without creating a duplicate.
 8. Feature Detail Details tab shows all fields listed in Â§5.1.
 9. Feature Detail Children tab shows Backlog-equivalent search/filter/sort/resize/pagination over linked Story/Defect.
 10. Children-tab rows are inline-editable on the confirmed fields and expandable to show linked Tasks read-only.
@@ -285,16 +284,16 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 15. No summary metrics strip appears above the Portfolio Items list.
 16. No link/unlink-existing control exists anywhere in Feature Detail.
 17. `Portfolio Items` is the first entry in the `Portfolio` nav dropdown.
-18. Project-scoped visibility/edit behavior passes positive and negative checks for all three technical roles.
+18. Project-scoped visibility/edit behavior passes for Workspace Admin and every per-Project Access Level.
 19. Release selectors never offer a Release from another Project.
 20. Editing Description, Notes and What Success Looks Like updates the shared session Feature record; attachment metadata has an explicit mock-state behavior.
 21. Authorized users can archive but not hard-delete a Feature; archived Features are hidden by default and reject new children.
 22. Phase 5.1 business/UAT scenarios, traceability, build and live browser smoke evidence are complete.
 23. Creating a Story/Defect from Feature Detail opens the shared Work Item creation flow and the resulting Work Item has the current Feature pre-filled.
-24. Work Item Detail allows changing Feature within the same Project, supports Unassigned, and clears the value if Project changes make the old Feature invalid.
+24. Work Item Detail allows changing Feature within the same fixed Project and supports Unassigned; Project remains read-only after creation.
 25. Assigning an Unscheduled Story/Defect to an Iteration removes it from Plan > Backlog; setting it back to Unscheduled returns it.
-26. Task Estimate-first copy, independent hour editing, Completed -> To Do 0, and reopen-without-restore behavior are verified.
-27. `New Portfolio Item` opens a menu with `New Epic` and `New Feature`; Project Member does not see create actions.
+26. Task create-time Estimate-to-blank-To Do copy, independent hour editing, and no Task-State-driven hour mutation are verified.
+27. `New Portfolio Item` opens a menu with `New Epic` and `New Feature`; only Workspace Admin/Admin see create actions.
 28. `New Epic` creates a Project-level Epic with no Team field, and `Create with details` opens the Epic Detail page.
 29. Portfolio list shows Epic rows only in `All Teams` context; selecting a specific Team hides Epic rows and shows that Team's Features.
 30. Expanding an Epic row shows its child Features; Features without an Epic remain visible as root Feature rows.
@@ -323,7 +322,7 @@ This amendment reopens only the Portfolio Items hierarchy slice and does not reo
 - Epic State is manually changed and never auto-derived from child Feature states.
 - Epic Milestone and planned dates do not cascade to child Features. Epic has no Release assignment.
 - Epic archive is blocked while it still has active child Features. Archive never cascades to Features.
-- Existing Portfolio permission rules are reused: Workspace Admin and managed-Project Project Admin can manage Epic; Project Member is read-only.
+- Existing Portfolio permission rules are reused: Workspace Admin and Admin can manage Epic in allowed Project scope; Editor and unassigned users are hidden.
 - Team context rule: Epic rows appear only when the context Team is `All Teams`. If the user filters to a specific Team, Portfolio Items hides Epic rows and shows only Features in that Team.
 
 ### 11.2 Epic Create
@@ -337,7 +336,7 @@ The `New Portfolio Item` action opens a menu with:
 
 | Field | Behavior |
 |---|---|
-| Project | Required; defines where the Epic is stored |
+| Project | Auto-filled from current Project context; read-only |
 | Name | Required |
 | State | Portfolio Item State, defaults to `No Entry` |
 | Preliminary Estimate | T-shirt sizing value, defaults to `No Entry` |
@@ -358,7 +357,7 @@ Epic row behavior:
 - Team column shows the child Feature count instead of a Team name.
 - Expand reveals child Features.
 - Clicking an Epic row opens Epic Detail.
-- Inline edit follows Feature conventions only where applicable: Name, State, Project and Owner. Epic has no Release or Team editor and its shared Release column renders `—`.
+- Inline edit follows Feature conventions only where applicable: Name, State and Owner. Project is read-only. Epic has no Release or Team editor and its shared Release column renders `—`.
 
 Feature row behavior:
 
@@ -385,7 +384,7 @@ Details tab right rail:
 | Field | Behavior |
 |---|---|
 | Owner | Select |
-| Project | Select; changing Project does not move child Features |
+| Project | Read-only; inherited from current Project context at creation |
 | Four progress bars | Read-only formulas in 11.5 |
 | Preliminary Estimate | T-shirt sizing on the Epic itself |
 | State | Manual Portfolio Item State |
@@ -448,7 +447,7 @@ Accepted Epic flow:
 1. Open `Portfolio > Portfolio Items`; select `Type = Epic` in `All Teams`.
 2. Search or inspect existing Epic roots. Expand an Epic to preview child Features, or click the row to open Epic Detail.
 3. Use `New Portfolio Item > New Epic` to create a Project-level Epic. `Create Epic` returns to the list; `Create with details` opens the created Epic.
-4. Maintain Epic Name, State, Project, Owner and top-down Preliminary/Refined estimates. Epic has no Team or Release assignment.
+4. Maintain Epic Name, State, Owner and top-down Preliminary/Refined estimates. Project remains read-only; Epic has no Team or Release assignment.
 5. Open `Children` and use `Add Feature`; the shared Feature create flow opens with the current Epic pre-filled.
 6. Leaf Story/Defect changes under child Features update the four Epic progress bars live. Epic State remains manual.
 7. Archive is enabled only when no active child Feature remains. Archive never cascades.

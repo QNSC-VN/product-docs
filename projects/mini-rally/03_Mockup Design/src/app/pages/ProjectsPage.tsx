@@ -4,7 +4,7 @@ import {
   MoreHorizontal, Plus, RotateCcw, Search, Shield, UserCheck,
   UserPlus, Users, X,
 } from "lucide-react";
-import { OWNERS, PROJECTS, SCOPE_PROJECTS, WORKSPACE_USERS, type Owner, type Role } from "../model";
+import { OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, WORKSPACE_USERS, type Owner, type Role } from "../model";
 import { Avatar } from "../components/shared";
 
 type ManageTab = "projects" | "teams";
@@ -161,13 +161,13 @@ const INITIAL_USERS: UserRecord[] = WORKSPACE_USERS.map((user, index) => ({
 
 const ROLES: { code: WorkspaceRoleCode; label: string }[] = [
   { code: "workspace_admin", label: "Workspace Admin" },
-  { code: "project_admin", label: "Project Admin" },
-  { code: "project_member", label: "Project Member" },
+  { code: "project_admin", label: "Admin" },
+  { code: "project_member", label: "Editor" },
 ];
 
 function mapRoleToProd(role: Role): WorkspaceRoleCode {
   if (role === "Workspace Admin") return "workspace_admin";
-  if (role === "Project Admin") return "project_admin";
+  if (role === "Admin") return "project_admin";
   return "project_member";
 }
 
@@ -527,6 +527,11 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
   const [archiveTeamTarget, setArchiveTeamTarget] = useState<TeamRecord | null>(null);
   const [restoreTeamTarget, setRestoreTeamTarget] = useState<TeamRecord | null>(null);
   const canManageCompanyStructure = role === "Workspace Admin";
+  const visibleProjectKeys = role === "Admin"
+    ? ROLE_SCOPE.adminProjectKeys as readonly string[]
+    : null;
+  const visibleProjects = visibleProjectKeys ? projects.filter(project => visibleProjectKeys.includes(project.key)) : projects;
+  const canManageProject = (_project: ProjectRecord) => role === "Workspace Admin";
   const allTeamNames = Array.from(new Set(teams.map(team => team.name))).sort();
 
   useEffect(() => {
@@ -640,7 +645,7 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
         {activeTab === "teams" && canManageCompanyStructure && <button onClick={() => setEditingTeam(null)} className="primary-button"><Plus size={12} /> Create Team</button>}
       </div>
 
-      {activeTab === "projects" && <ProjectsTab projects={projects} canManage={canManageCompanyStructure} onEdit={setEditingProject} onArchive={setArchiveProjectTarget} onRestore={setRestoreProjectTarget} />}
+      {activeTab === "projects" && <ProjectsTab projects={visibleProjects} canManageProject={canManageProject} onEdit={setEditingProject} onArchive={setArchiveProjectTarget} onRestore={setRestoreProjectTarget} />}
       {activeTab === "teams" && <TeamsTab teams={teams} projects={projects} canManage={canManageCompanyStructure} onEdit={setEditingTeam} onArchive={setArchiveTeamTarget} onRestore={setRestoreTeamTarget} />}
 
       <style>{`.primary-button{display:flex;align-items:center;gap:6px;padding:6px 12px;border-radius:4px;font-size:11px;font-weight:600;color:white;background-color:#1d3f73}`}</style>
@@ -656,7 +661,7 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
   );
 }
 
-function ProjectsTab({ projects, canManage, onEdit, onArchive, onRestore }: { projects: ProjectRecord[]; canManage: boolean; onEdit: (project: ProjectRecord) => void; onArchive: (project: ProjectRecord) => void; onRestore: (project: ProjectRecord) => void }) {
+function ProjectsTab({ projects, canManageProject, onEdit, onArchive, onRestore }: { projects: ProjectRecord[]; canManageProject: (project: ProjectRecord) => boolean; onEdit: (project: ProjectRecord) => void; onArchive: (project: ProjectRecord) => void; onRestore: (project: ProjectRecord) => void }) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<"All" | ProjectStatus>("Active");
   const filtered = useMemo(() => projects.filter(project => (status === "All" || project.status === status) && `${project.key} ${project.name} ${project.owner.name}`.toLowerCase().includes(search.toLowerCase())), [projects, search, status]);
@@ -675,15 +680,15 @@ function ProjectsTab({ projects, canManage, onEdit, onArchive, onRestore }: { pr
       </Toolbar>
       <div className="flex-1 overflow-auto"><div className="min-w-[1120px]">
         <Header columns={[["w-20", "Key"], ["flex-1", "Project"], ["w-24", "Status"], ["w-36", "Owner"], ["w-44", "Teams"], ["w-20", "Members"], ["w-28", "Start Date"], ["w-24", "Updated"], ["w-20 text-right", "Actions"]]} />
-        {filtered.map(project => <div key={project.id} className={canManage ? "row cursor-pointer hover:bg-[#f7f8fa]" : "row"} onClick={() => canManage && onEdit(project)}>
+        {filtered.map(project => { const canManage = canManageProject(project); return <div key={project.id} className={canManage ? "row cursor-pointer hover:bg-[#f7f8fa]" : "row"} onClick={() => canManage && onEdit(project)}>
           <div className="w-20 shrink-0 font-mono text-[10px] font-semibold" style={{ color: "#2558a6" }}>{project.key}</div>
           <div className="flex-1 min-w-0"><p className="text-[11px] font-semibold truncate" style={{ color: "#1a2234" }}>{project.name}</p><p className="text-[9px] truncate mt-0.5" style={{ color: "#8c94a6" }}>{project.description || "No description"}</p></div>
           <div className="w-24 shrink-0"><StatusDot status={project.status} /></div>
           <div className="w-36 shrink-0 flex items-center gap-1.5"><Avatar owner={project.owner} size="xs" /><span className="text-[10px] truncate" style={{ color: "#5c6478" }}>{project.owner.name}</span></div>
           <div className="w-44 shrink-0 flex items-center -space-x-1">{project.teams.slice(0, 2).map(team => <span key={team} className="px-1.5 py-0.5 rounded-sm text-[9px] truncate max-w-24" style={{ color: "#475569", backgroundColor: "#f1f5f9", border: "1px solid white" }}>{team}</span>)}{project.teams.length > 2 && <span className="text-[9px] ml-1.5" style={{ color: "#8c94a6" }}>+{project.teams.length - 2}</span>}{project.teams.length === 0 && <span className="text-[9px]" style={{ color: "#b0b8c8" }}>No teams</span>}</div>
           <div className="w-20 shrink-0 text-[10px]" style={{ color: "#5c6478" }}>{project.members}</div><div className="w-28 shrink-0 text-[10px]" style={{ color: "#5c6478" }}>{project.startDate}</div><div className="w-24 shrink-0 text-[10px]" style={{ color: "#8c94a6" }}>{project.updatedAt}</div>
-          <RowActions canManage={canManage} active={project.status === "Active"} onEdit={() => onEdit(project)} onArchive={() => onArchive(project)} onRestore={() => onRestore(project)} archiveLabel="Archive" restoreLabel="Restore" />
-        </div>)}
+          {canManage ? <RowActions canManage active={project.status === "Active"} onEdit={() => onEdit(project)} onArchive={() => onArchive(project)} onRestore={() => onRestore(project)} archiveLabel="Archive" restoreLabel="Restore" /> : <div className="w-20 shrink-0 text-right"><span className="text-[9px] font-semibold px-1.5 py-0.5 rounded-sm" style={{ color: "#5c6478", backgroundColor: "#f0f2f5" }}>View only</span></div>}
+        </div>; })}
         {filtered.length === 0 && <EmptyTable icon={FolderKanban} title="No projects found" />}
       </div></div>
       <Footer count={filtered.length} />

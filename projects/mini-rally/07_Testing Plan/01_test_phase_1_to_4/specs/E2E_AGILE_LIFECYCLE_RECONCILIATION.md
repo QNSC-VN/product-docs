@@ -2,12 +2,12 @@
 
 ## Purpose
 
-This is the canonical BA/UAT flow proving that Phase 0-4 screens operate as one Agile management chain with shared Work Item identity and shared status values. Release Progress is explicitly excluded and belongs to Phase 5 `Portfolio > Release Planning`.
+This is the canonical BA/UAT flow proving that Phase 0-4 screens operate as one Agile management chain with shared Work Item identity and shared status values. Release Progress is explicitly excluded from Phase 0-4 and belongs to `Portfolio > Release Tracking`; Release Planning remains Future Backlog.
 
 ## Baseline data
 
 - One Project and Team in the active context.
-- One authorized Project Admin in the assigned Project and one Project Member in the assigned Team.
+- One normal user with Admin access in the Project and one normal user with Editor access in the assigned Team.
 - Two Releases with different start/end dates.
 - One Milestone linked to both Releases.
 - One Iteration.

@@ -8,7 +8,7 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 2. Phase 1 creates the core work management layer: Project/Team/User, Backlog, Story/Defect, Detail, Task, Time, Content, Attachment and Activity.
 3. Phase 2 connects Backlog with Agile execution: Project/Team context, Iteration assignment and Iteration Status.
 4. Phase 3 adds delivery and quality execution views: Team Status, Release Management, Milestones and Quality/Defect.
-5. Phase 4 adds governance surfaces: Notifications, Roles & Permissions, Settings/User Management and Audit.
+5. Phase 4 adds governance surfaces: Notifications, Workspace authority, per-Project Access, Settings and Audit.
 
 ## 2. Definition of "going in the right direction"
 
@@ -27,8 +27,8 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 | Phase 3 scope | Phase 3 includes Team Status, Release Management, Milestones and Quality/Defect. |
 | Team Board scope | Team Board, board drag/drop, WIP limits and board transition rules are Future Backlog only. |
 | Iteration metrics | Tasks active counts non-Completed child Tasks; Totals derive Plan Estimate from US/DE and Task Estimate/To Do from their child Tasks. |
-| Release Progress scope | Release Progress is excluded from Phase 3 list/detail and deferred to Phase 5 `Portfolio > Release Planning`. |
-| Permission | UI hide/disable is UX only; backend must still enforce permission. |
+| Release Progress scope | Release Progress is excluded from Phase 3 list/detail and belongs to `Portfolio > Release Tracking`; Release Planning remains Future Backlog. |
+| Permission | WA is the only company authority; Admin/Editor resolve independently per Project. No assignment means Project hidden/direct access denied. UI gating is UX only; backend still enforces every action and scope. |
 | Audit | Important mutations should create activity/audit events according to each module's scope. |
 
 ## 3. Test levels
@@ -46,10 +46,13 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 | Data | Purpose |
 |---|---|
 | Workspace Admin | Login, create/update, full happy path. |
-| Project Admin outside managed Project | Verify read-only/hide-disable UI and backend rejection for delivery mutations. |
+| Normal user with Admin in Project A | Verify All Teams and delivery management without Project/Team/access administration. |
+| Normal user with Editor in Project B/Team B1 | Verify Team-scoped delivery edits and hidden planning/administration surfaces. |
+| Normal user with Editor in Project C | Verify assigned-Team delivery scope and no Project administration. |
+| Same user without assignment in another Project | Verify navigation/search/direct URL isolation. |
 | At least 2 Projects | Verify context switch and project isolation. |
 | At least 2 Teams under one Project | Verify team filter and valid team assignment. |
-| Team linked to another Project | Verify invalid Project/Team pair is rejected. |
+| Distinct Teams under different Projects | Verify a Team cannot be selected outside its parent Project. |
 | Story and Defect | Verify type-specific behavior and shared Work Item source. |
 | Story/Defect with multiple child Tasks | Verify Team Status roll-up and parent auto-complete rule. |
 | Iteration with assigned items | Verify Iteration Status and Team Status. |
@@ -71,10 +74,10 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 | Scope | Exit criteria |
 |---|---|
 | Phase 0 | Login/session/logout, fixed Company, no Workspace create/switch, Project create/list/search/basic validation pass. |
-| Phase 1 | Manage Team/User, Backlog Story/Defect, Detail, Task, Time/Content/Attachment, Activity Log core scenarios pass. |
+| Phase 1 | WA Project/Team/access setup, Backlog Story/Defect, Detail, Task, Time/Content/Attachment and Activity core scenarios pass. |
 | Phase 2 | Project/Team context filters Backlog/Iterations/Iteration Status, Iteration assignment works, Iteration Status uses Backlog source of truth. |
 | Phase 3 | Team Status task roll-up, Release artifacts, Milestone artifacts and Quality Defect core workflow pass. |
-| Phase 4 | Notification routing/read behavior, confirmed RBAC surfaces, Workspace/User settings and administrative Audit UI behavior pass. |
+| Phase 4 | Notification routing/read behavior, per-Project access/synchronization, Settings and administrative Audit behavior pass. |
 | Regression | No P0/P1 severity blocker in the main business journey. |
 
 ## 7. Risk-based priority
@@ -89,7 +92,7 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 | P0 | Release/Milestone artifact identity | Release/Milestone must not clone or mutate Work Item identity unexpectedly. |
 | P0 | Defect create/edit/state flow | Quality workflow is a core Phase 3 business slice. |
 | P1 | Search/filter/sort/pagination/resize | Important daily usage and regression risk. |
-| P1 | Permission/read-only behavior | Important, while detailed permission matrix may still evolve. |
+| P0 | Project access and Team isolation | A wrong scope can expose or mutate another Project's data. |
 | P2 | Advanced empty/error/loading states | Required for quality, less likely to block BA happy path. |
 
 ## 8. Out-of-scope boundaries
@@ -98,4 +101,4 @@ This test pack ensures Mini Rally keeps moving in the correct business direction
 - Phase 1: Feature/Epic/Initiative, Kanban board, sprint planning drag/drop, advanced timesheet and full admin audit screen are deferred.
 - Phase 2: Team Status, Release Management, Milestones and Quality/Defect are not required for Phase 2 acceptance.
 - Phase 3: Team Board, board drag/drop, WIP limits, board transition rules, dedicated carry-over workflow, saved Team Status views, executable bulk actions and Defect reopen are not required unless BA later re-prioritizes them.
-- Phase 4: Portfolio Release Planning/Progress, Reports, Workflow Status configuration, Labels and notification preferences are not required.
+- Phase 4: Custom permission matrix editing, Workflow Status configuration, Labels and Notification Preferences are not required. Portfolio/Reports use the same approved per-Project access model when their phase is tested.

@@ -1,5 +1,7 @@
 ﻿# Mini Rally — Screen Specification & Frontend Traceability
 
+> **Current navigation/access addendum (2026-08-14):** Settings contains Workspace Settings, Users, Workspaces & Projects, Permission Model and Audit Log. Current Project Access includes Admin/Editor only; no assignment means Project hidden/direct access denied. Viewer/selectable No Access and the former editable role matrix are not current scope.
+
 ## 1. Mục đích tài liệu
 
 Tài liệu này nối ba lớp thông tin để team có thể truy vết nhanh từ yêu cầu đến giao diện hiện tại:
@@ -128,29 +130,22 @@ Frontend đã được refactor khỏi App.tsx monolith: App chỉ điều phố
 | Global search | [`layout.tsx`](../03_Mockup%20Design/src/app/components/layout.tsx) | 🟡 Input không search |
 | Notifications | [`layout.tsx`](../03_Mockup%20Design/src/app/components/layout.tsx) | ✅ Điều hướng tới Notifications |
 | Help | [`layout.tsx`](../03_Mockup%20Design/src/app/components/layout.tsx) | 🟡 Chưa có action |
-| Settings theo quyền | [`layout.tsx`](../03_Mockup%20Design/src/app/components/layout.tsx) | ✅ Admin/PM thấy nút; nội dung tiếp tục được gate |
+| Settings theo quyền | [`layout.tsx`](../03_Mockup%20Design/src/app/components/layout.tsx) | ✅ WA quản trị; normal user thấy context Project/Team và My Permissions theo access |
 | User menu, role switch demo và Sign out | [`layout.tsx`](../03_Mockup%20Design/src/app/components/layout.tsx) | ✅ Sign out về Login; role switch chỉ dành mockup |
 | Context selector theo page | [`ContextBar`](../03_Mockup%20Design/src/app/components/layout.tsx) | 🟡 Selector local; Backlog đã bỏ cụm context bar bên phải |
 
-### 4.2 Role model hiện tại
+### 4.2 Project Access model hiện tại
 
 Role type và permission helper nằm tại [`model.ts`](../03_Mockup%20Design/src/app/model.ts).
 
-| Prompt role | Role trong FE | Ghi chú |
+| Authority / Level | Scope | Ghi chú |
 |---|---|---|
-| Workspace Admin | `Workspace Admin` | Map trực tiếp |
-| Project Manager / Scrum Master | `Project Manager` | Scrum Master được gộp vào PM |
-| Product Owner / BA | `Product Owner` | BA được gộp vào PO |
-| Developer | `Developer` | Map trực tiếp |
-| Tester / QA | `Tester` | QA được gộp vào Tester |
-| Viewer / Stakeholder | `Viewer` | Stakeholder được gộp vào Viewer |
+| Workspace Admin | Company | Assigned internally; không nằm trong Project membership |
+| Admin | Project | All Teams; manage delivery, không quản trị structure/access |
+| Editor | Project + explicit Teams | Backlog/Work Item/Task, Quality, Iteration Status |
+| Unassigned user | None | No access row; Project hidden and direct URL denied |
 
-Permission hiện tại là UI gating, không phải security enforcement. Một số rule đang rộng hơn prompt:
-
-- `create` và `edit` cho mọi role trừ Viewer; Developer có thể thấy create generic work item.
-- Work Item Detail chỉ chia `Viewer` và `non-Viewer`, chưa phân field/action theo Developer, QA, PO và PM.
-- Settings phân tách project-level cho PM và workspace-level cho Admin tương đối sát prompt.
-- Board đặt thuộc tính `draggable` theo role, nhưng chưa có drag/drop handler.
+Mockup thể hiện UI outcome để review nghiệp vụ; implementation vẫn phải enforce access ở server. Permission Model là read-only và không có custom role/matrix editing.
 
 ---
 
@@ -263,7 +258,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Rich work item card | Type, ID, title, priority, estimate, owner và indicators | ✅ |
 | Owner quick filter | `filterOwner` local state | ✅ |
 | Open item detail | Click card mở side panel/full detail | ✅ |
-| Viewer read-only | `can.dragBoard(role)` và view-only notice | ✅ UI gating |
+| Unassigned Project isolation | Project/board hidden; direct route denied | ✅ mockup access gating |
 | Drag/drop between columns | Card có `draggable` attribute | 🟡 Không có `onDragStart`, `onDragOver`, `onDrop`; status không đổi |
 | Filter type/priority/label/my items | Chưa đủ filter prompt | 🟡 Chỉ có owner |
 
@@ -276,7 +271,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Khu vực / yêu cầu | FE hiện tại | Coverage |
 |---|---|---|
 | Header: type, ID, status, title, watch, more | Sticky header | ✅ Watch dùng local state |
-| Description | Textarea cho non-Viewer, read-only cho Viewer | ✅ UI / 🟡 không lưu |
+| Description | Editable cho WA/Admin/Editor trong scope; unassigned item không hiển thị | ✅ UI / 🟡 không lưu |
 | Acceptance Criteria | Checklist local state | ✅ UI / 🟡 không lưu |
 | Defect Details conditional | Chỉ render khi `item.type === "Defect"` | ✅ |
 | Related Work Items | Static relation list + Link Existing | ✅ UI / 🟡 link chưa xử lý |
@@ -284,7 +279,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Attachments | Static file list | 🟡 Upload/download chưa xử lý |
 | Activity Log | Static timeline | ✅ UI / 🟡 dữ liệu |
 | Metadata panel | Owner, Project, Team, Schedule State, Flow State, Defect-only Priority, Plan Estimate, Release, Iteration | ✅ theo Phase 1 detail sidebar |
-| Role behavior | `editable = role !== Viewer` | 🟡 Chưa có field-level permissions; Viewer vẫn thấy Link/Upload và đổi Blocked được |
+| Access behavior | WA/Admin chỉnh trong Project; Editor chỉnh assigned Teams; unassigned Project/item bị ẩn/denied | ✅ mockup gating; production vẫn phải enforce server-side |
 
 ### SCR-07 — Quality / Defect Management
 
@@ -368,20 +363,18 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 
 ### SCR-12 — Settings / Admin
 
-**Mục đích:** Cấu hình project/workspace trong cùng web app, theo quyền của Admin và PM.
+**Mục đích:** Quản trị Company, users, Projects, Teams và Project Access trong cùng web app.
 
 **Mapping:** Prompt 4 / Screen 12 → page key `settings` → [`SettingsPage`](../03_Mockup%20Design/src/app/pages/SettingsPage.tsx).
 
 | Khu vực / yêu cầu | FE hiện tại | Coverage |
 |---|---|---|
-| Project Settings | Form và feature toggles | ✅ UI / 🟡 không lưu |
-| Workflow Status | Table status, final flag, add/edit/delete controls | ✅ UI / 🟡 action chưa persist |
-| Labels | Label table | ✅ UI / 🟡 action chưa persist |
-| Workspace Settings | Form + notification preferences | ✅ UI / 🟡 không lưu |
-| User Management | User table và actions | ✅ UI / 🟡 action chưa xử lý |
-| Roles & Permissions | Role selector + permission matrix | ✅ UI / 🟡 không lưu |
-| Audit Log | Static audit table | ✅ UI / 🟡 static |
-| Role visibility | PM chỉ mở project group; Admin mở toàn bộ | ✅ |
+| Workspace Settings | Company fields + internal Workspace Admin display | ✅ Mockup |
+| Users | Search/filter, User Details, Project Access | ✅ Mockup |
+| Workspaces & Projects | Project tree, Details, Users & Permissions, Teams | ✅ Mockup |
+| Permission Model | Fixed access-level explanation, read-only | ✅ Mockup |
+| Audit Log | Administrative/settings actions only | ✅ Mockup |
+| Access visibility | WA manages all; normal users see only accessible Project/Team context | ✅ Mockup |
 
 ---
 

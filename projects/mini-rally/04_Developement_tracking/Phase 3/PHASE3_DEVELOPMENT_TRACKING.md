@@ -23,11 +23,11 @@ BA decisions:
 - P3.3 Milestones can span multiple projects, multiple teams and multiple releases; readiness checklist is not required.
 - P3.3 Milestone dashboard shows only Name, Target Start Date, Target End Date and Status.
 - P3.3 Milestone detail now uses compact input-like count controls for Projects/Teams/Releases with searchable selection modals.
-- P3.3 Milestone Artifacts are assigned US/DE Story/Defect work items and are shown with the Backlog dashboard presentation.
+- P3.3 Milestone Artifacts show direct US/DE/Feature/Epic and de-duplicated inherited descendants. `Add New Item` from Artifact tabs is Future Backlog.
 - P3.4 Quality/Defect has a dedicated `Quality > Defect` dashboard. Dashboard columns, field option sets, create/edit behavior and core state transitions are confirmed.
 - P3.4 Fixed In Build is an optional manual text field for the build/version/release label where the defect fix is expected or delivered.
 - Team Status parent roll-up rule, revised by BA on 2026-07-19: one completed Task must not auto-complete its parent while other child Tasks are still not Completed; all child Tasks Completed auto-completes the parent; reopening a Task from that state recalculates metrics and auto-moves the parent to In-Progress. Authorized users can still manually change parent status afterward.
-- Work Item Detail `Tasks` tab is the Task Dashboard for a parent Story/Defect and must support inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
+- Work Item Detail `Tasks` tab is the Task Dashboard for a parent Story/Defect and must support inline edit for Task Name, full-label State, Owner, Estimate, To Do and Actuals. Hour fields remain independent after the create-time Estimate-to-To Do copy.
 - Timeline file is updated for Phase 3 documentation closure and Future Backlog scope alignment.
 
 ## 2. Status Legend
@@ -63,7 +63,7 @@ BA decisions:
 | P3-TS-03 | Backend | Implement member capacity persistence | Upsert capacity by Project/Team/Iteration/User | P3-TS-01 | 1.5h | 0h | `NOT STARTED` |
 | P3-TS-04 | Backend | Implement task inline patch | Patch task title/state from Team Status | P3-TS-01 | 1.5h | 0h | `NOT STARTED` |
 | P3-TS-05 | Backend | Refresh parent Work Product roll-up and status automation | Task state change recalculates progress; all Tasks Completed -> parent Completed; reopen -> parent In-Progress | P3-TS-04 | 1.0h | 0h | `NOT STARTED` |
-| P3-TS-06 | Backend | Permission guards | Viewer read-only and edit permission enforcement | P3-TS-01 | 1.0h | 0h | `NOT STARTED` |
+| P3-TS-06 | Backend | Permission guards | Workspace Admin and assigned-Project Admin may use Team Status; Editor and unassigned users are denied | P3-TS-01 | 1.0h | 0h | `NOT STARTED` |
 | P3-TS-07 | Frontend | Team Status route/page | `Track > Team Status` page shell | P3-TS-01 | 1.0h | 0h | `NOT STARTED` |
 | P3-TS-08 | Frontend | Iteration selector reuse | Same picker behavior as Iteration Status | P3-TS-07 | 0.75h | 0h | `NOT STARTED` |
 | P3-TS-09 | Frontend | Dense grouped table | Header, totals row, member rows, task rows | P3-TS-02 | 2.0h | 0h | `NOT STARTED` |
@@ -97,7 +97,7 @@ BA decisions:
 - [ ] Completing the final open child Task auto-completes the parent US/DE.
 - [ ] Reopening a Task from the all-completed state recalculates metrics and auto-moves parent US/DE to `In-Progress`.
 - [ ] Parent US/DE status remains manually editable from existing Work Item edit surfaces after auto-completion.
-- [ ] Viewer direct PATCH returns 403.
+- [ ] Editor and unassigned-user direct PATCH requests are denied; Workspace Admin and assigned-Project Admin remain in Project scope.
 - [ ] Frontend page opens from Track menu.
 - [ ] Frontend Iteration picker matches Iteration Status picker.
 - [ ] Frontend table matches approved dense template.
@@ -121,7 +121,7 @@ P3.2 Timeboxes dashboard mockup is approved. Current confirmed direction:
 - Create Release modal locks Type to Release.
 - Release status values are `Planning`, `Active`, `Accepted`.
 - Release detail needs Theme and Notes rich text areas.
-- Right panel fields include Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate, Task Roll-up, Accepted and Version.
+- Right panel fields include Start Date, Release Date, Project, State, Planned Velocity, Plan Estimate and Version. Task Roll-up/Accepted progress is removed from Release Detail and belongs to Portfolio > Release Tracking.
 
 | ID | Module | Development task | Deliverable | Dependency | Estimate | Actual | Status |
 |---|---|---|---|---|---:|---:|---|
@@ -133,7 +133,7 @@ P3.2 Timeboxes dashboard mockup is approved. Current confirmed direction:
 | P3-REL-06 | Frontend | Timeboxes Release dashboard | Inline editable/resizable list | P3-REL-01 | TBD | 0h | `NOT STARTED` |
 | P3-REL-07 | Frontend | Create Release modal | Type locked to Release | P3-REL-01 | TBD | 0h | `NOT STARTED` |
 | P3-REL-08 | Frontend | Release detail page | Theme/Notes/right-panel layout | P3-REL-05 | TBD | 0h | `NOT STARTED` |
-| P3-REL-09 | Security | Permission guards | Viewer read-only and API 403 | P3-REL-01 | TBD | 0h | `NOT STARTED` |
+| P3-REL-09 | Security | Permission guards | Workspace Admin and assigned-Project Admin may manage Releases; Editor and unassigned users are denied | P3-REL-01 | TBD | 0h | `NOT STARTED` |
 | P3-REL-10 | Verification | Release dashboard tests | Inline edit/resize/type lock/state enum | P3-REL-01..09 | TBD | 0h | `NOT STARTED` |
 | P3-REL-11 | Verification | Release detail tests | Detail fields and permissions | P3-REL-08 | TBD | 0h | `NOT STARTED` |
 | P3-REL-12 | BA | Document readiness rule | User gathers readiness from linked US/DE release notes | BA | TBD | 0h | `READY` |
@@ -148,7 +148,8 @@ P3.3 core scope is ready for handoff. Current confirmed direction:
 - Milestones can link multiple Releases.
 - With no linked Release, user manually sets Target Start/End Date.
 - With one or more linked Releases, Target Start Date is derived from the earliest linked Release start date and Target End Date from the latest linked Release end/release date.
-- Milestone Artifacts are assigned US/DE Story/Defect work items.
+- Milestone Artifacts support direct US/DE/Feature/Epic; Feature/Epic descendants are inherited for existing rollups without rewriting descendant assignments.
+- Creating new items from Release/Milestone Artifacts is Future Backlog; current scope assigns Release/Milestone from existing Work Item or Portfolio Item surfaces.
 - Milestones do not include a readiness checklist.
 - Milestone dashboard shows only Name, Target Start Date, Target End Date and Status.
 - Milestone detail right panel keeps Projects/Teams/Releases compact as selected-count summaries; each opens a searchable selection modal.
@@ -164,8 +165,8 @@ P3.3 core scope is ready for handoff. Current confirmed direction:
 | P3-MS-06 | Frontend | Milestone dashboard | Four-column Timeboxes table with resize support | P3-MS-03 | TBD | 0h | `READY` |
 | P3-MS-07 | Frontend | Milestone detail | Details tab plus right metadata panel | P3-MS-05 | TBD | 0h | `READY` |
 | P3-MS-08 | Frontend | Relation selection modals | Searchable Projects/Teams/Releases selection from compact count controls | P3-MS-05 | TBD | 0h | `READY` |
-| P3-MS-09 | Security | Permission guards | Viewer read-only and mutation 403 | P3-MS-01 | TBD | 0h | `READY` |
-| P3-MS-10 | Frontend/Backend | Milestone Artifacts | Assigned Story/Defect work item dashboard using Backlog presentation | P3-MS-01..08 | TBD | 0h | `READY` |
+| P3-MS-09 | Security | Permission guards | Workspace Admin and assigned-Project Admin may manage Milestones; Editor and unassigned users are denied | P3-MS-01 | TBD | 0h | `READY` |
+| P3-MS-10 | Frontend/Backend | Milestone Artifacts | Direct US/DE/Feature/Epic plus inherited descendants; Add New Item deferred to Future Backlog | P3-MS-01..08 | TBD | 0h | `READY` |
 | P3-MS-11 | Frontend/Backend | Milestone assignment guardrails | Validate artifact project/team is in Milestone scope; removal leaves Release assignment unchanged | P3-MS-01..10 | TBD | 0h | `READY` |
 
 ## 9. Development Task Plan - P3.4 Quality/Defect
@@ -189,7 +190,7 @@ Create/edit behavior, core state transitions and Fixed In Build input behavior a
 | P3-QA-04 | Frontend | Quality > Defect route | Dedicated dashboard entry under Quality menu | App navigation | TBD | 0h | `READY` |
 | P3-QA-05 | Frontend | Defect dashboard table | Backlog-style table with confirmed columns, resize/sort/page/search | P3-QA-02 | TBD | 0h | `READY` |
 | P3-QA-06 | Frontend | Inline field controls | Severity/Priority/State/Flow State dropdowns and Owner edit | P3-QA-03 | TBD | 0h | `READY` |
-| P3-QA-07 | Security/Verification | Defect permissions and tests | Viewer read-only, mutation 403, dashboard smoke tests | P3-QA-01..06 | TBD | 0h | `READY` |
+| P3-QA-07 | Security/Verification | Defect permissions and tests | Admin covers all Project Teams; Editor is limited to assigned Teams; unassigned users are denied; include mutation and dashboard smoke tests | P3-QA-01..06 | TBD | 0h | `READY` |
 | P3-QA-08 | Frontend/Backend | Defect create/edit flow | Create from Backlog and Quality, optional User Story, inline edit, shared detail page | P3-QA-01..06 | TBD | 0h | `READY` |
 | P3-QA-09 | Backend | Defect state transitions | Submitted/Open/Fixed/Closed/Closed Declined transition validation; reopen is deferred unless permission is confirmed | P3-QA-03 | TBD | 0h | `READY` |
 | P3-QA-10 | Frontend/Backend | Fixed In Build field | Optional manual text field on dashboard/detail | P3-QA-01..06 | TBD | 0h | `READY` |

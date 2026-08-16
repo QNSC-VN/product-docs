@@ -1,5 +1,7 @@
 # Phase 6 — Portfolio > Release Tracking
 
+> **Project Access:** Workspace Admin and `Admin` in the assigned Project can use Release Tracking controls; `Editor` and unassigned users cannot open this surface. Viewer/selectable No Access are Future Backlog.
+
 ## 0. Document control
 
 | Attribute | Value |

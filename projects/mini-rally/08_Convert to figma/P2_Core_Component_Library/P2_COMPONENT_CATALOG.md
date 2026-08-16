@@ -1,5 +1,7 @@
 # Plan 2 — Component Catalog
 
+> **Current permission note (2026-08-10):** Role Badge entries are legacy library inventory, not the current authorization taxonomy. Use `Workspace Admin` for the internal company owner and `Admin`/`Editor`/`Viewer`/`No Access` as contextual Project access values.
+
 Every component in the Mini Rally Figma library (`ttpggMpbPwggOZl6umowzC`), mapped to its mockup source and the screens that will consume it. Node IDs are current as of the last entry in `P2_FIGMA_STATE_LEDGER.json` — re-verify with `get_metadata` before relying on an ID from an older snapshot.
 
 ## P2.a — Actions

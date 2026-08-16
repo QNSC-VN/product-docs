@@ -1,5 +1,7 @@
 # P7.g — Dev-Handoff Walkthrough
 
+> **Historical walkthrough notice (2026-08-10):** Role Badge, Project Member and E/R/D/H observations below are retained as Figma history only. Implement the current Project Access Level model from Phase 4 `02_Roles_Permissions/SRS.md`.
+
 Walked through Contracts 1-5 (`P3_UI_API_CONTRACTS.md`) as an implementer would, cross-checking each contract's described pattern against what actually exists in Figma (`Pilot — Backlog to Detail`, `96:12`, plus the screens that later superseded/extended the pilot).
 
 ## Contract 1 — App Shell and context switching

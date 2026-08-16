@@ -210,12 +210,12 @@ const CHILD_FILTER_COLUMNS: Array<{ key: BacklogColumnKey; label: string; mode: 
 ];
 function canManageFeatureInProject(role: Role, projectKey?: string) {
   if (role === "Workspace Admin") return true;
-  if (role === "Project Admin") return ROLE_SCOPE.projectAdminProjectKeys.includes((projectKey || "") as typeof ROLE_SCOPE.projectAdminProjectKeys[number]);
+  if (role === "Admin") return ROLE_SCOPE.adminProjectKeys.includes((projectKey || "") as typeof ROLE_SCOPE.adminProjectKeys[number]);
   return false;
 }
 function getRoleScopedProjects(role: Role, currentProject: ScopeProject) {
   if (role === "Workspace Admin") return SCOPE_PROJECTS;
-  if (role === "Project Admin") return SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
+  if (role === "Admin") return SCOPE_PROJECTS.filter(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]));
   return [currentProject];
 }
 function getProjectReleaseOptions(releases: ReleaseItem[], projectKey?: string) {
@@ -400,7 +400,7 @@ function FeatureDetailView({ feature, childItems, totalEstimate, doneEstimate, r
   const epicOptions = epics.filter(epic => epic.project === feature.project && !epic.archivedAt);
   const editableProjectOptions = role === "Workspace Admin"
     ? SCOPE_PROJECTS
-    : SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
+    : SCOPE_PROJECTS.filter(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]));
 
   const [childSearch, setChildSearch] = useState("");
   const [childShowFilters, setChildShowFilters] = useState(false);
@@ -879,7 +879,7 @@ function EpicDetailView({ epic, childFeatures, leafItems, role, readOnly, releas
   const milestoneOptions = milestones.filter(m => selectedMilestoneIds.includes(m.id) || m.projectKeys.includes(epic.project || ""));
   const editableProjectOptions = role === "Workspace Admin"
     ? SCOPE_PROJECTS
-    : SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
+    : SCOPE_PROJECTS.filter(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]));
   const acceptedLeaf = leafItems.filter(item => item.status === "Accepted" || item.status === "Release");
   const totalEstimate = leafItems.reduce((sum, item) => sum + item.planEstimate, 0);
   const doneEstimate = acceptedLeaf.reduce((sum, item) => sum + item.planEstimate, 0);

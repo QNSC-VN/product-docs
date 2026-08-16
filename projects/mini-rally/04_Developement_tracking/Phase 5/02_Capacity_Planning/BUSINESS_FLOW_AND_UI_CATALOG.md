@@ -47,19 +47,18 @@ automatically add every Team in that Project.
 | Actor | Read behavior | Manage behavior |
 |---|---|---|
 | Workspace Admin | Sees all Draft and Published plans | Full create, edit, allocate, publish and revert access |
-| Project Admin with Capacity Planning `Enabled` | Sees Draft and Published plans in managed Projects | Full access inside managed Projects |
-| Project Admin with Capacity Planning `Read-only` | Sees Draft and Published plans in scope | No create or mutation actions |
-| Project Member | Sees Published plans only, limited to assigned Team | No mutation actions |
+| Admin | Sees Draft and Published plans in assigned Projects | Full planning access inside assigned Projects |
+| Editor | Capacity Planning hidden | No access |
+| Unassigned user | Project and Capacity Planning hidden; direct access denied | No access |
 
-The current RBAC is intentionally coarse:
+The current Project Access rule is fixed:
 
 ```text
 capacity_planning:manage = Enabled  -> Full
 capacity_planning:manage = Read-only -> View
 ```
 
-Detailed action-level RBAC is deferred. Project scope is still evaluated
-independently from the Full/View permission.
+There is no temporary per-role Full/View override. Project scope and Access Level are evaluated together.
 
 ## 4. End-to-End Business Flow
 
@@ -223,7 +222,7 @@ stateDiagram-v2
 
 | State | Visibility | Editing |
 |---|---|---|
-| Draft | Planner Full/View roles; hidden from Project Member | Full only |
+| Draft | Workspace Admin/Admin in allowed Project scope | Workspace Admin/Admin only |
 | Published | All authorized viewers in Project/Team scope | Locked |
 
 Published is a lock on Plan editing, not a historical rollback mechanism.
@@ -328,13 +327,13 @@ Capacity so their bar lengths can be compared directly.
 
 | Column | Rule |
 |---|---|
-| Settings | Draft menu for Move up, Move down, Allocate and Remove from Plan |
+| Settings | Draft menu for Allocate to Teams and Remove from Plan; Rank uses the row drag-and-drop handle |
 | Rank | Dense order within the expanded Team list |
 | ID / Name / State | Feature identity and lifecycle |
 | Allocation | `From {origin Team}` only when the allocation Team differs from Feature ownership Team |
 | Dependencies | Placeholder `—`; dependency data is not implemented |
 | Progress bar | Complete, Rollup and Estimated for this Team slice |
-| Complete / Rollup / Estimated | Numbers only; no percentages |
+| Rollup / Estimated / Complete | Numbers only; no percentages; displayed in this order after Dependencies |
 
 `Add Features` is positioned below the Team's Feature list and adds Features
 directly to that Team.
@@ -352,9 +351,9 @@ directly to that Team.
 | Planned Team Assignment | Yellow Not assigned selector, one-Team selector or `N teams` for split |
 | Team | Portfolio ownership Team; not overwritten by Capacity allocation |
 | Dependencies | Placeholder `0` until dependency modeling exists |
-| Complete | Whole-Feature completed child total; number only |
 | Rollup | Whole-Feature child total; number only |
 | Estimated | Allocated/Refined/Preliminary result; number and source indicator |
+| Complete | Whole-Feature completed child total; number only |
 
 Split Feature subrows show the Team-specific slice while the parent row shows
 the whole-Feature totals.
@@ -364,7 +363,7 @@ the whole-Feature totals.
 | Action | Behavior |
 |---|---|
 | Add Feature | Adds an eligible Feature as Unassigned |
-| Move up / Move down | Reorders the Feature in the Plan |
+| Drag-and-drop Rank | Reorders the Feature in the Plan; Move up / Move down menu actions are not required |
 | Allocate | Opens the shared multi-Team allocation dialog |
 | Remove from Plan | Removes every allocation row for the Feature from the Plan |
 | Planned Team Assignment selector | Assigns, changes or unassigns zero/one-Team Features |
@@ -536,7 +535,7 @@ focus opens an overlay tooltip that is not clipped by the grid.
 | No Features | Show guidance to use Add Feature |
 | Feature unassigned | Yellow Not assigned selector in Features tab |
 | Published | Show published banner; hide or disable all mutation controls |
-| Project Member + Draft | Plan hidden and direct stale access rejected |
+| Editor/unassigned user | Capacity Planning hidden and direct access rejected |
 | Duplicate Project + Release | Create disabled/rejected |
 | Missing estimate | Estimated `0` plus red warning tooltip |
 | Exceeded baseline | Red advisory warning; actions remain available in Draft |

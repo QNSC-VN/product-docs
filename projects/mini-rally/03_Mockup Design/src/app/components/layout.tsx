@@ -17,7 +17,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
+import { type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, DEMO_ACCESS_PROFILES, OWNERS, PROJECTS, ROLE_SCOPE, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "./shared";
 
 export const NAV_ITEMS: { key: Page; label: string; icon: React.ReactNode; children?: { key: Page; label: string; icon: React.ReactNode }[] }[] = [
@@ -28,6 +28,12 @@ export const NAV_ITEMS: { key: Page; label: string; icon: React.ReactNode; child
   { key: "portfolio", label: "Portfolio", icon: <Package size={12} />, children: [{ key: "portfolio", label: "Portfolio Items", icon: <Package size={12} /> }, { key: "capacityPlanning", label: "Capacity Planning", icon: <Tag size={12} /> }, { key: "releaseTracking", label: "Release Tracking", icon: <TrendingUp size={12} /> }] },
   { key: "reports", label: "Reports", icon: <BarChart2 size={12} /> },
 ];
+
+function projectAccessLabel(role: Role) {
+  if (role === "Workspace Admin") return "Workspace Admin";
+  if (role === "Editor") return "Editor";
+  return "Admin";
+}
 
 export function TopNav({
   currentPage, onNavigate, currentRole, onRoleChange, unreadCount, currentProject, currentTeam, onScopeChange, onSignOut,
@@ -43,16 +49,19 @@ export function TopNav({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [openNavKey, setOpenNavKey] = useState<Page | null>(null);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set(["NXP"]));
-  const roles: Role[] = ["Workspace Admin", "Project Admin", "Project Member"];
-  const visibleProjects = currentRole === "Project Member"
+  const roles: Role[] = ["Workspace Admin", "Admin", "Editor"];
+  const demoProfile = DEMO_ACCESS_PROFILES[currentRole];
+  const visibleProjects = currentRole === "Editor"
     ? SCOPE_PROJECTS
-      .filter(project => project.key === ROLE_SCOPE.projectMemberProjectKey)
-      .map(project => ({ ...project, teams: project.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number])) }))
-    : SCOPE_PROJECTS;
-  const visibleNavItems = currentRole === "Project Member"
+      .filter(project => project.key === ROLE_SCOPE.editorProjectKey)
+      .map(project => ({ ...project, teams: project.teams.filter(team => ROLE_SCOPE.editorTeams.includes(team as typeof ROLE_SCOPE.editorTeams[number])) }))
+    : currentRole === "Admin"
+      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]))
+      : SCOPE_PROJECTS;
+  const visibleNavItems = currentRole === "Editor"
     ? NAV_ITEMS
-      .filter(item => ["home", "backlog", "track", "portfolio"].includes(item.key))
-      .map(item => item.children ? { ...item, children: item.children.filter(child => child.key === "track" || child.key === "backlog" || child.key === "portfolio" || child.key === "releaseTracking" || child.key === "capacityPlanning") } : item)
+      .filter(item => ["home", "backlog", "track", "quality"].includes(item.key))
+      .map(item => item.children ? { ...item, children: item.children.filter(child => child.key === "track" || child.key === "backlog") } : item)
     : NAV_ITEMS;
   function toggleProject(key: string) {
     setExpandedProjects(prev => {
@@ -88,19 +97,21 @@ export function TopNav({
                 {visibleProjects.map(project => {
                   const expanded = expandedProjects.has(project.key);
                   const selectedProject = currentProject.key === project.key;
+                  const accessLabel = projectAccessLabel(currentRole);
                   return (
                     <div key={project.key} className="mb-0.5">
                       <div className="flex items-center rounded" style={{ backgroundColor: selectedProject ? "#edf2fb" : "transparent" }}>
                         <button aria-label={`${expanded ? "Collapse" : "Expand"} ${project.name}`} onClick={() => toggleProject(project.key)} className="p-1.5 shrink-0" style={{ color: "#8c94a6" }}>{expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}</button>
-                        <button onClick={() => { onScopeChange(project, currentRole === "Project Member" ? project.teams[0] : "All Teams"); setWsOpen(false); }} className="flex-1 flex items-center gap-2 pr-2 py-1.5 text-left min-w-0">
+                        <button onClick={() => { onScopeChange(project, currentRole === "Editor" ? project.teams[0] : "All Teams"); setWsOpen(false); }} className="flex-1 flex items-center gap-2 pr-2 py-1.5 text-left min-w-0">
                           <Package size={12} style={{ color: selectedProject ? "#1d3f73" : "#5c6478" }} />
                           <span className="flex-1 min-w-0"><span className="block text-[11px] font-semibold truncate" style={{ color: selectedProject ? "#1d3f73" : "#1a2234" }}>{project.name}</span><span className="block text-[9px]" style={{ color: "#8c94a6" }}>{project.key} · {project.teams.length} teams</span></span>
+                           {currentRole !== "Workspace Admin" && <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-sm" style={{ color: accessLabel === "Editor" ? "#1e6930" : "#1d3f73", backgroundColor: accessLabel === "Editor" ? "#eef6f0" : "#e8eef8" }}>{accessLabel}</span>}
                           {selectedProject && <Check size={11} style={{ color: "#1d3f73" }} />}
                         </button>
                       </div>
                       {expanded && (
                         <div className="ml-5 pl-2" style={{ borderLeft: "1px solid #d9dee7" }}>
-                          {(currentRole === "Project Member" ? project.teams : ["All Teams", ...project.teams]).map(team => {
+                          {(currentRole === "Editor" ? project.teams : ["All Teams", ...project.teams]).map(team => {
                             const selectedTeam = selectedProject && currentTeam === team;
                             return <button key={team} onClick={() => { onScopeChange(project, team); setWsOpen(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-left rounded hover:bg-[#f4f6f9]" style={{ backgroundColor: selectedTeam ? "#f0f4fb" : "transparent" }}><Users size={10} style={{ color: selectedTeam ? "#2558a6" : "#8c94a6" }} /><span className="flex-1 text-[10px] truncate" style={{ color: selectedTeam ? "#1d3f73" : "#5c6478", fontWeight: selectedTeam ? 600 : 400 }}>{team}</span>{selectedTeam && <Check size={10} style={{ color: "#2558a6" }} />}</button>;
                           })}
@@ -152,41 +163,38 @@ export function TopNav({
           <Bell size={14} />{unreadCount > 0 && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full" style={{ backgroundColor: "#f97316" }} />}
         </button>
         <button aria-label="Help" title="Help" className="p-1.5 rounded" style={{ color: "rgba(255,255,255,0.65)" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}><HelpCircle size={14} /></button>
-        {can.viewAdmin(currentRole) && (
-          <div className="relative">
-            <button aria-label="Open workspace settings menu" title="Workspace settings" onClick={() => { setSettingsOpen(open => !open); setWsOpen(false); setUserOpen(false); setOpenNavKey(null); }} className="p-1.5 rounded" style={{ color: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "#fff" : "rgba(255,255,255,0.65)", backgroundColor: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { if (currentPage !== "settings" && currentPage !== "projects" && !settingsOpen) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
+        <div className="relative">
+            <button aria-label="Open administration menu" title={currentRole === "Editor" ? "Project access" : "Administration"} onClick={() => { setSettingsOpen(open => !open); setWsOpen(false); setUserOpen(false); setOpenNavKey(null); }} className="p-1.5 rounded" style={{ color: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "#fff" : "rgba(255,255,255,0.65)", backgroundColor: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { if (currentPage !== "settings" && currentPage !== "projects" && !settingsOpen) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
               <Settings size={14} />
             </button>
             {settingsOpen && (
               <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded shadow-lg z-50 py-1" style={{ border: "1px solid #e2e6eb" }}>
-                <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Workspace</div>
-                <button onClick={() => { onNavigate("settings"); setSettingsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-left hover:bg-[#f4f6f9]" style={{ color: currentPage === "settings" ? "#1d3f73" : "#1a2234", backgroundColor: currentPage === "settings" ? "#edf2fb" : "transparent", fontWeight: currentPage === "settings" ? 600 : 400 }}><Globe size={12} /><span className="flex-1">Workspace Settings</span>{currentPage === "settings" && <Check size={11} />}</button>
-                <button aria-label="Project Management" onClick={() => { onNavigate("projects"); setSettingsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-left hover:bg-[#f4f6f9]" style={{ color: currentPage === "projects" ? "#1d3f73" : "#1a2234", backgroundColor: currentPage === "projects" ? "#edf2fb" : "transparent", fontWeight: currentPage === "projects" ? 600 : 400 }}><Package size={12} /><span className="flex-1">Project Management</span>{currentPage === "projects" && <Check size={11} />}</button>
+                <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>{currentRole === "Editor" ? "My Access" : "Administration"}</div>
+                <button onClick={() => { onNavigate("projects"); setSettingsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-left hover:bg-[#f4f6f9]" style={{ color: currentPage === "projects" ? "#1d3f73" : "#1a2234", backgroundColor: currentPage === "projects" ? "#edf2fb" : "transparent", fontWeight: currentPage === "projects" ? 600 : 400 }}><Package size={12} /><span className="flex-1">Workspaces & Projects</span>{currentPage === "projects" && <Check size={11} />}</button>
               </div>
             )}
           </div>
-        )}
         <div className="w-px h-4 mx-1" style={{ backgroundColor: "rgba(255,255,255,0.2)" }} />
         <div className="relative">
           <button onClick={() => { setUserOpen(o => !o); setWsOpen(false); setSettingsOpen(false); }} className="flex items-center gap-2 px-2 py-1 rounded" style={{ backgroundColor: userOpen ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")} onMouseLeave={e => { if (!userOpen) e.currentTarget.style.backgroundColor = "transparent"; }}>
-            <Avatar owner={OWNERS[0]} size="sm" />
+            <Avatar owner={demoProfile.owner} size="sm" />
             <div className="text-left hidden sm:block">
-              <div className="text-[11px] font-medium text-white leading-none">Marcus Webb</div>
-              <div className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>{currentRole}</div>
+              <div className="text-[11px] font-medium text-white leading-none">{demoProfile.name}</div>
+              <div className="text-[9px] mt-0.5" style={{ color: "rgba(255,255,255,0.5)" }}>{demoProfile.label}</div>
             </div>
             <ChevronDown size={10} style={{ color: "rgba(255,255,255,0.5)" }} />
           </button>
           {userOpen && (
             <div className="absolute right-0 top-full mt-1 w-60 bg-white rounded shadow-lg z-50 py-1" style={{ border: "1px solid #e2e6eb" }}>
               <div className="px-3 py-2" style={{ borderBottom: "1px solid #edf0f4" }}>
-                <div className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>Marcus Webb</div>
-                <div className="text-[11px]" style={{ color: "#5c6478" }}>marcus.webb@acme.com</div>
+                <div className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>{demoProfile.name}</div>
+                <div className="text-[11px]" style={{ color: "#5c6478" }}>{demoProfile.email}</div>
                 <div className="mt-1"><RoleBadge role={currentRole} /></div>
               </div>
-              <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Demo: Switch Role</div>
+              <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>Demo: Switch Access</div>
               {roles.map(r => (
-                <button key={r} onClick={() => { onRoleChange(r); setUserOpen(false); }} className="w-full flex items-center justify-between px-3 py-1.5 text-[12px] text-left hover:bg-[#f4f6f9]" style={{ color: "#1a2234" }}>
-                  {r}{currentRole === r && <Check size={11} style={{ color: "#1d3f73" }} />}
+                <button key={r} onClick={() => { onRoleChange(r); setUserOpen(false); }} className="w-full flex items-center gap-3 px-3 py-2 text-left hover:bg-[#f4f6f9]" style={{ color: "#1a2234" }}>
+                  <span className="min-w-0 flex-1"><span className="block text-[11px] font-semibold">{DEMO_ACCESS_PROFILES[r].label}</span><span className="block truncate text-[9px]" style={{ color: "#8c94a6" }}>{DEMO_ACCESS_PROFILES[r].scope}</span></span>{currentRole === r && <Check size={11} style={{ color: "#1d3f73" }} />}
                 </button>
               ))}
               <div className="border-t border-[#edf0f4] mt-1 pt-1">
@@ -264,7 +272,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam, currentRo
   portfolioTypeFilter?: "Epic" | "Feature";
   onPortfolioTypeFilterChange?: (type: "Epic" | "Feature") => void;
 }) {
-  if (currentPage === "settings" || currentPage === "notifications") return null;
+  if (currentPage === "settings" || currentPage === "projects" || currentPage === "notifications") return null;
   const crumbs: Record<Page, string[]> = {
     home: ["ACME Space Inc.", "Home"],
     projects: ["ACME Space Inc.", "Project Management"],
@@ -277,7 +285,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam, currentRo
     portfolio: [currentProject.name, "Portfolio", "Portfolio Items"],
     releaseTracking: [currentProject.name, "Portfolio", "Release Tracking"],
     capacityPlanning: [currentProject.name, "Portfolio", "Capacity Planning"],
-    releasePlanning: [currentProject.name, "Portfolio", "Release Planning (Phase 5)"],
+    releasePlanning: [currentProject.name, "Portfolio", "Release Planning (Future Backlog)"],
     releases: [currentProject.name, "Plan", "Timeboxes", "Releases"],
     reports: [currentProject.name, "Reports"],
     notifications: [],
@@ -285,11 +293,13 @@ export function ContextBar({ currentPage, currentProject, currentTeam, currentRo
   };
   const showSaved = ["backlog", "quality", "portfolio", "releases"].includes(currentPage);
   const showContextControls = currentPage !== "portfolio" && currentPage !== "reports" && currentPage !== "releaseTracking";
-  const visibleProjects = currentRole === "Project Member"
-    ? SCOPE_PROJECTS.filter(project => project.key === ROLE_SCOPE.projectMemberProjectKey)
-    : SCOPE_PROJECTS;
-  const visibleTeams = currentRole === "Project Member"
-    ? currentProject.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number]))
+  const visibleProjects = currentRole === "Editor"
+    ? SCOPE_PROJECTS.filter(project => project.key === ROLE_SCOPE.editorProjectKey)
+    : currentRole === "Admin"
+      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]))
+      : SCOPE_PROJECTS;
+  const visibleTeams = currentRole === "Editor"
+    ? currentProject.teams.filter(team => ROLE_SCOPE.editorTeams.includes(team as typeof ROLE_SCOPE.editorTeams[number]))
     : ["All Teams", ...currentProject.teams];
 
   return (
@@ -321,7 +331,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam, currentRo
       {showContextControls && !["projects", "backlog", "iterations", "track", "teamBoard", "teamStatus"].includes(currentPage) && (
         <div className="flex items-center gap-4" style={{ borderLeft: "1px solid #e2e6eb", paddingLeft: "1rem" }}>
           {["home", "projects"].includes(currentPage) && <CtxSelect label="Workspace" value="ACME Space Inc." />}
-          {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} options={visibleProjects.map(project => project.name)} onChange={name => { const project = visibleProjects.find(candidate => candidate.name === name); if (project) onScopeChange(project, currentRole === "Project Member" ? project.teams[0] : "All Teams"); }} />}
+          {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} options={visibleProjects.map(project => project.name)} onChange={name => { const project = visibleProjects.find(candidate => candidate.name === name); if (project) onScopeChange(project, currentRole === "Editor" ? project.teams[0] : "All Teams"); }} />}
           {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Release" value="Q4 2024" />}
           {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Iteration" value="Sprint 24.3" />}
           {currentPage === "releases" && <CtxSelect label="Status" value="All Releases" />}

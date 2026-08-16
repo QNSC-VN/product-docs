@@ -17,7 +17,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell,
 } from "recharts";
-import { type NewWorkItemInput, type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
+import { type NewWorkItemInput, type Role, type Page, type WorkItemType, type StatusType, type PriorityType, type Owner, type WorkItem, type Notification, type Feature, type Project, type ScopeProject, type Initiative, type ReleaseItem, type WorkspaceUser, type WorkflowStatusItem, type LabelItem, can, DEMO_ACCESS_PROFILES, OWNERS, PROJECTS, SCOPE_PROJECTS, WORK_ITEMS, FEATURES, NOTIFICATIONS, VELOCITY_DATA, BURNDOWN_DATA, STATUS_PIE, INITIATIVES, RELEASES_DATA, WORKSPACE_USERS, WORKFLOW_STATUSES, LABELS_DATA, WORKLOAD_DATA, PLANNED_VS_COMPLETED, PERMISSIONS_MATRIX, DEFECT_ENVIRONMENTS, RELATED_STORIES } from "../model";
 
 export function releaseStatusCfg(status: ReleaseItem["status"]): { bg: string; text: string; border: string; dot: string } {
   switch (status) {
@@ -138,11 +138,11 @@ export function MiniProgress({ value, max }: { value: number; max: number }) {
 export function RoleBadge({ role }: { role: Role }) {
   const colors: Record<Role, { bg: string; text: string }> = {
     "Workspace Admin": { bg: "#fef2f2", text: "#b91c1c" },
-    "Project Admin": { bg: "#eef3fb", text: "#2558a6" },
-    "Project Member": { bg: "#eef6f0", text: "#1e6930" },
+    "Admin": { bg: "#eef3fb", text: "#2558a6" },
+    "Editor": { bg: "#eef6f0", text: "#1e6930" },
   };
   const c = colors[role];
-  return <span className="px-2 py-px text-[10px] font-semibold rounded-sm" style={{ backgroundColor: c.bg, color: c.text }}>{role}</span>;
+  return <span className="px-2 py-px text-[10px] font-semibold rounded-sm" style={{ backgroundColor: c.bg, color: c.text }}>{DEMO_ACCESS_PROFILES[role].label}</span>;
 }
 
 

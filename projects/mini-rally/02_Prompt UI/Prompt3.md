@@ -1,5 +1,7 @@
 # Prompt 3 — Core Product Screens: Home, Plan, Track, Backlog, Board
 
+> **Historical UI prompt:** PM/BA/Developer/QA references below are user personas only. Current permissions come from Workspace Admin or the active Project Access Level.
+
 Using the existing global design system and Rally-inspired app shell, create the core product screens for the Mini Rally / Agile Work Management Tool.
 
 Keep the design:

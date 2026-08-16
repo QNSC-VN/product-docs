@@ -47,7 +47,7 @@ Auth trả lời “người dùng là ai?” và tạo session an toàn. Author
 
 - Anonymous: login, forgot password, reset password.
 - Authenticated User: logout, xem/sửa profile, đổi password.
-- Workspace Admin: activate/suspend user thông qua Workspace member management, không sửa password của user.
+- Workspace Admin: activate/disable company user trong `Settings > Users`, không sửa password của user; Project access được quản lý riêng theo từng Project.
 - System/Email Worker: gửi reset/invitation email.
 
 ## 4. Functional Requirements
@@ -220,8 +220,9 @@ DB hiện chưa có `timezone`, `locale`. Nếu Profile mockup cần lưu thật
 | `user.status` | `users.status` | Chỉ active được vào app |
 | `sessionExpiresAt` | `auth_sessions.expires_at` | Session refresh/expiry |
 | `company` | `workspace_members → workspaces` | Fixed Company context |
-| `workspaceRole` | `workspace_members.role_id → roles` | Display role |
-| `effectivePermissions[]` | `roles → role_permissions → permissions.code` | Gate route/action |
+| `workspaceAuthority` | Internal `user_role_assignments → roles.code` | `workspace_admin` hoặc `null`; không có global Project role |
+| `projectAccess[]` | `project_members.project_id`, `project_members.access_level` | Danh sách Project được truy cập và Access Level độc lập theo Project |
+| `effectiveCapabilities[]` | Workspace Admin grant hoặc fixed Project Access Level policy + Team membership | Gate route/action theo current Project/Team |
 | `lastProjectKey` | User preference nếu triển khai; không lấy từ project table | Chọn landing project |
 
 ### 7.7 Forgot/reset password field mapping

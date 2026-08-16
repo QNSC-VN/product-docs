@@ -1,11 +1,12 @@
 # Mini Rally Testing Plan
 
-This folder is the single entry point for BA testing from the completed Phase 0-4 audit through the new Phase 5-6 deployed-product audit.
+This folder is the single entry point for BA testing from the completed Phase 0-4 audit through the Phase 5-6 deployed-product audit. The master workbook is `PHASE_0_6_AUDIT_TRACKER.xlsx` in this folder.
 
 ## Structure
 
 - `01_test_phase_1_to_4/`: all previous test plans, scenarios, trackers, notes and evidence. Phase 0 is retained here as the authentication/app-shell precondition for Phase 1-4 regression.
-- `02_test_phase_5_6/`: Phase 5-6 test plan, scenarios, tracker, observations and new evidence.
+- `02_test_phase_5_6/`: Phase 5-6 test plan, scenarios, historical observations and evidence.
+- `03_Retest/`: current consolidated DEV handoff after the Phase 0-6 Fail/Partial retest. Only the handoff in this folder should be sent to DEV.
 
 ## Working rule
 

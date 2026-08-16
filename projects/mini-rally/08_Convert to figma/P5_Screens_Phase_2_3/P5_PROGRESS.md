@@ -1,5 +1,7 @@
 # Plan 5 — Live Progress
 
+> **Historical design log:** Project Admin/Project Member findings below describe the earlier mockup. Current authorization is the 2026-08-10 per-Project Access Level model in Phase 4 `02_Roles_Permissions/SRS.md`.
+
 ## Current item
 
 Plan 5 confirmed by the user (`2026-07-21`). Plan 6 (Phase 4 governance screens) is now unblocked — see `CONVERSION_PROGRESS.md`.

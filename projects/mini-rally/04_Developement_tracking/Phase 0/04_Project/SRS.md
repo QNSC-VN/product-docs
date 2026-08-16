@@ -15,14 +15,29 @@
 BA confirmed the Phase 0 Project baseline for current audit/handoff:
 
 - Project Create/Edit fields are: Project Name, Project Key, Owner, Project Start Date, Teams and Description.
-- Project Key is required, unique, immutable after create, 2-10 chars, uppercase alphanumeric.
+- Project Key is required, unique and immutable after create. Current accepted UI behavior normalizes to uppercase alphanumeric, allows 1-10 characters and caps additional input at 10 characters.
 - Start Date means **Project Start Date**.
 - Linked Teams are displayed/selected only when Team data/code is available; if Team data is missing, mark the test **Not Tested**, not failed.
 - Team create/edit/member administration is handled under Settings/Team scope, not as a Phase 0 Project CRUD requirement.
 
+## 0.2 Project Access Reconciliation - 2026-08-10
+
+The approved administration UI is now `Settings gear > Workspaces & Projects`, governed by `Phase 1/08_Manage_Projects_Teams_Users/SRS.md`.
+
+Permission rules in this addendum supersede older persona and project-role wording below:
+
+- Workspace Admin alone performs Project/Team CRUD and manages Project access/Team membership.
+- Normal users receive Admin or Editor independently per Project.
+- Admin has full delivery authority in an assigned Project but Project/Team/access structure is read-only.
+- Editor is limited to assigned Teams and approved delivery work.
+- A user without an Admin/Editor assignment has no Project Access row; the Project is hidden and direct access is denied.
+- Project owner is business metadata and does not grant access automatically.
+- Detailed access rules are governed by `Phase 4/02_Roles_Permissions/SRS.md`.
+- API/database sections in this Phase 0 draft must implement these effective rules even where legacy field names still say role/member.
+
 ## 1. Mục tiêu và khái niệm
 
-Project là phạm vi delivery trong Workspace. Work Item, Sprint, Release và Report đều project-scoped. Workspace member không tự động có quyền vào mọi Project trừ khi policy/role quy định.
+Project là phạm vi delivery trong Workspace. Work Item, Sprint, Release và Report đều project-scoped. Normal user không tự động có quyền vào Project; Workspace Admin phải gán Access Level cho từng Project.
 
 ```text
 Workspace ACME
@@ -49,18 +64,17 @@ Workspace ACME
 | [`SettingsPage.tsx`](../../../03_Mockup%20Design/src/app/pages/SettingsPage.tsx) | Project Settings prototype |
 | [`ProjectsPage.tsx`](../../../03_Mockup%20Design/src/app/pages/ProjectsPage.tsx) | Project List/Create/Edit/Archive/Restore mockup |
 
-## 3. Actor và Permission Matrix
+## 3. Actor và Project Access
 
-| Action | Workspace Admin | Project Manager | PO/Dev/QA/Viewer |
+| Action | Workspace Admin | Admin | Editor |
 |---|---:|---:|---:|
-| Create project | ✅ | ✅ theo policy | ❌ |
-| List accessible projects | ✅ | ✅ | ✅ |
-| View project | ✅ | member | member |
-| Update project | ✅ | ✅ | ❌ |
-| Archive project | ✅ | ❌ mặc định | ❌ |
-| Restore project | ✅ | ❌ mặc định | ❌ |
-| Manage members | ✅ | ✅ | ❌ |
-| Project settings | ✅ | ✅ | ❌ |
+| Create Project | Yes | No | No |
+| List accessible Projects | All | Assigned | Assigned |
+| View Project Details/Teams | Yes | Read-only | Read-only, scoped |
+| Edit/Archive/Restore/Delete Project | Yes | No | No |
+| Add/Edit/Deactivate/Restore Team | Yes | No | No |
+| View Users & Permissions | Yes | Read-only | No |
+| Manage Project access/Team membership | Yes | No | No |
 
 Permission codes:
 
@@ -87,41 +101,41 @@ project.team.manage
 |---|---|
 | PRJ-FR-001 | List chỉ project user được phép truy cập trong workspace hiện tại. |
 | PRJ-FR-002 | Create project yêu cầu name, unique key, owner. |
-| PRJ-FR-003 | Create atomically tạo project, settings mặc định và owner membership. |
-| PRJ-FR-004 | Project key unique trong workspace, normalize uppercase. |
+| PRJ-FR-003 | Create atomically tạo Project và settings mặc định; Project owner không tự động nhận Project Access. |
+| PRJ-FR-004 | Project key unique trong workspace; UI normalize lowercase thành uppercase, loại ký tự không hợp lệ, cho phép 1-10 ký tự A-Z/0-9 và cap input vượt 10 ký tự. |
 | PRJ-FR-005 | Project key immutable sau khi đã sinh Work Item; MVP có thể immutable ngay từ create. |
-| PRJ-FR-006 | Project owner phải là active workspace member. |
-| PRJ-FR-007 | Chỉ workspace member mới được add vào project. |
-| PRJ-FR-008 | Project member có một active project role tại một thời điểm trong model hiện tại. |
+| PRJ-FR-006 | Project owner phải là active company user; đây là business metadata, không tự cấp Project Access. |
+| PRJ-FR-007 | Chỉ company user hợp lệ mới được gán Project Access. Workspace Admin không được thêm như Project user. |
+| PRJ-FR-008 | Mỗi user có tối đa một Access Level đang hiệu lực trong một Project: Admin hoặc Editor. Không có assignment nghĩa là user không truy cập Project. |
 | PRJ-FR-009 | Remove member không xóa authored/assigned/history data. |
 | PRJ-FR-010 | Archive là soft state; project trở thành read-only và ẩn mặc định khỏi active list. |
-| PRJ-FR-011 | Restore project chỉ Workspace Admin hoặc permission tương ứng. |
-| PRJ-FR-012 | Settings điều khiển enable sprint/release/story point. |
+| PRJ-FR-011 | Create/Edit/Archive/Restore/Delete Project chỉ Workspace Admin. |
+| PRJ-FR-012 | Project Settings lưu fixed T-shirt labels với editable point values và Hours per point. |
 | PRJ-FR-013 | Project selector đổi URL/context và invalidate scoped cache. |
 | PRJ-FR-014 | Tạo/update/archive/member/settings phải có audit event. |
-| PRJ-FR-015 | Phase 0 chỉ tiêu thụ Project–Team context cho navigation/filter. Team create/edit/member administration nằm tại `Settings > Teams` và `Settings > User Management` theo Phase 1/4 source-of-truth. |
-| PRJ-FR-016 | Team membership/Project–Team link là dependency của Project context; UI quản trị không thuộc Phase 0 Project screen. |
-| PRJ-FR-017 | Dropdown chỉ hiển thị Project/Team user được phép truy cập; cùng Team có thể xuất hiện dưới nhiều Project. |
+| PRJ-FR-015 | UI quản trị Project, Team và Project access nằm tại `Settings > Workspaces & Projects`. Company user invitation/status nằm tại `Settings > Users`. |
+| PRJ-FR-016 | Team thuộc một parent Project trong MVP; Editor Team membership là dependency của Project context. |
+| PRJ-FR-017 | Dropdown chỉ hiển thị Project/Team user được phép truy cập; Editor không có All Teams. |
 | PRJ-FR-018 | Work Item/Sprint có `team_id` chỉ khi cặp `(project_id, team_id)` đang hoặc từng có mapping hợp lệ theo history policy. |
 
 ## 5. Core Use Cases
 
 ### UC-PRJ-01 Create Project
 
-1. Admin/PM mở Project List → Create Project.
+1. Workspace Admin mở `Settings > Workspaces & Projects` → Create Project.
 2. Nhập name, key, description, owner, dates.
 3. Chọn defaults: enable Sprint, Release, Story Point; workflow template.
 4. Backend validate workspace permission/key/owner.
-5. Transaction tạo project, project_settings, owner member, workflow binding/defaults.
+5. Transaction tạo Project, project settings và workflow defaults; không tự gán Project Access theo Project owner.
 6. Redirect Project Home/Backlog.
 
 ### UC-PRJ-02 Manage Members
 
-1. PM mở Project Settings → Members.
-2. Search active Workspace members.
-3. Add member + project role.
-4. Update role hoặc remove.
-5. Permission có hiệu lực ngay; clear relevant cache/session permission snapshot.
+1. Workspace Admin mở Project → Users & Permissions.
+2. Search existing active company users chưa thuộc Project.
+3. Add user và chọn Admin/Editor; Editor phải chọn Team.
+4. Update Access Level hoặc Remove khỏi Project.
+5. Access có hiệu lực ở next sign-in và đồng bộ với User Details → Project Access.
 
 ### UC-PRJ-03 Archive Project
 
@@ -134,17 +148,16 @@ project.team.manage
 
 | Screen/area | Mockup hiện tại | Development requirement |
 |---|---|---|
-| Project List | `ProjectsPage` | ✅ Active/Archived tabs, search, metrics và dense table |
-| Create Project | `ProjectsPage` → `ProjectModal` | ✅ Name/key/description/owner/start date/multi-Team validation |
+| Workspace/Project tree | `WorkspaceProjectsPanel` | Workspace Admin thấy toàn bộ; normal user chỉ thấy scope được gán |
+| Project List | `WorkspaceProjectsPanel` Workspace overview | WA-only overview và Create Project |
+| Create/Edit Project | `WorkspaceProjectsPanel` Project form | Name/key/description/owner/start date/estimation validation; WA-only |
 | Project selector | `ContextBar` project button | Load accessible projects, switch context |
 | Project Health | `HomePage` table | Link tới Project overview; dùng data thật |
 | Project Overview | Chưa có riêng | Summary/home project route |
-| Project Settings | `SettingsPage` Project Settings | Save thật, permission/validation |
-| Project Members | Chưa có đầy đủ trong project settings | Member table/add role/remove |
-| Edit/Archive/Restore | `ProjectsPage` | ✅ Local CRUD; production cần API, audit và archived read-only enforcement |
-| Team List/Management | `Settings > Teams` | Phase 1/4 administration surface; không phải Phase 0 Project requirement |
-| Link Team to Projects | `Settings > Teams` | Phase 1/4 administration surface |
-| Team Members | `Settings > User Management` / Team detail | Phase 1/4 administration surface |
+| Project Details | `WorkspaceProjectsPanel` Details | WA edit; Admin/Editor read-only |
+| Project Users & Permissions | `WorkspaceProjectsPanel` Users & Permissions | WA edit; Admin read-only; Editor hidden |
+| Team List/Management | `WorkspaceProjectsPanel` Teams | WA CRUD; other allowed access read-only |
+| Team Members | Add/Edit Team and Team Details | WA assigns Admin/Editor; shared with User Project Access |
 | Hierarchy selector | `TopNav` | ✅ Có visual/local selection; production load từ API |
 
 Đề xuất Project List columns:
@@ -204,7 +217,7 @@ created_at TIMESTAMP
 updated_at TIMESTAMP
 ```
 
-`default_assignee_id` nếu có phải là active project member.
+`default_assignee_id` nếu có phải là active user có `Admin` access hoặc `Editor` access trong ít nhất một Team của Project; Workspace Admin và user chưa được gán Project không hợp lệ.
 
 ### 7.4 Workflow dependency
 
@@ -302,7 +315,7 @@ List response:
 | UI field | Request field | DB target | Mục đích | Validation/editability |
 |---|---|---|---|---|
 | Project Name | `name` | `projects.name` | Tên project | Required, trim, 2–255 |
-| Project Key | `key` | `projects.key` | Prefix work item/route | Required, 2–10, uppercase A–Z/0–9; immutable sau create |
+| Project Key | `key` | `projects.key` | Prefix work item/route | Required, 1–10 uppercase A–Z/0–9 sau normalize; cap ở 10; immutable sau create |
 | Description | `description` | `projects.description` | Mô tả scope/outcome | Nullable text |
 | Project Owner | `ownerId` | `projects.owner_id` | Người chịu trách nhiệm | Chọn bằng user ID; phải active company member |
 | Start Date | `startDate` | `projects.start_date` | Timeline | Nullable/ISO date theo policy |
@@ -317,7 +330,7 @@ Create transaction bắt buộc:
 
 1. Insert `projects` với fixed `workspace_id` từ server context.
 2. Insert `project_settings`.
-3. Insert owner vào `project_members` với role phù hợp.
+3. Không tự tạo Project Access cho Project owner.
 4. Insert `project_teams` cho từng `teamIds` sau khi validate cùng Workspace.
 5. Khởi tạo workflow mặc định.
 6. Ghi audit event.
@@ -330,12 +343,12 @@ Các field UI-only như modal open, selected Team checkbox, submit loading và v
 | UI column/field | DB source/target | Mục đích | Rule |
 |---|---|---|---|
 | Membership ID | `project_members.id` | Action key | Hidden |
-| User | `project_members.user_id → users` | Name/email/avatar | Chỉ active company member |
-| Project Role | `project_members.role_id → roles` | Authorization project scope | Role phải scope project |
+| User | `project_members.user_id → users` | Name/email/avatar | Chỉ active company user; loại Workspace Admin |
+| Access Level | Project access assignment | Authorization trong Project | Admin hoặc Editor; removed row = không còn Project assignment |
 | Status | `project_members.status` | Active/removed badge | Filter |
 | Joined At | `project_members.joined_at` | Audit | Nullable |
 | Add Member userId | Insert `project_members.user_id` | Thêm user | Không gửi name/email làm FK |
-| Change Role roleId | Update `role_id` | Đổi quyền | Re-evaluate permission cache ngay |
+| Change Access Level | Update Project access | Đổi quyền | Có hiệu lực ở next sign-in |
 | Remove | Update status/soft remove | Mất project access | Không xóa authored/history |
 
 ### 7.10 Team/Project link mapping
@@ -429,21 +442,21 @@ Create request example:
 
 ## 9. Business Rules và Validation
 
-- Key: 2–10 ký tự đề xuất, uppercase A–Z/0–9, bắt đầu bằng chữ, không whitespace.
+- Key: required; sau normalize phải còn 1–10 ký tự uppercase A–Z/0–9. UI có thể tự uppercase, loại ký tự không hợp lệ và cap phần vượt quá 10; kết quả rỗng hoặc trùng key bị reject.
 - Name: 2–255 ký tự.
 - `end_date >= start_date`.
 - Workspace archived không create/update project.
 - Project archived không create/update Work Item/Sprint/Release.
-- Cannot remove sole owner/manager nếu policy yêu cầu manager tối thiểu.
-- Project role phải có scope project.
-- PM create project chỉ khi workspace policy cho phép; use-case matrix hiện cho phép PM.
+- Project owner là business metadata, không phải Access Level và không tự cấp quyền.
+- Project access phải scope theo đúng Project; Editor còn phải scope theo Team được gán.
+- Chỉ Workspace Admin tạo, chỉnh, archive, restore hoặc delete Project.
 - Status transition project: active → completed/archived; restore archived → active nếu workspace active.
 
 ## 10. Tenant Isolation và Security
 
 - Project ID phải được kiểm tra thuộc workspace context hiện tại.
 - Membership/permission enforce ở API/service, không chỉ UI.
-- User có workspace membership nhưng không project membership không tự động xem project, trừ Workspace Admin/policy.
+- Company user không có Project Access không tự động xem Project; Workspace Admin là ngoại lệ cấp công ty.
 - Không expose project name/key qua guessed ID nếu không có access.
 - Effective permissions re-evaluate sau member role change/remove.
 - Audit before/after cho update settings/member/archive.
@@ -456,7 +469,7 @@ Create request example:
 - Create form validating/duplicate key/submitting.
 - Settings saved/unsaved/error.
 - Project archived read-only banner.
-- Member already exists/not workspace member.
+- User đã có access/không phải active company user.
 - Selector switching and failed context load.
 
 ## 12. Non-functional Requirements
@@ -469,11 +482,11 @@ Create request example:
 
 ## 13. Acceptance Criteria
 
-1. Workspace Admin/allowed PM tạo project với unique key.
+1. Chỉ Workspace Admin tạo Project với unique key.
 2. Duplicate key trong cùng workspace bị từ chối; cùng key ở workspace khác được phép.
-3. Create transaction tạo settings và owner membership.
+3. Create transaction tạo settings nhưng không tự cấp Project Access theo owner.
 4. User chỉ thấy project được phép truy cập.
-5. Add project member chỉ chọn active workspace member.
+5. Add Project user chỉ chọn eligible company user, loại Workspace Admin và disabled user.
 6. Archive giữ nguyên dữ liệu và chặn mutation.
 7. Restore hoạt động đúng permission.
 8. Project selector đổi URL/context và không lộ cache cũ.
@@ -483,9 +496,9 @@ Create request example:
 
 - Key lowercase/invalid/reserved/duplicate.
 - Create với owner không thuộc workspace.
-- PM có/không policy create.
-- Add duplicate/non-workspace/suspended member.
-- Remove current user/owner/sole manager.
+- Admin/Editor không thấy Project Create/Edit/Archive/Delete actions.
+- Add duplicate/non-company/disabled user hoặc Workspace Admin.
+- Remove Project access của user đang có assigned work; dữ liệu lịch sử phải được giữ nguyên.
 - Archive/restore với active sprint/release (policy phải xác định).
 - Cross-workspace project ID attack.
 - Concurrent project create cùng key.
@@ -497,7 +510,7 @@ Create request example:
 ```text
 PRJ-T01 Project/settings/member/sequence migrations
 PRJ-T02 Project CRUD service/API
-PRJ-T03 Project membership + permission guard
+PRJ-T03 Project access + authorization guard
 PRJ-T04 Default workflow initialization
 PRJ-T05 Project List/Create UI
 PRJ-T06 Project selector integration

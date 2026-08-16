@@ -7,7 +7,7 @@
 | Phase | Phase 5 - Portfolio Module |
 | Feature | P5.2 Capacity Planning |
 | Status | BA accepted; P5.2 feature closed for BA/mockup scope |
-| Effective date | 2026-07-28 |
+| Effective date | 2026-08-14 |
 | Reference model | Broadcom Rally Capacity Planning, simplified for Mini Rally |
 | Scope boundary | Verified BA/mockup behavior using session-level frontend state only; production implementation is not started |
 
@@ -152,13 +152,13 @@ The right rail is `Team Capacity`, listing every Team in the Plan and its fixed 
 | Change marker | Reserved for added/removed-after-publish display; neutral before Publish. |
 | Rank | Sequential display order within the currently sorted Feature list. When sorted by Rank, this comes from the Plan allocation order and shows `1..N` without gaps. The Capacity Cutline appears only while Rank sort is selected. |
 | ID / Name | Read-only Feature identity. |
-| Planned Team Assignment | Plan-specific Team assignment. If the Feature has no Team allocation, the cell shows a yellow `Not assigned` selector; choosing a Team assigns the existing unallocated row to that Team and uses the default estimate rule below. If the Feature has one Team allocation, the selector shows that Team and can be changed; its first dropdown item is `Unassign`, which clears the Team and returns the cell to the yellow `Not assigned` state. If the Feature is split across multiple Teams, the parent row shows `N teams`; split edits are made through the Allocate dialog. This never writes `Feature.projectId`. |
+| Planned Team Assignment | Plan-specific Team assignment read from and written to the same allocation ledger used by `Teams by Total` and the Team Capacity rail. If the Feature has no Team allocation, the cell shows a yellow `Not assigned` selector; choosing a Team assigns the existing unallocated row to that Team and uses the default estimate rule below. If the Feature has one Team allocation, the selector shows that Team and can be changed; its first dropdown item is `Unassign`, which clears the Team and returns the cell to the yellow `Not assigned` state. If the Feature is split across multiple Teams, the parent row shows `N teams`; split edits are made through the Allocate dialog. This never changes the Feature's Portfolio owning Team or Project. |
 | Team | The Feature's current Portfolio Item Team ownership. Allocation can differ from this value; this column is the Feature's original/current Team, not the Plan assignment. |
 | Dependencies | Placeholder column retained for Rally visual parity. It shows `0` until dependency modelling is added. |
 | Complete | Sum of Plan Estimate for Feature children at `Completed` or later (`Completed`, `Accepted`, `Release`). It updates live when a child moves forward or back in the flow. The cell shows the number only. |
 | Rollup | Sum of Plan Estimate for every Story/Defect child generated from the Feature. The cell shows the number only. If Rollup exceeds Estimated, show the red warning triangle with tooltip `Rollup exceeds Estimated`. |
 | Estimated | Planning estimate for the plan unit. It uses Preliminary Estimate as the initial forecast, Refined Estimate when supplied, and finally the sum allocated to Teams when allocation exists. The cell shows the number only plus the estimate-source indicator; there is no progress bar in the Features-tab grid. If Preliminary, Refined and Allocated estimates are all missing, show the red warning triangle with tooltip `Point Estimated missing`. |
-| Feature menu | Draft-only menu with `Move up`, `Move down`, `Allocate` and `Remove from Plan`. Move actions reorder the Feature within the Plan rank list; split allocation remains managed by `Allocate`. `Remove from Plan` removes every allocation row for that Feature across all Teams in the Plan. |
+| Feature reorder and menu | Draft-only drag-and-drop handle reorders the Feature within the Plan rank list; `Move up` / `Move down` menu actions are not required. The settings menu provides `Allocate to Teams` and `Remove from Plan`. Split allocation remains managed by `Allocate to Teams`; `Remove from Plan` removes every allocation row for that Feature across all Teams in the Plan. |
 
 The tab also has a Draft-only `Add Feature` action above the list. It lists eligible Portfolio Features not already in this Plan and creates an Unassigned plan allocation row. The planner may then choose a Team directly from `Planned Team Assignment` or open `Allocate` for split allocation.
 
@@ -196,7 +196,7 @@ Columns:
 
 | Column | Rule |
 |---|---|
-| Settings | Draft-only gear icon at the start of the row, and the only place this row's allocation is changed. Opens a menu with `Move up` and `Move down`, which swap this row's Rank with the adjacent row **inside the same Team only**; `Allocate`, which opens the shared Allocate dialog; and `Remove from Plan`, which removes every allocation row for that Feature across all Teams in the current Plan while leaving the Portfolio Feature unchanged. |
+| Settings | Draft-only gear icon at the start of the row, and the only place this row's allocation is changed. The menu provides `Allocate to Teams`, which opens the shared Allocate dialog, and `Remove from Plan`, which removes every allocation row for that Feature across all Teams in the current Plan while leaving the Portfolio Feature unchanged. Rank reordering is performed directly with the row drag-and-drop handle, not Move up/Move down menu actions. |
 | Rank | Plan-level display order inside the Team |
 | ID | Feature ID |
 | Name | Feature Name |
@@ -250,7 +250,7 @@ Because the Team picker ignores Release, a Feature outside the Plan Release can 
 
 The planner enters or adjusts the committed value during allocation/replanning.
 
-Assigning and splitting are both done in the Allocate dialog (§8) while Draft; there is no separate assign, split, or one-Team removal control (revised 2026-07-28). Adding a Team row in the dialog is the split action, and the row's committed value is typed there. A Feature that is in the plan but has no Team yet has no dedicated `Unallocated Features` block on `Teams by Total` - the plan header still counts it under `Unassigned`, and it appears in the `Features` tab carrying a `Not assigned` badge, from where it can be allocated. `Remove from Plan` removes the Feature from the Plan by deleting all allocation rows for that Feature, including every row in a multi-Team split.
+For zero-or-one Team assignment, the Features-tab `Planned Team Assignment` selector supports assigning, changing Team and `Unassign`. Multi-Team split allocation and committed values are managed through the shared Allocate dialog (§8) while Draft. Adding a Team row in that dialog is the split action. A Feature that is in the plan but has no Team yet has no dedicated `Unallocated Features` block on `Teams by Total` - the plan header still counts it under `Unassigned`, and it appears in the `Features` tab carrying a `Not assigned` badge. `Remove from Plan` removes the Feature from the Plan by deleting all allocation rows for that Feature, including every row in a multi-Team split.
 
 ## 11. Calculations
 
@@ -327,7 +327,8 @@ Count: COUNT(child WHERE state IN [Completed, Accepted, Release])
 Feature row display:
 
 ```text
-Complete / Rollup / Estimated show numbers only.
+Feature-grid metric order is Dependencies / Rollup / Estimated / Complete.
+Rollup / Estimated / Complete show numbers only.
 No textual percentage is shown in the Feature row or its progress tooltip.
 ```
 
@@ -359,31 +360,16 @@ Capacity/Demand and Execution/Completion are intentionally separate. Allocation 
 
 ## 12. RBAC
 
-Revised 2026-07-28 (BA confirmed). Capacity Planning access is decided by **two
-independent conditions**, and both must pass before a role may change a plan:
+Revised 2026-08-10. Capacity Planning follows the fixed Phase 4 Project Access baseline. The temporary editable Capacity Planner Full/View matrix is removed.
 
-1. One temporary **Capacity Planner (Full / View)** permission, held per role in
-   the Phase 4 role matrix at `Settings > Workspace > Roles & Permissions`.
-   `Enabled` = planner **Full** for create/edit/publish; `Read-only` = planner
-   **View**. Action-level Capacity Planning RBAC is explicitly deferred.
-2. **Project scope**, unchanged: a Project Admin manages only its assigned
-   Projects and is read-only elsewhere.
-
-Passing one gate but not the other means read-only.
-
-| Role | Behavior |
+| Access | Behavior |
 |---|---|
-| Workspace Admin | Always planner Full. Its matrix column is intentionally locked, so a Workspace Admin cannot be reduced to View and cannot lock itself out of planning. |
-| Project Admin | Planner Full or View, set per role in the matrix. With Full, manages plans in assigned Projects only. With View, may open both Draft and Published plans across the Project but change nothing. |
-| Project Member | Read-only, and only ever sees a **Published** plan; a Draft plan is hidden from the list and unreachable. Inside a Published plan it sees only its assigned Team. |
+| Workspace Admin | Full create, edit, allocate, forecast, publish and revert across all Projects |
+| Admin | Full create, edit, allocate, forecast, publish and revert in assigned Projects only |
+| Editor | Capacity Planning hidden |
+| Unassigned user | Project plans hidden and direct access rejected safely |
 
-The matrix row that gates this feature:
-
-| Permission | Gates |
-|---|---|
-| `capacity_planning:manage` | `Enabled` grants Full access to Create Plan, Add/Remove Teams, edit Capacity, Capacity Forecast, allocate/move/remove Features and Publish/Revert. `Read-only` grants View only. |
-
-Manage actions include Create Plan, Add/Remove Teams, edit Capacity, allocate/move/unassign Features and Publish.
+Draft and Published plan visibility follows Project Access. Published lifecycle state remains read-only for everyone until an authorized Workspace Admin/Admin explicitly reverts it to Draft.
 
 ## 13. Acceptance Criteria
 
@@ -398,15 +384,16 @@ Manage actions include Create Plan, Add/Remove Teams, edit Capacity, allocate/mo
 | P5-CAP-AC-007 | Split allocation lets one Feature have multiple Team allocation rows while Draft. |
 | P5-CAP-AC-008 | Allocation values are plan-specific manual inputs; split allocation creates another editable row for the same Feature and Team Demand uses `allocation.value`. |
 | P5-CAP-AC-009 | `Publish Without Updating Fields` changes visibility/status only; `Publish` also writes Release and planned dates to allocated Features without overwriting Feature Project or child Story/Defect fields. |
-| P5-CAP-AC-010 | Workspace Admin and authorized Project Admin can manage; Project Member is read-only and scoped to assigned Team. |
-| P5-CAP-AC-012 | One temporary `capacity_planning:manage` permission supplies Full/View behavior. A Project Admin set to `Read-only` loses Create, Add Team, Capacity edit, Capacity Forecast, allocation, removal and Publish/Revert while still opening Draft and Published plans; saving the matrix takes effect without reload. Workspace Admin remains locked at `Enabled`. |
+| P5-CAP-AC-010 | Workspace Admin manages all Projects; Admin manages assigned Projects; Editor and unassigned users do not access Capacity Planning. |
+| P5-CAP-AC-012 | Capacity Planning uses the fixed Phase 4 Project Access baseline and has no temporary editable Full/View permission row. |
 | P5-CAP-AC-014 | Feature Estimated resolves in priority order: Team-assigned Total Allocated, Refined Estimate, then temporary Preliminary Estimate mapping. Unallocated rows do not count toward Total Allocated. |
 | P5-CAP-AC-015 | `Remove from Plan` removes all allocations for that Feature across all Teams without deleting or editing the Portfolio Feature. One-Team removal is not part of the current P5.2 UI. |
 | P5-CAP-AC-016 | Feature Complete is the live sum of child Plan Estimate at `Completed`, `Accepted` or `Release`; Feature Rollup is the live sum of every linked Story/Defect Plan Estimate. Moving a child back to `In-Progress` reduces Complete immediately. |
-| P5-CAP-AC-017 | Feature rows show Complete/Rollup/Estimated numbers without percentages. A split Feature shows total Estimated in the Features tab and its Team allocation slice under Teams by Total; Team summary rows retain number plus percent and Capacity remains manual Plan input. |
-| P5-CAP-AC-013 | A Project Member sees a plan only after it is Published; Draft plans do not appear in the Capacity Plan list and cannot be opened. |
+| P5-CAP-AC-017 | Feature-grid columns use `Dependencies → Rollup → Estimated → Complete`; the three numeric metrics show numbers without percentages. A split Feature shows total Estimated in the Features tab and its Team allocation slice under Teams by Total; Team summary rows retain number plus percent and Capacity remains manual Plan input. |
+| P5-CAP-AC-013 | Viewer behavior is Future Backlog and is not an acceptance criterion for the current release. |
 | P5-CAP-AC-011 | Record detail has independently retained Teams by Total and Features tab view state; the Features tab supports Rank-only capacity cutline and Draft-only multi-Team allocation. |
 | P5-CAP-AC-018 | Features tab has no separate intro/sort toolbar. `Planned Team Assignment` supports `Unassign` for one-Team rows, returning the row to yellow `Not assigned`; the summary `Breakdown` shows per-metric bars aligned to the same scale as the total composite bar. |
+| P5-CAP-AC-020 | `Planned Team Assignment`, `Teams by Total` and the Team Capacity rail resolve from the same persisted Plan allocation ledger. A zero-Team row shows `Not assigned`, one Team shows that Team, and multiple Teams show `N teams` after save and reload; Feature Portfolio ownership remains unchanged. |
 | P5-CAP-AC-019 | `Publish` copies Feature Release only when Plan planned start/end match the selected Release dates; mismatch is reported and does not silently overwrite Feature Release. |
 
 ## 14. Out of Scope

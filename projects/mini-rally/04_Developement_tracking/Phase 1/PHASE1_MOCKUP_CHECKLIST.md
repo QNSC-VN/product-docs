@@ -51,12 +51,12 @@ Không nằm trong Phase 1:
 | Work Item Detail | Sidebar Owner/Project/Team/Schedule State/Flow State/Priority/Plan Estimate/Release/Milestones/Iteration | ✅ | Schedule State = 6 ô; Flow State = dropdown; Team optional; Priority chỉ show khi item type là Defect |
 | Task List | Task tab full width, bỏ sidebar phải | ✅ | `WorkItemDetailPage.tsx` | Khi click Tasks, content chiếm full details area |
 | Task List | Columns Rank, ID, Name, State, Owner, Project, Teams, To Do, Actuals, Estimate | ✅ | `WorkItemDetailPage.tsx` | Có totals row |
-| Task Create | Add Task modal | ✅ | `WorkItemDetailPage.tsx` | Name required, To Do, Actual, Owner; Estimate derived/read-only |
+| Task Create | Add Task modal | ✅ | `WorkItemDetailPage.tsx` | Name required; Owner defaults Unassigned and is scoped to active parent-Team members; Estimate/To Do/Actual editable, with one-time Estimate -> blank To Do copy on create |
 | Task Create | Buttons Cancel/Create/Create with details | ✅ | `WorkItemDetailPage.tsx` | Đúng yêu cầu |
 | Task Detail | Click Task ID mở detail page | ✅ | `WorkItemDetailPage.tsx` | Có Back to task list |
 | Task Detail | Banner riêng cho Task Detail | ✅ | `WorkItemDetailPage.tsx` | Chỉ Details + Revision History, bỏ Tasks tab |
 | Task Detail | Left content Description/Notes/Attachments | ✅ | `WorkItemDetailPage.tsx` | Dùng rich editor và attachment block |
-| Task Detail | Right fields Task State/Owner/Project/Team/Work Product/Estimate/To Do/Actual | ✅ | Task State chỉ Defined/In-Progress/Completed; Estimate = To Do + Actual |
+| Task Detail | Right fields Task State/Owner/Project/Team/Work Product/Estimate/To Do/Actual | ✅ | Task State chỉ Defined/In-Progress/Completed; ba hour fields độc lập sau create |
 | Activity Log | Work Item Revision History | ✅ | `WorkItemDetailPage.tsx` | Basic activity log table |
 | Activity Log | Task Revision History | ✅ | `WorkItemDetailPage.tsx` | Basic activity log theo task |
 | Manage | Workspace menu mở Manage page | ✅ | `ProjectsPage.tsx`, `layout.tsx` | Breadcrumb hiển thị `ACME Space Inc. > Manage` |
@@ -72,13 +72,13 @@ Không nằm trong Phase 1:
 | Story/Defect/Task core | `work_items.type` | ✅ | Dùng chung `work_items`, không tạo bảng task riêng |
 | Parent Story → Task | `work_items.parent_id` | ✅ | Task có `type='task'`, `parent_id` trỏ tới Story/Defect |
 | Project/Team | `work_items.project_id`, `work_items.team_id`, `project_teams` | ✅ | Validate team thuộc project |
-| Manage Project | `projects`, project membership/link tables | ✅ | Phase 1 có Manage > Projects |
-| Manage Team | `teams`, `project_teams`, `team_members` | ✅ | Create Team từ Manage; list không show capacity/velocity |
+| Project Management | `projects`, project access/link tables | ✅ | Một đường dẫn duy nhất: top-right Settings gear > Workspaces & Projects |
+| Team Management | `teams`, `project_teams`, `team_members` | ✅ | Create/Edit Team trong Project đã chọn; có thể chọn existing users và Access Level |
 | Manage User | `users`, workspace/team membership tables | ✅ | Invite/edit user, role, team membership; project access derive từ team |
 | Schedule State / Flow State | `work_items.schedule_state`, `work_items.flow_state` | ✅ M1/M3/M5.1 confirmed | Cùng 6 options; Detail mirror hai chiều; create default Idea; shared Work Item state reflects cross-screen for the current mockup session. Refresh/API persistence remains DevInt scope. |
 | Owner | `work_items.assignee_id` | ✅ | Join `users` |
 | Plan Estimate | `work_items.story_point` | ✅ | Mapping tên UI `Plan Estimate` → DB `story_point` |
-| Task Estimate | `estimate_hours` nếu lưu/cache | ✅ | Derived/read-only: Estimate = To Do + Actual |
+| Task Estimate | `estimate_hours` | ✅ | Editable độc lập; create-time copy Estimate -> To Do một lần khi To Do blank |
 | To Do | DB design đã bổ sung `todo_hours` | ✅ | Production migration cần implement |
 | Actual | DB design đã bổ sung `actual_hours` | ✅ | Phase 1 chốt nhập tay |
 | Description | `work_items.description` | ✅ | Rich text/HTML hoặc markdown sanitize |
@@ -96,7 +96,7 @@ Không nằm trong Phase 1:
 | P1-DC-002 | Phase 1 timebox = 2 working days = 16 hours | Tracking dùng 1 day = 8 hours |
 | P1-DC-003 | `Notes` là text/rich-text field riêng | Không dùng comment thread thay thế Notes trong Phase 1 |
 | P1-DC-004 | `Actual` nhập tay | Lưu vào `work_items.actual_hours`; phase sau mới cân nhắc aggregate từ time entries |
-| P1-DC-004A | Task Estimate derived/read-only | `Estimate = To Do + Actual`; Completed không tự zero To Do |
+| P1-DC-004A | Task hour fields independent | Estimate/To Do/Actual độc lập; create-time copy Estimate -> To Do một lần; Completed/reopen không đổi hour fields |
 | P1-DC-005 | Work Item sidebar dùng `Schedule State` và `Flow State` | Schedule State = 6 ô; Flow State = dropdown; options: Idea/Defined/In-Progress/Completed/Accepted/Release |
 | P1-DC-006 | Schedule State và Flow State mirror hai chiều trong MVP | Default cả hai là Idea; child Task không dùng catalog này |
 | P1-DC-006 | Defect Detail sidebar hiển thị `Priority` | Chỉ show với Defect; options: Low/Normal/High/Urgent/None |
