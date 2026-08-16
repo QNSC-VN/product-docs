@@ -48,7 +48,8 @@ automatically add every Team in that Project.
 |---|---|---|
 | Workspace Admin | Sees all Draft and Published plans | Full create, edit, allocate, publish and revert access |
 | Admin | Sees Draft and Published plans in assigned Projects | Full planning access inside assigned Projects |
-| Editor / No Access | Capacity Planning hidden | No access |
+| Editor | Capacity Planning hidden | No access |
+| Unassigned user | Project and Capacity Planning hidden; direct access denied | No access |
 
 The current Project Access rule is fixed:
 
@@ -326,7 +327,7 @@ Capacity so their bar lengths can be compared directly.
 
 | Column | Rule |
 |---|---|
-| Settings | Draft menu for Move up, Move down, Allocate and Remove from Plan |
+| Settings | Draft menu for Allocate to Teams and Remove from Plan; Rank uses the row drag-and-drop handle |
 | Rank | Dense order within the expanded Team list |
 | ID / Name / State | Feature identity and lifecycle |
 | Allocation | `From {origin Team}` only when the allocation Team differs from Feature ownership Team |
@@ -362,7 +363,7 @@ the whole-Feature totals.
 | Action | Behavior |
 |---|---|
 | Add Feature | Adds an eligible Feature as Unassigned |
-| Move up / Move down | Reorders the Feature in the Plan |
+| Drag-and-drop Rank | Reorders the Feature in the Plan; Move up / Move down menu actions are not required |
 | Allocate | Opens the shared multi-Team allocation dialog |
 | Remove from Plan | Removes every allocation row for the Feature from the Plan |
 | Planned Team Assignment selector | Assigns, changes or unassigns zero/one-Team Features |
@@ -534,7 +535,7 @@ focus opens an overlay tooltip that is not clipped by the grid.
 | No Features | Show guidance to use Add Feature |
 | Feature unassigned | Yellow Not assigned selector in Features tab |
 | Published | Show published banner; hide or disable all mutation controls |
-| Editor/No Access | Capacity Planning hidden and direct access rejected |
+| Editor/unassigned user | Capacity Planning hidden and direct access rejected |
 | Duplicate Project + Release | Create disabled/rejected |
 | Missing estimate | Estimated `0` plus red warning tooltip |
 | Exceeded baseline | Red advisory warning; actions remain available in Draft |

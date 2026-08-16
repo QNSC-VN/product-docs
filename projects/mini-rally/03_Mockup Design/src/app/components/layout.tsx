@@ -29,10 +29,10 @@ export const NAV_ITEMS: { key: Page; label: string; icon: React.ReactNode; child
   { key: "reports", label: "Reports", icon: <BarChart2 size={12} /> },
 ];
 
-function projectAccessLabel(role: Role, projectKey: string) {
+function projectAccessLabel(role: Role) {
   if (role === "Workspace Admin") return "Workspace Admin";
-  if (role === "Project Member") return "Editor";
-  return ROLE_SCOPE.projectAdminProjectKeys.includes(projectKey as typeof ROLE_SCOPE.projectAdminProjectKeys[number]) ? "Admin" : "No Access";
+  if (role === "Editor") return "Editor";
+  return "Admin";
 }
 
 export function TopNav({
@@ -49,16 +49,16 @@ export function TopNav({
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [openNavKey, setOpenNavKey] = useState<Page | null>(null);
   const [expandedProjects, setExpandedProjects] = useState<Set<string>>(new Set(["NXP"]));
-  const roles: Role[] = ["Workspace Admin", "Project Admin", "Project Member"];
+  const roles: Role[] = ["Workspace Admin", "Admin", "Editor"];
   const demoProfile = DEMO_ACCESS_PROFILES[currentRole];
-  const visibleProjects = currentRole === "Project Member"
+  const visibleProjects = currentRole === "Editor"
     ? SCOPE_PROJECTS
-      .filter(project => project.key === ROLE_SCOPE.projectMemberProjectKey)
-      .map(project => ({ ...project, teams: project.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number])) }))
-    : currentRole === "Project Admin"
-      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]))
+      .filter(project => project.key === ROLE_SCOPE.editorProjectKey)
+      .map(project => ({ ...project, teams: project.teams.filter(team => ROLE_SCOPE.editorTeams.includes(team as typeof ROLE_SCOPE.editorTeams[number])) }))
+    : currentRole === "Admin"
+      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]))
       : SCOPE_PROJECTS;
-  const visibleNavItems = currentRole === "Project Member"
+  const visibleNavItems = currentRole === "Editor"
     ? NAV_ITEMS
       .filter(item => ["home", "backlog", "track", "quality"].includes(item.key))
       .map(item => item.children ? { ...item, children: item.children.filter(child => child.key === "track" || child.key === "backlog") } : item)
@@ -97,21 +97,21 @@ export function TopNav({
                 {visibleProjects.map(project => {
                   const expanded = expandedProjects.has(project.key);
                   const selectedProject = currentProject.key === project.key;
-                  const accessLabel = projectAccessLabel(currentRole, project.key);
+                  const accessLabel = projectAccessLabel(currentRole);
                   return (
                     <div key={project.key} className="mb-0.5">
                       <div className="flex items-center rounded" style={{ backgroundColor: selectedProject ? "#edf2fb" : "transparent" }}>
                         <button aria-label={`${expanded ? "Collapse" : "Expand"} ${project.name}`} onClick={() => toggleProject(project.key)} className="p-1.5 shrink-0" style={{ color: "#8c94a6" }}>{expanded ? <ChevronDown size={11} /> : <ChevronRight size={11} />}</button>
-                        <button onClick={() => { onScopeChange(project, currentRole === "Project Member" ? project.teams[0] : "All Teams"); setWsOpen(false); }} className="flex-1 flex items-center gap-2 pr-2 py-1.5 text-left min-w-0">
+                        <button onClick={() => { onScopeChange(project, currentRole === "Editor" ? project.teams[0] : "All Teams"); setWsOpen(false); }} className="flex-1 flex items-center gap-2 pr-2 py-1.5 text-left min-w-0">
                           <Package size={12} style={{ color: selectedProject ? "#1d3f73" : "#5c6478" }} />
                           <span className="flex-1 min-w-0"><span className="block text-[11px] font-semibold truncate" style={{ color: selectedProject ? "#1d3f73" : "#1a2234" }}>{project.name}</span><span className="block text-[9px]" style={{ color: "#8c94a6" }}>{project.key} · {project.teams.length} teams</span></span>
-                          {currentRole !== "Workspace Admin" && <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-sm" style={{ color: "#1d3f73", backgroundColor: "#e8eef8" }}>{accessLabel}</span>}
+                           {currentRole !== "Workspace Admin" && <span className="text-[8px] font-semibold px-1.5 py-0.5 rounded-sm" style={{ color: accessLabel === "Editor" ? "#1e6930" : "#1d3f73", backgroundColor: accessLabel === "Editor" ? "#eef6f0" : "#e8eef8" }}>{accessLabel}</span>}
                           {selectedProject && <Check size={11} style={{ color: "#1d3f73" }} />}
                         </button>
                       </div>
                       {expanded && (
                         <div className="ml-5 pl-2" style={{ borderLeft: "1px solid #d9dee7" }}>
-                          {(currentRole === "Project Member" ? project.teams : ["All Teams", ...project.teams]).map(team => {
+                          {(currentRole === "Editor" ? project.teams : ["All Teams", ...project.teams]).map(team => {
                             const selectedTeam = selectedProject && currentTeam === team;
                             return <button key={team} onClick={() => { onScopeChange(project, team); setWsOpen(false); }} className="w-full flex items-center gap-2 px-2 py-1.5 text-left rounded hover:bg-[#f4f6f9]" style={{ backgroundColor: selectedTeam ? "#f0f4fb" : "transparent" }}><Users size={10} style={{ color: selectedTeam ? "#2558a6" : "#8c94a6" }} /><span className="flex-1 text-[10px] truncate" style={{ color: selectedTeam ? "#1d3f73" : "#5c6478", fontWeight: selectedTeam ? 600 : 400 }}>{team}</span>{selectedTeam && <Check size={10} style={{ color: "#2558a6" }} />}</button>;
                           })}
@@ -164,12 +164,12 @@ export function TopNav({
         </button>
         <button aria-label="Help" title="Help" className="p-1.5 rounded" style={{ color: "rgba(255,255,255,0.65)" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; }}><HelpCircle size={14} /></button>
         <div className="relative">
-            <button aria-label="Open administration menu" title={currentRole === "Project Member" ? "Project access" : "Administration"} onClick={() => { setSettingsOpen(open => !open); setWsOpen(false); setUserOpen(false); setOpenNavKey(null); }} className="p-1.5 rounded" style={{ color: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "#fff" : "rgba(255,255,255,0.65)", backgroundColor: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { if (currentPage !== "settings" && currentPage !== "projects" && !settingsOpen) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
+            <button aria-label="Open administration menu" title={currentRole === "Editor" ? "Project access" : "Administration"} onClick={() => { setSettingsOpen(open => !open); setWsOpen(false); setUserOpen(false); setOpenNavKey(null); }} className="p-1.5 rounded" style={{ color: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "#fff" : "rgba(255,255,255,0.65)", backgroundColor: currentPage === "settings" || currentPage === "projects" || settingsOpen ? "rgba(255,255,255,0.15)" : "transparent" }} onMouseEnter={e => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.color = "#fff"; }} onMouseLeave={e => { if (currentPage !== "settings" && currentPage !== "projects" && !settingsOpen) { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.65)"; } }}>
               <Settings size={14} />
             </button>
             {settingsOpen && (
               <div className="absolute right-0 top-full mt-1 w-56 bg-white rounded shadow-lg z-50 py-1" style={{ border: "1px solid #e2e6eb" }}>
-                <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>{currentRole === "Project Member" ? "My Access" : "Administration"}</div>
+                <div className="px-3 py-1.5 text-[9px] font-semibold uppercase tracking-widest" style={{ color: "#8c94a6" }}>{currentRole === "Editor" ? "My Access" : "Administration"}</div>
                 <button onClick={() => { onNavigate("projects"); setSettingsOpen(false); }} className="w-full flex items-center gap-2 px-3 py-2 text-[12px] text-left hover:bg-[#f4f6f9]" style={{ color: currentPage === "projects" ? "#1d3f73" : "#1a2234", backgroundColor: currentPage === "projects" ? "#edf2fb" : "transparent", fontWeight: currentPage === "projects" ? 600 : 400 }}><Package size={12} /><span className="flex-1">Workspaces & Projects</span>{currentPage === "projects" && <Check size={11} />}</button>
               </div>
             )}
@@ -293,13 +293,13 @@ export function ContextBar({ currentPage, currentProject, currentTeam, currentRo
   };
   const showSaved = ["backlog", "quality", "portfolio", "releases"].includes(currentPage);
   const showContextControls = currentPage !== "portfolio" && currentPage !== "reports" && currentPage !== "releaseTracking";
-  const visibleProjects = currentRole === "Project Member"
-    ? SCOPE_PROJECTS.filter(project => project.key === ROLE_SCOPE.projectMemberProjectKey)
-    : currentRole === "Project Admin"
-      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]))
+  const visibleProjects = currentRole === "Editor"
+    ? SCOPE_PROJECTS.filter(project => project.key === ROLE_SCOPE.editorProjectKey)
+    : currentRole === "Admin"
+      ? SCOPE_PROJECTS.filter(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]))
       : SCOPE_PROJECTS;
-  const visibleTeams = currentRole === "Project Member"
-    ? currentProject.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number]))
+  const visibleTeams = currentRole === "Editor"
+    ? currentProject.teams.filter(team => ROLE_SCOPE.editorTeams.includes(team as typeof ROLE_SCOPE.editorTeams[number]))
     : ["All Teams", ...currentProject.teams];
 
   return (
@@ -331,7 +331,7 @@ export function ContextBar({ currentPage, currentProject, currentTeam, currentRo
       {showContextControls && !["projects", "backlog", "iterations", "track", "teamBoard", "teamStatus"].includes(currentPage) && (
         <div className="flex items-center gap-4" style={{ borderLeft: "1px solid #e2e6eb", paddingLeft: "1rem" }}>
           {["home", "projects"].includes(currentPage) && <CtxSelect label="Workspace" value="ACME Space Inc." />}
-          {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} options={visibleProjects.map(project => project.name)} onChange={name => { const project = visibleProjects.find(candidate => candidate.name === name); if (project) onScopeChange(project, currentRole === "Project Member" ? project.teams[0] : "All Teams"); }} />}
+          {!["home", "projects"].includes(currentPage) && <CtxSelect label="Project" value={currentProject.name} options={visibleProjects.map(project => project.name)} onChange={name => { const project = visibleProjects.find(candidate => candidate.name === name); if (project) onScopeChange(project, currentRole === "Editor" ? project.teams[0] : "All Teams"); }} />}
           {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Release" value="Q4 2024" />}
           {["track", "teamBoard", "teamStatus"].includes(currentPage) && <CtxSelect label="Iteration" value="Sprint 24.3" />}
           {currentPage === "releases" && <CtxSelect label="Status" value="All Releases" />}

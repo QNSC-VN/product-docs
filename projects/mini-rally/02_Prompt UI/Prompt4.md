@@ -117,7 +117,7 @@ Right metadata panel:
 
 Role behavior:
 
-* Viewer sees read-only version. _(Access-model update 2026-08-13: the `Viewer` level is removed; access is now 3-level — Workspace Admin / Admin / Editor. Treat this Viewer line as historical prompt guidance.)_
+* Viewer sees read-only version.
 * Developer can update status, comment, and upload attachment.
 * QA can update defect fields and status.
 * PO / BA can edit description, acceptance criteria, priority, owner, related items.
@@ -301,7 +301,7 @@ Widget style:
 
 Role behavior:
 
-* Viewer can view reports only. _(Access-model update 2026-08-13: the `Viewer` level is removed; access is now 3-level — Workspace Admin / Admin / Editor. Treat this Viewer line as historical prompt guidance.)_
+* Viewer can view reports only.
 * Admin, PM, and PO / BA can export reports.
 
 ## Screen 11 — Notifications

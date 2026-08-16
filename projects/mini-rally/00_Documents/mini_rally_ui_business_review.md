@@ -9,7 +9,7 @@
 - Ngày kiểm tra gần nhất: 2026-06-20
 - Runtime: React 18 + Vite 6 tại `http://127.0.0.1:5173`
 - Viewport mặc định: 1280 × 720
-- Role kiểm tra chính: Workspace Admin; kiểm tra bổ sung với Viewer (demo role thời điểm review; mức `Viewer` đã bị gỡ khỏi access model hiện hành — 3-level: Workspace Admin / Admin / Editor)
+- Role kiểm tra chính: Workspace Admin; kiểm tra bổ sung với Viewer
 - Nguồn đối chiếu: Prompt 1–4, project overview, database design và screen traceability
 - Phương pháp: chạy UI thật, điều hướng, nhập filter/search, đổi view, chọn item, đổi role và kiểm tra console runtime
 
@@ -50,7 +50,7 @@
 ### BUG-03 — Viewer vẫn xem nội dung Admin tab đang mở
 
 - Severity: High
-- Bước tái hiện: mở Settings → Audit Log bằng Workspace Admin → đổi demo role thành Viewer (demo role thời điểm review; mức `Viewer` đã bị gỡ khỏi access model hiện hành — 3-level: Workspace Admin / Admin / Editor).
+- Bước tái hiện: mở Settings → Audit Log bằng Workspace Admin → đổi demo role thành Viewer.
 - Actual: menu Settings bị disabled và icon Settings biến mất, nhưng nội dung Audit Log vẫn hiển thị.
 - Expected: chuyển sang trang được phép hoặc hiển thị Access Denied.
 - Tác động: UI authorization không bảo vệ nội dung khi quyền thay đổi trong phiên.
@@ -144,8 +144,8 @@ Gap nghiệp vụ lớn cho User Story:
 - Không có roll-up Task Estimate, Remaining và Actual lên US.
 - `Related Work Items` không thay thế task breakdown.
 - Post comment, upload attachment và link existing chưa chạy.
-- Role chỉ chia Viewer/non-Viewer (demo role mockup thời điểm review; mức `Viewer` đã bị gỡ khỏi access model hiện hành — 3-level: Workspace Admin / Admin / Editor), chưa có field-level permission.
-- Viewer vẫn thấy một số action và có thể toggle Blocked trong UI (ghi nhận theo mockup trước khi gỡ mức `Viewer`).
+- Role chỉ chia Viewer/non-Viewer, chưa có field-level permission.
+- Viewer vẫn thấy một số action và có thể toggle Blocked trong UI.
 
 Đề xuất task fields:
 
@@ -228,7 +228,7 @@ Thiếu:
 - Save/Add/Edit/Delete/Invite/Change Role chưa persist.
 - Chưa có validation, confirm destructive action và unsaved-change guard.
 - Không có Access Denied page/redirect.
-- BUG-03 làm lộ nội dung tab hiện hành khi đổi xuống Viewer (demo role mockup thời điểm review; mức `Viewer` đã bị gỡ khỏi access model hiện hành — 3-level: Workspace Admin / Admin / Editor).
+- BUG-03 làm lộ nội dung tab hiện hành khi đổi xuống Viewer.
 - Permission matrix là visual, chưa map tới permission codes/backend enforcement.
 
 ## 4. Thứ tự xử lý đề xuất

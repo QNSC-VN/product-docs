@@ -2,7 +2,7 @@
 
 > **⚠️ Scope note (2026 pivot):** This document captures the *original* "Mini Rally" product vision. The project has since pivoted to a **global, multi-tenant, enterprise-grade SaaS** (a ~95–100% Rally equivalent). For the **authoritative** architecture, tech stack, tenancy, scale, security and scope, see [`05_Architecture/`](../05_Architecture/) (`ARCHITECTURE_CURRENT.md`, `ARCHITECTURE_FUTURE_SCALE.md`, `PRODUCTION_READINESS.md`, `FOUNDATION_PHASE.md`). The functional/module breakdown below remains valid; the "small / ≤200 users / not full enterprise" framing is superseded.
 
-> **Current Mini Rally authorization/navigation (2026-08-10, corrected to 3-level 2026-08-13):** The BA/mockup scope uses one Company/Workspace, one global Workspace Admin and per-Project `Admin`/`Editor`. "No Access" is implicit — a user with no `project_members` row has the Project hidden and direct URLs denied. The former `Viewer` level is removed. PM/BA/Developer/QA are personas, not permission roles. Project/user/team administration is centralized at top-right Settings. This note overrides older role and navigation wording below.
+> **Current Mini Rally authorization/navigation (2026-08-14):** The BA/mockup scope uses one Company/Workspace, one global Workspace Admin and per-Project `Admin`/`Editor`. A user without a Project assignment cannot see or directly access it. Viewer/selectable No Access are Future Backlog. PM/BA/Developer/QA are personas, not permission roles. Project/user/team administration is centralized at top-right Settings.
 
 ## Current MVP/Phase Baseline — 2026-06-24
 
@@ -59,7 +59,7 @@ Sản phẩm hướng đến sự đơn giản, dễ dùng, dễ triển khai, k
 | Workspace Admin | Quản trị Company, users, Projects, Teams, access và toàn bộ delivery |
 | Delivery lead / planner persona | Thường được WA gán `Admin` trong Project cần quản lý |
 | Contributor persona | Thường được WA gán `Editor` và một hoặc nhiều Teams |
-| Stakeholder persona | Nhận `Admin` hoặc `Editor` nếu cần truy cập Project; không còn mức read-only `Viewer` riêng |
+| Stakeholder persona | Chưa có read-only Project access trong current scope; `Viewer` thuộc Future Backlog |
 
 ---
 
@@ -203,7 +203,7 @@ Project đại diện cho một sản phẩm hoặc phạm vi delivery. Project 
 - Update project.
 - Archive project.
 - Add/remove Project users.
-- Assign `Admin` or `Editor` per Project; removed/no row means implicit `No Access`.
+- Assign `Admin` hoặc `Editor` per Project; removed/no row means Project hidden/direct access denied.
 - Project overview.
 - Project settings.
 - Link/unlink Team.
@@ -621,7 +621,7 @@ One Web App
 | Workspace Admin | Toàn quyền Company; chỉ WA quản lý user, Project, Team và access |
 | Admin | Quản lý delivery trong Project được gán; All Teams |
 | Editor | Chỉnh Backlog/Work Item/Task, Quality và Iteration Status trong Team được gán |
-| (No Access) | Implicit — không có `project_members` row; Project bị ẩn và direct URL bị deny |
+| Unassigned user | Không thấy và không truy cập Project; không phải Access Level để chọn |
 
 ### Admin Access Suggestion
 
@@ -630,7 +630,7 @@ One Web App
 | Workspace Admin | Full access |
 | Admin | Workspaces & Projects read-only cho Project được gán |
 | Editor | Chỉ thấy Project/Team/access context của mình |
-| (No Access) | Không thấy Project (implicit — no `project_members` row) |
+| Unassigned user | Không thấy Project |
 
 ---
 

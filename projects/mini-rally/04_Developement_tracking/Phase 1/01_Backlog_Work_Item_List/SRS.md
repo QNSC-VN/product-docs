@@ -44,6 +44,7 @@ BA confirmed the current Work Item state display contract:
 - Workspace Admin.
 - Normal user with `Admin` Access Level in the Project.
 - Normal user with `Editor` Access Level in the Project and membership in the selected Team.
+- Normal user with `Admin` in the Project or `Editor` in an assigned Team.
 
 ## 4. Functional Requirements
 
@@ -144,7 +145,7 @@ Response:
 - View Backlog cần permission `work_item.view`.
 - Create button chỉ enable khi có `work_item.create`.
 - API phải enforce project/team access; UI hide không đủ.
-- Editor thấy list và mở detail trong assigned Teams và có thể sửa; ngoài assigned Teams thì read-only.
+- User không có Admin/Editor assignment không thấy Backlog và direct URL bị từ chối.
 
 ## 9. Acceptance Criteria
 

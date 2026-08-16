@@ -20,7 +20,7 @@ Same template and rule as `P4_SCREEN_CONTRACTS.md` / `P5_SCREEN_CONTRACTS.md`: U
 | Field | Value |
 |---|---|
 | Context required | Signed-in user. Workspace Admin sees the full explanation; a normal user can see `My Permissions` for their own Project assignments. |
-| Read model | One company authority (`Workspace Admin`) and three contextual Project Access Levels: `Admin`, `Editor` (plus implicit No Access where there is no `project_members` row); includes scope and allowed outcomes per feature. |
+| Read model | One company authority (`Workspace Admin`) and four contextual Project Access Levels: `Admin`, `Editor`, `Viewer`, `No Access`; includes scope and allowed outcomes per feature. |
 | Enumerations | UI outcomes are `Allowed`, `Read-only` and `Hidden`. `Disabled` is reserved for temporary validation/lifecycle state and is not an Access Level. |
 | Actions | None. Permission Model is explanatory and read-only. Access is changed only through Users > Project Access or Project > Users & Permissions by Workspace Admin. |
 | Mutation states | N/A — read-only surface. |
@@ -35,7 +35,7 @@ Same template and rule as `P4_SCREEN_CONTRACTS.md` / `P5_SCREEN_CONTRACTS.md`: U
 | Context required | Workspace Settings and Users require Workspace Admin. Workspaces & Projects is available to normal users, limited to Projects/Teams they can access. |
 | Read model | **Workspace Settings**: Company Name, Workspace Slug/Company Scope and internal Workspace Admin display. **Workspaces & Projects**: Project tree, Details, Users & Permissions and Teams. **Users**: Name/Email/Phone/Disabled/Planner/Last Login plus User Details and Project Access. |
 | Enumerations | Team status reuses `Entity Status Badge` `Active`/`Deactive`. User status reuses the same component's `Active`/`Invited`/`Deactive` variants — these variants existed in the library since P4 specifically anticipating this screen (`MACHINE_HANDOFF.md`). |
-| Actions | Workspace Admin: edit Workspace Settings; CRUD Projects/Teams; invite/disable users; assign Project Access and Team membership. Project `Admin`: read-only Details/Teams/Users & Permissions for its assigned Project. Editor sees only its accessible Project/Team context. |
+| Actions | Workspace Admin: edit Workspace Settings; CRUD Projects/Teams; invite/disable users; assign Project Access and Team membership. Project `Admin`: read-only Details/Teams/Users & Permissions for its assigned Project. Editor/Viewer see only their accessible Project/Team context. |
 | Mutation states | Standard `idle`→`submitting`→`success`/`server-error` per the shared mutation state machine (`P3_UI_API_CONTRACTS.md`). Workspace Settings save must create an audit event (SRS §3.4). |
 | Authorization | Only Workspace Admin mutates company users, Project structure, Team structure, Project Access or Team membership. Project `Admin` does not gain structural management from its delivery access. Workspace Admin is not listed as a Project member or candidate. |
 | Navigation | Single entry point through the top-right Settings gear; no duplicate Manage Projects route. |

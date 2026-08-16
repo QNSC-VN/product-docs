@@ -1,11 +1,13 @@
 # E2E-08 Deferred — DevInt unavailable
 
+> Historical evidence only. The Task hour interpretation below was superseded by BA on 2026-08-14: Estimate, To Do and Actual are independent after a one-time create copy from Estimate to blank To Do; State changes do not mutate hours.
+
 Date: 2026-07-20
 
 ## Confirmed before suspension
 
 - `DEV-012`: Task tab count must equal the number of persisted child Tasks.
-- `DEV-013`: Task Estimate follows the confirmed business contract `Estimate = To Do + Actuals` and is not independently editable.
+- `DEV-013` current rule: Task Estimate, To Do and Actual are independently editable after the create-time copy.
 - `DEV-014`: Task Dashboard must support inline editing for the confirmed editable fields.
 
 ## Suspension reason

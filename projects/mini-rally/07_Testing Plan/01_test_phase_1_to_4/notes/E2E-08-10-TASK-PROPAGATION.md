@@ -1,5 +1,7 @@
 # E2E-08/09/10 — Task time & status propagation (DevInt live)
 
+> Historical execution evidence only. Any expected `Estimate = To Do + Actuals` formula in this note was superseded by BA on 2026-08-14; use the independent-field/create-time-copy rule in the current SRS.
+
 **Execution date:** 2026-07-20
 **Environment:** `https://rally-dev.qnsc.vn/` (Microsoft SSO, `hieuvbm@qnsc.vn`), context `NXP / All Teams`
 **Parent surrogate:** `US-9 / Automate dependency graph visualisation in CI` (No team)

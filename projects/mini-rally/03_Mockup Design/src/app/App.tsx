@@ -353,7 +353,7 @@ export default function App() {
   }, [workItems]);
   function handleItemClick(item: WorkItem) { setActiveItem(previous => previous?.id === item.id ? null : item); }
   function navigateTo(page: Page) {
-    if (currentRole === "Project Member" && !["home", "projects", "backlog", "track", "quality", "notifications", "settings"].includes(page)) {
+    if (currentRole === "Editor" && !["home", "projects", "backlog", "track", "quality", "notifications", "settings"].includes(page)) {
       setAccessState("access-denied");
       setActiveItem(null);
       closeFullDetail();
@@ -365,11 +365,11 @@ export default function App() {
     closeFullDetail();
   }
   function changeScope(project: ScopeProject, team: string) {
-    if (currentRole === "Project Member") {
-      if (project.key !== ROLE_SCOPE.projectMemberProjectKey || !ROLE_SCOPE.projectMemberTeams.includes(team as typeof ROLE_SCOPE.projectMemberTeams[number])) return;
+    if (currentRole === "Editor") {
+      if (project.key !== ROLE_SCOPE.editorProjectKey || !ROLE_SCOPE.editorTeams.includes(team as typeof ROLE_SCOPE.editorTeams[number])) return;
     }
-    if (currentRole === "Project Admin") {
-      const canOpenProject = ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]);
+    if (currentRole === "Admin") {
+      const canOpenProject = ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]);
       if (!canOpenProject) return;
     }
     setCurrentProject(project);
@@ -380,16 +380,16 @@ export default function App() {
   }
   function changeRole(nextRole: Role) {
     setCurrentRole(nextRole);
-    if (nextRole === "Project Member") {
-      const memberProject = SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.projectMemberProjectKey) ?? SCOPE_PROJECTS[0];
+    if (nextRole === "Editor") {
+      const memberProject = SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.editorProjectKey) ?? SCOPE_PROJECTS[0];
       setCurrentProject(memberProject);
-      setCurrentTeam(ROLE_SCOPE.projectMemberTeams[0]);
+      setCurrentTeam(ROLE_SCOPE.editorTeams[0]);
       if (!["home", "projects", "backlog", "track", "quality", "notifications", "settings"].includes(currentPage)) setAccessState("access-denied");
       else setAccessState(null);
-    } else if (nextRole === "Project Admin") {
-      const allowedProjectKeys: readonly string[] = ROLE_SCOPE.projectAdminProjectKeys;
+    } else if (nextRole === "Admin") {
+      const allowedProjectKeys = ROLE_SCOPE.adminProjectKeys as readonly string[];
       if (!allowedProjectKeys.includes(currentProject.key)) {
-        const adminProject = SCOPE_PROJECTS.find(project => ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number])) ?? SCOPE_PROJECTS[0];
+        const adminProject = SCOPE_PROJECTS.find(project => ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number])) ?? SCOPE_PROJECTS[0];
         setCurrentProject(adminProject);
       }
       setCurrentTeam("All Teams");
@@ -402,7 +402,7 @@ export default function App() {
     closeFullDetail();
   }
   function openFullDetail(item: WorkItem) {
-    if (currentRole === "Project Member" && item.project !== ROLE_SCOPE.projectMemberProjectKey) {
+    if (currentRole === "Editor" && item.project !== ROLE_SCOPE.editorProjectKey) {
       setAccessState("access-denied");
       setActiveItem(null);
       closeFullDetail();
@@ -429,7 +429,7 @@ export default function App() {
     setIsAuthenticated(false);
   }
   function renderPage() {
-    const projectReadOnly = currentRole === "Project Admin" && !ROLE_SCOPE.projectAdminProjectKeys.includes(currentProject.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]);
+    const projectReadOnly = currentRole === "Admin" && !ROLE_SCOPE.adminProjectKeys.includes(currentProject.key as typeof ROLE_SCOPE.adminProjectKeys[number]);
     switch (currentPage) {
       case "home": return <HomePage role={currentRole} onNavigate={navigateTo} />;
       case "projects": return <SettingsPage role={currentRole} projectReadOnly={projectReadOnly} initialTab="workspaceProjects" />;
@@ -460,7 +460,7 @@ export default function App() {
         {accessState
           ? <AccessStatePage variant={accessState} onBack={() => { setAccessState(null); setCurrentPage("backlog"); }} />
           : showFullDetail && fullDetailItem
-            ? <WorkItemDetailPage item={fullDetailItem} role={currentRole} readOnly={currentRole === "Project Admin" && !ROLE_SCOPE.projectAdminProjectKeys.includes((fullDetailItem.project ?? "") as typeof ROLE_SCOPE.projectAdminProjectKeys[number])} project={currentProject} team={currentTeam} iterations={iterations} releases={releases} milestones={milestones} features={features} tasks={tasks.filter(task => task.parentWorkItemId === fullDetailItem.id)} onCreateTask={createTask} onUpdateTask={updateTask} onUpdateItem={updateWorkItem} onBack={closeFullDetail} onMinimize={minimizeFullDetail} />
+            ? <WorkItemDetailPage item={fullDetailItem} role={currentRole} readOnly={currentRole === "Admin" && !ROLE_SCOPE.adminProjectKeys.includes((fullDetailItem.project ?? "") as typeof ROLE_SCOPE.adminProjectKeys[number])} project={currentProject} team={currentTeam} iterations={iterations} releases={releases} milestones={milestones} features={features} tasks={tasks.filter(task => task.parentWorkItemId === fullDetailItem.id)} onCreateTask={createTask} onUpdateTask={updateTask} onUpdateItem={updateWorkItem} onBack={closeFullDetail} onMinimize={minimizeFullDetail} />
             : renderPage()}
       </div>
     </div>

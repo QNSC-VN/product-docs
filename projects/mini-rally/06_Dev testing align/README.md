@@ -1,6 +1,8 @@
-# DevInt Audit — Phase 0 to Phase 4
+# Historical DevInt Audit Evidence — Phase 0 to Phase 4
 
-> **Access-model update (2026-08-10, corrected to 3-level 2026-08-13):** Phase 4 role/matrix results below are historical. Current acceptance uses Workspace Admin and per-Project `Admin`/`Editor`; "No Access" is implicit (no `project_members` row → Project hidden) and the former `Viewer` level is removed. Permission Model is read-only.
+> **Current source:** The active tracker is `07_Testing Plan/PHASE_0_6_AUDIT_TRACKER.xlsx`; the only current DEV handoff is `07_Testing Plan/03_Retest/DEV_HANDOFF_RETEST_PHASE_0_6.md`. This folder now retains detailed notes and screenshots only.
+
+> **Access-model update:** Current acceptance uses Workspace Admin plus per-Project `Admin`/`Editor`. A user without a Project assignment may be described as No Access, but Viewer and selectable No Access permissions are not in the current scope.
 
 ## Objective
 
@@ -37,17 +39,11 @@ Out of scope unless BA explicitly expands it: Phase 4 Workflow Status, Labels an
 
 ## Tracker
 
-`DEVINT_PHASE_0_4_AUDIT_TRACKER.xlsx` is the operational source of truth for screen order, executions, gaps, BA decisions and retest status.
+The historical Phase 0–4 trackers and completed run plans were removed after consolidation into `07_Testing Plan/PHASE_0_6_AUDIT_TRACKER.xlsx`.
 
 ## Dev handoff
 
-Current DevInt fix handoff for Phase 0-4:
-
-- `DEVINT_PHASE_0_4_DEV_HANDOFF.md`
-
-Historical handoff:
-
-- `DEVINT_PHASE_0_3_DEV_HANDOFF.md` is kept only as an older Phase 0-3 snapshot. Do not use it as the current dev fix package.
+Use only `07_Testing Plan/03_Retest/DEV_HANDOFF_RETEST_PHASE_0_6.md`. Older Phase 0–4 handoff files were deleted to avoid conflicting status counts.
 
 ## Current full regression — 2026-07-24
 

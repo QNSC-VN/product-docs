@@ -22,7 +22,7 @@ import { type Role, type ProjectAccessLevel, type Page, type WorkItemType, type 
 import { releaseStatusCfg, cx, Avatar, TYPE_CFG, TypeBadge, STATUS_CFG, StatusBadge, PRI_CFG, PriorityBadge, MiniProgress, RoleBadge, DetailPanel, NewItemModal, EmptyState, SectionCard } from "../components/shared";
 import { WorkspaceProjectsPanel } from "./WorkspaceProjectsPanel";
 
-export const ROLE_TO_PROD_CODE: Record<Role, ProdRoleCode> = { "Workspace Admin": "WA", "Project Admin": "PA", "Project Member": "PM" };
+export const ROLE_TO_PROD_CODE: Record<Role, ProdRoleCode> = { "Workspace Admin": "WA", "Admin": "A", "Editor": "E" };
 
 /**
  * Reads one permission out of the saved role matrix. `E` means the role may
@@ -51,7 +51,7 @@ export function Toggle({ on = true, disabled = false }: { on?: boolean; disabled
 
 export const AUDIT_LOG_DATA = [
   { time: "Tuesday, October 22, 2024 09:14:08", actor: "Marcus Webb", details: "Updated company name from ACME Space to ACME Space Inc." },
-  { time: "Tuesday, October 22, 2024 09:02:31", actor: "Marcus Webb", details: "Granted Priya Nair Editor access to Mobile App MVP." },
+  { time: "Tuesday, October 22, 2024 09:02:31", actor: "Marcus Webb", details: "Removed Priya Nair's access to Mobile App MVP." },
   { time: "Monday, October 21, 2024 16:32:41", actor: "Marcus Webb", details: "Invited Elena Kowalski with Editor access to Infrastructure Refresh." },
   { time: "Monday, October 21, 2024 15:44:09", actor: "Marcus Webb", details: "Changed Priya Nair access to Admin for Nexus Platform 2025." },
   { time: "Sunday, October 20, 2024 11:05:22", actor: "Marcus Webb", details: "Changed Elena Kowalski status from Invited to Active." },
@@ -60,10 +60,10 @@ export const AUDIT_LOG_DATA = [
   { time: "Tuesday, October 15, 2024 09:00:02", actor: "Marcus Webb", details: "Created team Platform Operations." },
 ];
 
-export const ALL_ROLES: Role[] = ["Workspace Admin", "Project Admin", "Project Member"];
-export const ROLE_ABBR: Record<Role, string> = { "Workspace Admin": "WA", "Project Admin": "PA", "Project Member": "PM" };
+export const ALL_ROLES: Role[] = ["Workspace Admin", "Admin", "Editor"];
+export const ROLE_ABBR: Record<Role, string> = { "Workspace Admin": "WA", "Admin": "A", "Editor": "E" };
 
-export type ProdRoleCode = "WA" | "PA" | "PM";
+export type ProdRoleCode = "WA" | "A" | "E";
 export type PermissionState = "E" | "R" | "D" | "H";
 export type RoleActionRow = { screen: string; action: string; permission: string; states: Record<ProdRoleCode, PermissionState>; locked?: boolean };
 type UserProjectAccess = { projectKey: string; level: ProjectAccessLevel; teams: string[] };
@@ -71,8 +71,8 @@ type SettingsUser = WorkspaceUser & { phoneNumber: string; projectAccess: UserPr
 
 const PROD_ROLES: { code: ProdRoleCode; name: string; slug: string; summary: string }[] = [
   { code: "WA", name: "Workspace Admin", slug: "workspace_admin", summary: "Full workspace ownership" },
-  { code: "PA", name: "Project Admin", slug: "project_admin", summary: "Manage assigned project; view other projects" },
-  { code: "PM", name: "Project Member", slug: "project_member", summary: "Work in assigned project" },
+  { code: "A", name: "Admin", slug: "admin", summary: "Manage delivery in an assigned project" },
+  { code: "E", name: "Editor", slug: "editor", summary: "Work in assigned project teams" },
 ];
 
 const USER_PHONE_NUMBERS = ["+1 212 555 0198", "+1 415 555 0142", "+1 312 555 0167", "+1 646 555 0181", "+1 206 555 0174", "+1 503 555 0129"];
@@ -80,12 +80,10 @@ const USER_PROJECT_ACCESS: Record<string, UserProjectAccess[]> = {
   "sarah.chen@acme.com": [{ projectKey: "NXP", level: "Editor", teams: ["Core Platform"] }],
   "james.okafor@acme.com": [{ projectKey: "NXP", level: "Editor", teams: ["Data & Reporting"] }],
   "priya.nair@acme.com": [
-    { projectKey: "NXP", level: "Admin", teams: ["Core Platform"] },
-    { projectKey: "MOB", level: "Editor", teams: ["Mobile Experience"] },
+    { projectKey: "NXP", level: "Admin", teams: ["All Teams"] },
   ],
   "tom.brennan@acme.com": [
-    { projectKey: "MOB", level: "Admin", teams: ["Mobile Experience"] },
-    { projectKey: "NXP", level: "Editor", teams: ["Core Platform"] },
+    { projectKey: "MOB", level: "Admin", teams: ["All Teams"] },
   ],
   "elena.kowalski@acme.com": [{ projectKey: "INF", level: "Editor", teams: ["Platform Operations"] }],
 };
@@ -93,36 +91,22 @@ const SETTINGS_USERS: SettingsUser[] = WORKSPACE_USERS.map((user, index) => ({ .
 const PROJECT_ACCESS_LEVELS: ProjectAccessLevel[] = ["Admin", "Editor"];
 const ACCESS_LEVEL_ROWS = [
   { level: "Workspace Admin", scope: "All projects", work: "Full", settings: "Full", people: "Full" },
-  { level: "Project Admin", scope: "Assigned project", work: "Full", settings: "Full", people: "None" },
-  { level: "Project Member", scope: "Assigned project / team", work: "Edit", settings: "None", people: "None" },
-  { level: "No Access", scope: "Hidden", work: "None", settings: "None", people: "None" },
+  { level: "Admin", scope: "Assigned project / All Teams", work: "Full delivery", settings: "Read-only", people: "None" },
+  { level: "Editor", scope: "Assigned project / explicit teams", work: "Team delivery edit", settings: "None", people: "None" },
 ] as const;
 
 type FixedAccessState = "Allowed" | "Read-only" | "Hidden";
-type ScreenActionAccessRow = { screen: string; action: string; wa: FixedAccessState; paAdmin: FixedAccessState; pm: FixedAccessState };
+type ScreenActionAccessRow = { screen: string; action: string; wa: FixedAccessState; admin: FixedAccessState; editor: FixedAccessState };
 const SCREEN_ACTION_ACCESS_ROWS: ScreenActionAccessRow[] = [
-  { screen: "Workspace Settings", action: "View workspace settings", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
-  { screen: "Workspace Settings", action: "Edit workspace settings", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
-  { screen: "User Management", action: "View users", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
-  { screen: "User Management", action: "Create invitation", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
-  { screen: "User Management", action: "Edit user and project access", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
-  { screen: "User Management", action: "Delete user access", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
-  { screen: "Project Management", action: "View project", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
-  { screen: "Project Management", action: "Create project", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
-  { screen: "Project Management", action: "Edit assigned project", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
-  { screen: "Project Management", action: "Archive assigned project", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
-  { screen: "Project Management", action: "Delete project", wa: "Allowed", paAdmin: "Hidden", pm: "Hidden" },
-  { screen: "Backlog / Quality", action: "View US, DE and Task", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
-  { screen: "Backlog / Quality", action: "Create US, DE and Task", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
-  { screen: "Backlog / Quality", action: "Edit US, DE and Task", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
-  { screen: "Backlog / Quality", action: "Delete US, DE and Task", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
-  { screen: "Iteration Status", action: "View iteration status", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
-  { screen: "Iteration Status", action: "Update work item and task status", wa: "Allowed", paAdmin: "Allowed", pm: "Allowed" },
-  { screen: "Timebox", action: "Create, Edit and Delete Iteration", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
-  { screen: "Timebox", action: "Create, Edit and Delete Release", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
-  { screen: "Timebox", action: "Create, Edit and Delete Milestone", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
-  { screen: "Capacity / Reports", action: "View project planning and reports", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
-  { screen: "Capacity / Reports", action: "Create and Edit capacity plan", wa: "Allowed", paAdmin: "Allowed", pm: "Hidden" },
+  { screen: "Workspace Settings", action: "View and edit workspace settings", wa: "Allowed", admin: "Hidden", editor: "Hidden" },
+  { screen: "User Management", action: "Manage company users", wa: "Allowed", admin: "Hidden", editor: "Hidden" },
+  { screen: "Project Management", action: "View assigned project structure", wa: "Allowed", admin: "Read-only", editor: "Read-only" },
+  { screen: "Project Management", action: "Create, edit, archive or delete Project", wa: "Allowed", admin: "Hidden", editor: "Hidden" },
+  { screen: "Project Management", action: "Manage Project access and Teams", wa: "Allowed", admin: "Read-only", editor: "Hidden" },
+  { screen: "Backlog / Quality", action: "Create, view, edit and delete delivery work", wa: "Allowed", admin: "Allowed", editor: "Allowed" },
+  { screen: "Iteration Status", action: "View and update assigned delivery scope", wa: "Allowed", admin: "Allowed", editor: "Allowed" },
+  { screen: "Timebox", action: "Create, edit and delete Iteration/Release/Milestone", wa: "Allowed", admin: "Allowed", editor: "Hidden" },
+  { screen: "Capacity / Reports", action: "View and manage project planning", wa: "Allowed", admin: "Allowed", editor: "Hidden" },
 ];
 
 function AccessBadge({ value }: { value: Role | ProjectAccessLevel }) {
@@ -130,9 +114,7 @@ function AccessBadge({ value }: { value: Role | ProjectAccessLevel }) {
     ? { bg: "#fef2f2", text: "#b91c1c" }
     : value === "Admin"
       ? { bg: "#edf2fb", text: "#2558a6" }
-      : value === "Editor"
-        ? { bg: "#eef6f0", text: "#1e6930" }
-        : { bg: "#f7f8fa", text: "#8c94a6" };
+      : { bg: "#eef6f0", text: "#1e6930" };
   return <span className="inline-flex px-2 py-0.5 rounded-sm text-[10px] font-semibold" style={{ backgroundColor: cfg.bg, color: cfg.text }}>{value}</span>;
 }
 
@@ -153,7 +135,7 @@ const STATE_STYLE: Record<PermissionState, { label: string; bg: string; text: st
 };
 const PERMISSION_STATE_OPTIONS: PermissionState[] = ["E", "R", "D", "H"];
 
-const roleStates = (WA: PermissionState, PA: PermissionState, PM: PermissionState): Record<ProdRoleCode, PermissionState> => ({ WA, PA, PM });
+const roleStates = (WA: PermissionState, A: PermissionState, E: PermissionState): Record<ProdRoleCode, PermissionState> => ({ WA, A, E });
 
 export const PROD_ROLE_ACTION_MATRIX: RoleActionRow[] = [
   { screen: "Auth", action: "Create session (sign in)", permission: "auth:sign_in", states: roleStates("E", "E", "E"), locked: true },
@@ -164,9 +146,9 @@ export const PROD_ROLE_ACTION_MATRIX: RoleActionRow[] = [
   { screen: "App Shell", action: "View global work item search results", permission: "app_shell:search_work_items", states: roleStates("E", "E", "E"), locked: true },
   { screen: "Home", action: "View workspace dashboard and project health", permission: "home:view_dashboard", states: roleStates("E", "E", "E") },
   { screen: "Home", action: "View My Work assigned items", permission: "home:view_my_work", states: roleStates("E", "E", "E") },
-  { screen: "Manage Projects > Projects", action: "View project list, search and filters", permission: "projects:view_list", states: roleStates("E", "E", "H") },
+  { screen: "Manage Projects > Projects", action: "View assigned project structure", permission: "projects:view_list", states: roleStates("E", "R", "R") },
   { screen: "Manage Projects > Projects", action: "Create project", permission: "projects:create", states: roleStates("E", "H", "H") },
-  { screen: "Manage Projects > Projects", action: "Edit project settings", permission: "projects:edit_settings", states: roleStates("E", "E", "H") },
+  { screen: "Manage Projects > Projects", action: "Edit project settings", permission: "projects:edit_settings", states: roleStates("E", "H", "H") },
   { screen: "Manage Projects > Projects", action: "Edit project status to archived", permission: "projects:archive", states: roleStates("E", "H", "H") },
   { screen: "Manage Projects > Projects", action: "Edit project status to active", permission: "projects:restore", states: roleStates("E", "H", "H") },
   { screen: "Manage Projects > Projects", action: "Delete project", permission: "projects:delete", states: roleStates("E", "H", "H") },
@@ -229,29 +211,26 @@ export const PROD_ROLE_ACTION_MATRIX: RoleActionRow[] = [
   { screen: "Timeboxes > Milestones", action: "Create milestone", permission: "milestones:create", states: roleStates("E", "E", "H") },
   { screen: "Timeboxes > Milestones", action: "Edit milestone fields and relations", permission: "milestones:edit", states: roleStates("E", "E", "H") },
   { screen: "Timeboxes > Milestones", action: "Delete milestone", permission: "milestones:delete", states: roleStates("E", "E", "H") },
-  { screen: "Quality > Defect", action: "View defect dashboard", permission: "quality:view_dashboard", states: roleStates("E", "E", "H") },
-  { screen: "Quality > Defect", action: "Create defect", permission: "defects:create", states: roleStates("E", "E", "H") },
-  { screen: "Quality > Defect", action: "Edit severity, priority, state, flow state, owner and fixed build", permission: "defects:edit", states: roleStates("E", "E", "H") },
-  { screen: "Quality > Defect", action: "Delete defect", permission: "defects:delete", states: roleStates("E", "E", "H") },
+  { screen: "Quality > Defect", action: "View defect dashboard", permission: "quality:view_dashboard", states: roleStates("E", "E", "E") },
+  { screen: "Quality > Defect", action: "Create defect", permission: "defects:create", states: roleStates("E", "E", "E") },
+  { screen: "Quality > Defect", action: "Edit severity, priority, state, flow state, owner and fixed build", permission: "defects:edit", states: roleStates("E", "E", "E") },
+  { screen: "Quality > Defect", action: "Delete defect", permission: "defects:delete", states: roleStates("E", "E", "E") },
   { screen: "Notifications", action: "View assignment and note mention alerts", permission: "notifications:view", states: roleStates("E", "E", "E"), locked: true },
   { screen: "Notifications", action: "Edit notification read state", permission: "notifications:mark_read", states: roleStates("E", "E", "E"), locked: true },
   { screen: "Notifications", action: "View related US/DE target", permission: "notifications:view_target", states: roleStates("E", "E", "E"), locked: true },
   { screen: "Settings > Personal", action: "View own profile preferences", permission: "profile:view", states: roleStates("E", "E", "E"), locked: true },
   { screen: "Settings > Personal", action: "Edit own profile preferences", permission: "profile:edit", states: roleStates("E", "E", "E"), locked: true },
-  { screen: "Manage Projects > Project Settings", action: "View project settings", permission: "project_settings:view", states: roleStates("E", "E", "H") },
-  { screen: "Manage Projects > Project Settings", action: "Edit project settings", permission: "project_settings:edit", states: roleStates("E", "E", "H") },
+  { screen: "Manage Projects > Project Settings", action: "View project settings", permission: "project_settings:view", states: roleStates("E", "R", "R") },
+  { screen: "Manage Projects > Project Settings", action: "Edit project settings", permission: "project_settings:edit", states: roleStates("E", "H", "H") },
   { screen: "Settings > Workspace", action: "View workspace settings and role matrix", permission: "workspace_settings:view", states: roleStates("E", "H", "H") },
   { screen: "Settings > Workspace", action: "Edit workspace settings", permission: "workspace_settings:edit", states: roleStates("E", "H", "H") },
-  { screen: "Settings > Workspace", action: "Edit role matrix and permissions", permission: "permission_matrix:edit", states: roleStates("E", "H", "H") },
+  { screen: "Settings > Workspace", action: "Edit role matrix and permissions", permission: "permission_matrix:edit", states: roleStates("H", "H", "H") },
   { screen: "Audit Log", action: "View workspace audit trail", permission: "audit_log:view", states: roleStates("E", "H", "H") },
-  // Phase 5 Portfolio rows. Capacity Planning temporarily uses one graded
-  // permission: Enabled = Full (create/edit/publish), Read-only = View.
-  // Action-level RBAC is deferred. A Project Member only ever sees a Published
-  // plan, and only its assigned Team inside that plan.
-  { screen: "Portfolio > Portfolio Items", action: "View Feature list and detail", permission: "portfolio_items:view", states: roleStates("E", "E", "R") },
+  // Phase 5 access is fixed by Project Access Level. Editor cannot open Portfolio.
+  { screen: "Portfolio > Portfolio Items", action: "View Feature list and detail", permission: "portfolio_items:view", states: roleStates("E", "E", "H") },
   { screen: "Portfolio > Portfolio Items", action: "Create feature", permission: "portfolio_items:create", states: roleStates("E", "E", "H") },
   { screen: "Portfolio > Portfolio Items", action: "Edit feature fields and archive state", permission: "portfolio_items:edit", states: roleStates("E", "E", "H") },
-  { screen: "Portfolio > Capacity Planning", action: "Capacity Planner (Full / View)", permission: "capacity_planning:manage", states: roleStates("E", "E", "R") },
+  { screen: "Portfolio > Capacity Planning", action: "Manage Capacity Planning", permission: "capacity_planning:manage", states: roleStates("E", "E", "H") },
 ];
 
 export function userStatusCfg(s: WorkspaceUser["status"]) {
@@ -311,7 +290,7 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
   function addProjectAccess() {
     const project = SCOPE_PROJECTS.find(candidate => !draft.projectAccess.some(access => access.projectKey === candidate.key));
     if (!project) return;
-    setDraft(previous => ({ ...previous, projectAccess: [...previous.projectAccess, { projectKey: project.key, level: "Editor", teams: [] }] }));
+    setDraft(previous => ({ ...previous, projectAccess: [...previous.projectAccess, { projectKey: project.key, level: "Admin", teams: ["All Teams"] }] }));
   }
 
   function toggleTeam(index: number, team: string) {
@@ -379,7 +358,7 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
             {isWorkspaceAdmin ? (
               <div className="flex items-center gap-3 px-3 py-3 rounded" style={{ border: "1px solid #d9dee7" }}>
                 <Globe size={14} style={{ color: "#1d3f73" }} />
-                <div className="flex-1"><p className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>No Project Membership</p><p className="text-[10px]" style={{ color: "#8c94a6" }}>Workspace Admin authority is workspace-level and is not assigned through projects.</p></div>
+                <div className="flex-1"><p className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>No Project Assignment</p><p className="text-[10px]" style={{ color: "#8c94a6" }}>Workspace Admin authority is workspace-level and is not assigned through projects.</p></div>
                 <AccessBadge value="Workspace Admin" />
               </div>
             ) : (
@@ -387,6 +366,7 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
                 {draft.projectAccess.map((access, index) => {
                   const project = SCOPE_PROJECTS.find(candidate => candidate.key === access.projectKey) ?? SCOPE_PROJECTS[0];
                   const availableTeams = projectTeamsByProject[access.projectKey] ?? project.teams;
+                  const teamSelectable = access.level === "Editor";
                   return (
                     <div key={`${access.projectKey}-${index}`} className="rounded p-3" style={{ border: "1px solid #d9dee7" }}>
                       <div className="grid items-end gap-3" style={{ gridTemplateColumns: "minmax(180px,1fr) 180px 28px" }}>
@@ -405,18 +385,18 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
                         <button aria-label={`Remove ${project.name} access row`} onClick={() => setDraft(previous => ({ ...previous, projectAccess: previous.projectAccess.filter((_, accessIndex) => accessIndex !== index) }))} className="h-8 w-7 flex items-center justify-center rounded" style={{ color: "#b91c1c", border: "1px solid #f0c7c1" }}><X size={12} /></button>
                       </div>
                       <div className="mt-3 pt-3" style={{ borderTop: "1px solid #edf0f4" }}>
-                        <p className="text-[10px] font-semibold mb-2" style={{ color: "#5c6478" }}>Teams</p>
+                        <p className="text-[10px] font-semibold mb-2" style={{ color: teamSelectable ? "#5c6478" : "#b0b8c8" }}>Teams</p>
                         {access.level === "Admin" ? (
                           <div className="inline-flex items-center gap-1.5 rounded px-2 py-1 text-[10px] font-semibold" style={{ color: "#1d3f73", backgroundColor: "#edf2fb", border: "1px solid #bdd0ea" }}><CheckSquare size={11} />All Teams</div>
-                        ) : (
+                        ) : teamSelectable ? (
                           <div className="flex flex-wrap gap-2">
                             {availableTeams.map(team => {
                               const checked = access.teams.includes(team);
                               return <button key={team} onClick={() => toggleTeam(index, team)} className="flex items-center gap-1.5 px-2 py-1 rounded text-[10px]" style={{ color: checked ? "#1d3f73" : "#5c6478", backgroundColor: checked ? "#edf2fb" : "#ffffff", border: `1px solid ${checked ? "#bdd0ea" : "#d9dee7"}` }}>{checked ? <CheckSquare size={11} /> : <Square size={11} />}{team}</button>;
                             })}
-                            {access.teams.length === 0 && <span className="self-center text-[10px]" style={{ color: "#b91c1c" }}>Select at least one team.</span>}
+                            {access.level === "Editor" && access.teams.length === 0 && <span className="self-center text-[10px]" style={{ color: "#b91c1c" }}>Select at least one team.</span>}
                           </div>
-                        )}
+                        ) : null}
                       </div>
                     </div>
                   );
@@ -445,7 +425,7 @@ function UserDetailModal({ user, projectTeamsByProject, isInvite = false, onClos
                 const project = SCOPE_PROJECTS.find(candidate => candidate.key === access.projectKey);
                 return <div key={access.projectKey} className="flex items-center gap-3 px-3 py-2.5 rounded" style={{ backgroundColor: "#f7f8fa", border: "1px solid #e2e6eb" }}><div className="flex-1"><p className="text-[11px] font-semibold" style={{ color: "#1a2234" }}>{project?.name}</p><p className="text-[10px]" style={{ color: "#8c94a6" }}>{access.teams.length ? access.teams.join(", ") : "No team membership"}</p></div><AccessBadge value={access.level} /></div>;
               })}
-              {isWorkspaceAdmin && <div className="flex items-center gap-3 px-3 py-2.5 rounded" style={{ backgroundColor: "#f7f8fa", border: "1px solid #e2e6eb" }}><div className="flex-1"><p className="text-[11px] font-semibold" style={{ color: "#1a2234" }}>No Project Membership</p><p className="text-[10px]" style={{ color: "#8c94a6" }}>Workspace-level authority only</p></div><AccessBadge value="Workspace Admin" /></div>}
+              {isWorkspaceAdmin && <div className="flex items-center gap-3 px-3 py-2.5 rounded" style={{ backgroundColor: "#f7f8fa", border: "1px solid #e2e6eb" }}><div className="flex-1"><p className="text-[11px] font-semibold" style={{ color: "#1a2234" }}>No Project Assignment</p><p className="text-[10px]" style={{ color: "#8c94a6" }}>Workspace-level authority only</p></div><AccessBadge value="Workspace Admin" /></div>}
               {!isWorkspaceAdmin && draft.projectAccess.length === 0 && <p className="text-[11px]" style={{ color: "#8c94a6" }}>This user will have no project access.</p>}
             </div>
             <div className="px-5 py-3 flex justify-end gap-2" style={{ borderTop: "1px solid #e2e6eb" }}><button onClick={() => setReviewing(false)} className="px-3 py-1.5 rounded text-[11px] font-semibold" style={{ border: "1px solid #d9dee7", color: "#5c6478" }}>Back</button><button onClick={save} className="px-3 py-1.5 rounded text-[11px] font-semibold text-white" style={{ backgroundColor: "#1d3f73" }}>{isInvite ? "Send Invite" : "Confirm & Save"}</button></div>
@@ -471,20 +451,20 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
   const canManageWorkspaceSettings = role === "Workspace Admin";
   useEffect(() => setActiveTab(initialTab), [initialTab]);
   const roleCanOpenTab = role === "Workspace Admin"
-    || (role === "Project Admin" && ["profile", "myPermissions", "workspaceProjects", "permissionModel"].includes(activeTab))
-    || (role === "Project Member" && ["profile", "myPermissions", "workspaceProjects"].includes(activeTab));
+    || (role === "Admin" && ["profile", "myPermissions", "workspaceProjects", "permissionModel"].includes(activeTab))
+    || (role === "Editor" && ["profile", "myPermissions", "workspaceProjects"].includes(activeTab));
   const visibleActiveTab = roleCanOpenTab ? activeTab : "profile";
   const demoProfile = DEMO_ACCESS_PROFILES[role];
   const myPermissionRows = role === "Workspace Admin"
     ? [{ project: "All Projects", access: "Workspace Admin" as const, teams: "All Teams", capabilities: "Full workspace and project administration" }]
-    : role === "Project Admin"
+    : role === "Admin"
       ? [
-        ...ROLE_SCOPE.projectAdminProjectKeys.map(projectKey => ({ project: SCOPE_PROJECTS.find(project => project.key === projectKey)?.name ?? projectKey, access: "Admin" as const, teams: "All Teams", capabilities: "Manage work items, timeboxes, releases and reports" })),
+        ...ROLE_SCOPE.adminProjectKeys.map(projectKey => ({ project: SCOPE_PROJECTS.find(project => project.key === projectKey)?.name ?? projectKey, access: "Admin" as const, teams: "All Teams", capabilities: "Manage work items, timeboxes, releases and reports" })),
       ]
-      : [{ project: SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.projectMemberProjectKey)?.name ?? ROLE_SCOPE.projectMemberProjectKey, access: "Editor" as const, teams: ROLE_SCOPE.projectMemberTeams.join(", "), capabilities: "Create, edit and delete work items; update iteration status" }];
+      : [{ project: SCOPE_PROJECTS.find(project => project.key === ROLE_SCOPE.editorProjectKey)?.name ?? ROLE_SCOPE.editorProjectKey, access: "Editor" as const, teams: ROLE_SCOPE.editorTeams.join(", "), capabilities: "Create, edit and delete work items; update iteration status" }];
   const sections = [
     { group: "Personal", items: [{ key: "profile", label: "Profile & Account", icon: <UserCheck size={13} /> }, { key: "myPermissions", label: "My Permissions", icon: <Shield size={13} /> }] },
-    { group: "Administration", items: [{ key: "workspace", label: "Workspace Settings", icon: <Globe size={13} />, gate: can.viewAdmin(role) }, { key: "members", label: "Users", icon: <Users size={13} />, gate: can.manageUsers(role) }, { key: "workspaceProjects", label: "Workspaces & Projects", icon: <Package size={13} />, gate: true }, { key: "permissionModel", label: "Permission Model", icon: <Shield size={13} />, gate: role !== "Project Member" }, { key: "audit", label: "Audit Log", icon: <FileText size={13} />, gate: can.viewAdmin(role) }] },
+    { group: "Administration", items: [{ key: "workspace", label: "Workspace Settings", icon: <Globe size={13} />, gate: can.viewAdmin(role) }, { key: "members", label: "Users", icon: <Users size={13} />, gate: can.manageUsers(role) }, { key: "workspaceProjects", label: "Workspaces & Projects", icon: <Package size={13} />, gate: true }, { key: "permissionModel", label: "Permission Model", icon: <Shield size={13} />, gate: role !== "Editor" }, { key: "audit", label: "Audit Log", icon: <FileText size={13} />, gate: can.viewAdmin(role) }] },
   ];
 
   const fieldRow = (label: string, value: string, w = "w-36", disabled = false) => (
@@ -518,11 +498,11 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
     setSelectedUser(null);
     setRemoveUserTarget(null);
   }
-  function changeProjectAccess(email: string, projectKey: string, level: ProjectAccessLevel | "No Access", teams: string[]) {
+  function changeProjectAccess(email: string, projectKey: string, level: ProjectAccessLevel | undefined, teams: string[]) {
     setSettingsUsers(previous => previous.map(user => {
       if (user.email !== email || user.role === "Workspace Admin") return user;
       const otherProjects = user.projectAccess.filter(access => access.projectKey !== projectKey);
-      return { ...user, projectAccess: level === "No Access" ? otherProjects : [...otherProjects, { projectKey, level, teams }] };
+      return { ...user, projectAccess: level ? [...otherProjects, { projectKey, level, teams }] : otherProjects };
     }));
   }
   function addProjectTeam(projectKey: string, teamName: string) {
@@ -533,22 +513,21 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
     permissionModel: (
       <div className="max-w-5xl">
         <div className="mb-4 flex items-start justify-between gap-4">
-          <div><p className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>Project-scoped access</p><p className="mt-1 text-[10px]" style={{ color: "#8c94a6" }}>Access is assigned per project. Team membership is managed separately from permission.</p></div>
+          <div><p className="text-[12px] font-semibold" style={{ color: "#1a2234" }}>Project-scoped access</p><p className="mt-1 text-[10px]" style={{ color: "#8c94a6" }}>Access is assigned per Project. Admin receives All Teams; Editor requires one or more explicit Teams.</p></div>
           <span className="inline-flex items-center gap-1.5 rounded-sm border px-2.5 py-1 text-[10px] font-semibold" style={{ color: "#5c6478", backgroundColor: "#f4f6f9", borderColor: "#dde2ea" }}><Lock size={10} /> Fixed model</span>
         </div>
-        <div className="grid grid-cols-3 overflow-hidden rounded border" style={{ borderColor: "#d9dee7" }}>
+        <div className="grid grid-cols-2 overflow-hidden rounded border" style={{ borderColor: "#d9dee7" }}>
           {[
             { name: "Admin", tone: "#1d3f73", bg: "#e8eef8", body: "Manage delivery features in the assigned project. Project, user, access and team administration remain Workspace Admin-only." },
-            { name: "Editor", tone: "#1e6930", bg: "#eef6f0", body: "Create, edit and delete project artifacts. Required for team membership." },
-            { name: "No Access", tone: "#8c94a6", bg: "#f7f8fa", body: "Implicit when no project row exists. The project is hidden and direct URLs are denied." },
-          ].map((item, index) => <div key={item.name} className="min-h-32 p-4" style={{ borderRight: index < 2 ? "1px solid #e2e6eb" : undefined }}><span className="inline-flex rounded-sm px-2 py-0.5 text-[10px] font-semibold" style={{ color: item.tone, backgroundColor: item.bg }}>{item.name}</span><p className="mt-3 text-[11px] leading-5" style={{ color: "#5c6478" }}>{item.body}</p></div>)}
+            { name: "Editor", tone: "#1e6930", bg: "#eef6f0", body: "Create, edit and delete team-scoped Work Items, Tasks and Quality Defects; update Iteration Status." },
+          ].map((item, index) => <div key={item.name} className="min-h-32 p-4" style={{ borderRight: index < 1 ? "1px solid #e2e6eb" : undefined }}><span className="inline-flex rounded-sm px-2 py-0.5 text-[10px] font-semibold" style={{ color: item.tone, backgroundColor: item.bg }}>{item.name}</span><p className="mt-3 text-[11px] leading-5" style={{ color: "#5c6478" }}>{item.body}</p></div>)}
         </div>
         <div className="mt-4 rounded border" style={{ borderColor: "#d9dee7" }}>
           {[
             ["Workspace Admin", "Workspace-level authority; manages projects, users, access and global settings."],
             ["Admin", "Project-level access; manages delivery features in the assigned project. Administration remains Workspace Admin-only."],
             ["Editor", "Project-and-team access; manages delivery work without administration access."],
-            ["No Access", "Implicit when the user has no project row. The project is hidden and direct URLs are denied."],
+            ["Unassigned user", "No Project row exists; the Project is hidden and direct access is denied."],
           ].map(([label, detail], index) => <div key={label} className="grid min-h-11 grid-cols-[170px_1fr] items-center px-3" style={{ backgroundColor: index % 2 ? "#fbfcfe" : "white", borderBottom: index < 3 ? "1px solid #edf0f4" : undefined }}><span className="text-[11px] font-semibold" style={{ color: "#1a2234" }}>{label}</span><span className="text-[11px]" style={{ color: "#5c6478" }}>{detail}</span></div>)}
         </div>
       </div>
@@ -697,14 +676,14 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
         </div>
 
         <div className="rounded overflow-hidden" style={{ border: "1px solid #d9dee7" }}>
-          <div className="grid h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 105px 120px 120px", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
-            {["Screen", "Action", "WA", "PA · Admin", "PM · Assigned"].map(label => <div key={label} className="px-3 text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{label}</div>)}
+          <div className="grid h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 130px 120px 120px", backgroundColor: "#f7f8fa", borderBottom: "1px solid #e2e6eb" }}>
+            {["Screen", "Action", "Workspace Admin", "Admin", "Editor"].map(label => <div key={label} className="px-3 text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{label}</div>)}
           </div>
           {SCREEN_ACTION_ACCESS_ROWS.map((item, index) => (
-            <div key={`${item.screen}-${item.action}`} className="grid min-h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 105px 120px 120px", backgroundColor: index % 2 ? "#fbfcfe" : "#ffffff", borderBottom: index < SCREEN_ACTION_ACCESS_ROWS.length - 1 ? "1px solid #edf0f4" : undefined }}>
+            <div key={`${item.screen}-${item.action}`} className="grid min-h-10 items-center" style={{ gridTemplateColumns: "170px minmax(250px,1fr) 130px 120px 120px", backgroundColor: index % 2 ? "#fbfcfe" : "#ffffff", borderBottom: index < SCREEN_ACTION_ACCESS_ROWS.length - 1 ? "1px solid #edf0f4" : undefined }}>
               <div className="px-3 text-[10px] font-semibold" style={{ color: "#3a4254" }}>{item.screen}</div>
               <div className="px-3 text-[10px]" style={{ color: "#3a4254" }}>{item.action}</div>
-              {[item.wa, item.paAdmin, item.pm].map((value, valueIndex) => <div key={`${item.screen}-${item.action}-${valueIndex}`} className="px-3"><FixedAccessBadge value={value} /></div>)}
+              {[item.wa, item.admin, item.editor].map((value, valueIndex) => <div key={`${item.screen}-${item.action}-${valueIndex}`} className="px-3"><FixedAccessBadge value={value} /></div>)}
             </div>
           ))}
         </div>
@@ -712,7 +691,7 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
         <div className="mt-4 grid grid-cols-3 gap-3">
           {[
             { title: "Rule source", value: "Action + scope", detail: "Screens only reflect the effective permissions" },
-            { title: "Project access", value: "Assigned explicitly", detail: "Admin or Editor per project; no row means No Access" },
+            { title: "Project access", value: "Assigned explicitly", detail: "Admin or Editor per Project; otherwise unassigned" },
             { title: "Permission changes", value: "Next sign-in", detail: "Removal takes effect on page refresh" },
           ].map(item => <div key={item.title} className="px-3 py-3 rounded" style={{ border: "1px solid #d9dee7", backgroundColor: "#fbfcfe" }}><p className="text-[9px] font-semibold uppercase tracking-wider" style={{ color: "#8c94a6" }}>{item.title}</p><p className="text-[12px] font-semibold mt-1" style={{ color: "#1a2234" }}>{item.value}</p><p className="text-[10px] mt-1" style={{ color: "#5c6478" }}>{item.detail}</p></div>)}
         </div>
@@ -781,7 +760,7 @@ export function SettingsPage({ role, projectReadOnly = false, initialTab = "prof
         </div>
       </div>
       {selectedUser && <UserDetailModal key={selectedUser.email} user={selectedUser} projectTeamsByProject={workspaceProjectTeams} onClose={() => setSelectedUser(null)} onSave={saveUser} onRemoveAccess={setRemoveUserTarget} />}
-      {inviteUserOpen && <UserDetailModal isInvite user={{ name: "", email: "", phoneNumber: "", role: "Project Member", status: "Invited", lastLogin: "—", owner: { name: "New User", initials: "NU", color: "#4a7c6e" }, projectAccess: [] }} projectTeamsByProject={workspaceProjectTeams} onClose={() => setInviteUserOpen(false)} onSave={inviteUser} />}
+      {inviteUserOpen && <UserDetailModal isInvite user={{ name: "", email: "", phoneNumber: "", role: "Editor", status: "Invited", lastLogin: "—", owner: { name: "New User", initials: "NU", color: "#4a7c6e" }, projectAccess: [] }} projectTeamsByProject={workspaceProjectTeams} onClose={() => setInviteUserOpen(false)} onSave={inviteUser} />}
       {removeUserTarget && <ConfirmRemoveUserAccess user={removeUserTarget} onCancel={() => setRemoveUserTarget(null)} onConfirm={() => removeUserAccess(removeUserTarget)} />}
     </>
   );

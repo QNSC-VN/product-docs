@@ -1,6 +1,6 @@
 # P7.e — Dev Mode Documentation
 
-> **Current permission note (2026-08-13):** `Role Badge`, `RBAC Outcome` and editable permission-matrix components are legacy design assets. Product authorization now uses one global Workspace Admin plus per-Project `Admin`/`Editor` (No Access is implicit — no `project_members` row); see Phase 4 `02_Roles_Permissions/SRS.md`.
+> **Current permission note (2026-08-10):** `Role Badge`, `RBAC Outcome` and editable permission-matrix components are legacy design assets. Product authorization now uses one global Workspace Admin plus per-Project `Admin`/`Editor`/`Viewer`/`No Access`; see Phase 4 `02_Roles_Permissions/SRS.md`.
 
 How a developer should consume this Figma file in Dev Mode: component index, variable syntax, asset policy, export policy.
 

@@ -128,8 +128,8 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 
 - Task is child of Story, not an independent Backlog item.
 - Task time values persist and totals update.
-- Estimate is derived/read-only and equals To Do + Actual.
-- Completing a Task does not automatically zero To Do.
+- Estimate, To Do and Actual are independent editable fields after creation.
+- On create only, entered Estimate copies once to a blank To Do; completing/reopening never changes any hour field.
 - Task Detail has Details and Revision History, not Tasks tab.
 
 ## E2E-006 - Backlog item enters Iteration and appears in Iteration Status
@@ -189,8 +189,8 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 |---|---|
 | Phases | Phase 0 + Phase 1 + Phase 2 |
 | Priority | P0 |
-| Actor | Normal user with different Access Levels across Projects |
-| Preconditions | Project A is accessible; Project B is No Access; Teams have distinct data |
+| Actor | Normal user with assignments that differ across Projects |
+| Preconditions | Project A is assigned Admin/Editor; Project B has no assignment; Teams have distinct data |
 
 ### Steps
 
@@ -198,13 +198,13 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 2. Capture Backlog items, Iterations and Iteration Status selector.
 3. Confirm Project B/Team B is absent from navigation and selectors.
 4. Try direct URL to Project B and one of its Work Items.
-5. Change Project B to Editor (with a Team) as Workspace Admin, make a new request and reopen it.
+5. Add Project B as Editor with one Team as Workspace Admin, sign in again and reopen it.
 
 ### Expected result
 
-- No Access Project/Team/data does not leak through lists, search or selectors.
+- Unassigned Project/Team/data does not leak through lists, search or selectors.
 - Direct unauthorized access returns safe Access Denied/Not Found without metadata.
-- After the user's next request, Editor can read Project B and work within assigned Teams.
+- After next sign-in, Editor sees only assigned Project B Teams and approved delivery actions.
 
 ## E2E-009 - Access in one Project does not grant another Project
 
@@ -213,7 +213,7 @@ This file captures cross-phase flows. These are the tests that best prove the pr
 | Phases | Phase 0 + Phase 1 + Phase 2 |
 | Priority | P1 |
 | Actor | Normal user |
-| Preconditions | User is Admin in Project A and No Access in Project B |
+| Preconditions | User is Admin in Project A and has no assignment in Project B |
 
 ### Steps
 

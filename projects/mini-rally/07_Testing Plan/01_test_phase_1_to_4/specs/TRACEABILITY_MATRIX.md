@@ -15,7 +15,7 @@ This matrix links business scope to test coverage and source documents.
 
 | Module | Source | Key business requirement | Test coverage | Out-of-scope / note |
 |---|---|---|---|---|
-| Workspaces & Projects | `Phase 1/08_Manage_Projects_Teams_Users/SRS.md` | One Workspace/Project/Team tree; WA-only Project/Team/access administration; synchronized User/Project/Team assignment journeys | `P1-MANAGE-*`, `P4-ACCESS-*`, `E2E-002` | Admin/Editor receive scoped read-only structure. |
+| Workspaces & Projects | `Phase 1/08_Manage_Projects_Teams_Users/SRS.md` | One Workspace/Project/Team tree; WA-only Project/Team/access administration; synchronized User/Project/Team assignment journeys | `P1-MANAGE-*`, `P4-ACCESS-*`, `E2E-002` | Admin/Editor receive scoped read-only structure; unassigned Project is hidden/denied. |
 | Backlog List | `Phase 1/01_Backlog_Work_Item_List/SRS.md` | Backlog lists Story/Defect only by Project/Team context | `P1-BL-*`, `E2E-003`, `E2E-004` | Task, Feature, Epic are not independent backlog items in Phase 1. |
 | Work Item Create | `Phase 1/02_Work_Item_Create/SRS.md` | Quick create and create-with-details for Story/Defect | `P1-CREATE-*`, `E2E-003`, `E2E-004` | Feature/Epic/Initiative create is deferred. |
 | Work Item Detail | `Phase 1/03_Work_Item_Detail/SRS.md` | Header, details, sidebar fields, validation, read-only | `P1-WID-*`, `E2E-003` | Advanced project change rules may be disabled if not ready. |
@@ -50,7 +50,7 @@ This matrix links business scope to test coverage and source documents.
 | Module | Source | Key business requirement | Test coverage | Out-of-scope / note |
 |---|---|---|---|---|
 | Notifications | `Phase 4/01_Notifications/SRS.md` | Assignment/mention notifications, filters, read state and safe Work Item routing | `P4-NOT-*` | Notification preferences are deferred. |
-| Project Access & Permissions | `Phase 4/02_Roles_Permissions/SRS.md` | WA authority; Admin/Editor independently per Project; No Access is the implicit hidden state; Team scope and fixed capabilities | `P4-RBAC-*`, `P4-ACCESS-*` | No editable custom role matrix. |
+| Project Access & Permissions | `Phase 4/02_Roles_Permissions/SRS.md` | WA authority; Admin/Editor independently per Project; unassigned Project hidden/denied; Team scope and fixed capabilities | `P4-RBAC-*`, `P4-ACCESS-*` | No editable custom role matrix; Viewer/selectable No Access are Future Backlog. |
 | Settings & Audit | `Phase 4/03_Settings_Audit/SRS.md` | Workspace/Users/Workspaces & Projects/Permission Model, synchronized access, confirmations and administrative audit | `P4-SET-*`, `P4-ACCESS-*` | Workflow Status configuration and Labels are deferred. |
 
 ## Cross-phase critical chains
@@ -63,7 +63,7 @@ This matrix links business scope to test coverage and source documents.
 | Backlog item -> Iteration assignment -> Iteration Status | `E2E-006` | Confirms Phase 2 source-of-truth design. |
 | Iteration Status Add Item -> Backlog visibility | `E2E-007` | Confirms direct execution flow still creates normal Backlog item. |
 | Context switch isolation | `E2E-008` | Prevents cross-project/team data leakage. |
-| Per-Project access isolation | `E2E-008`, `E2E-009`, `P4-RBAC-*` | Confirms one Project's Admin/Editor access never leaks into another Project. |
+| Per-Project access isolation | `E2E-008`, `E2E-009`, `P4-RBAC-*` | Confirms one Project's Admin/Editor assignment never leaks into an unassigned Project. |
 | Deferred scope guard | `E2E-010` | Prevents Phase 3 scope from blocking Phase 2 acceptance. |
 | Team Status task roll-up | `E2E-011`, `E2E-012` | Confirms task completion updates parent Work Item and Iteration status without removing manual control. |
 | Release artifact assignment | `E2E-013` | Confirms Release uses existing Story/Defect work items and one active Release assignment. |
@@ -80,4 +80,4 @@ This matrix links business scope to test coverage and source documents.
 | Phase 1 | Manage, Backlog, Create, Detail, Task, Time, Content, Attachment, Activity | Seed data and storage/email config for attachments/invitations. |
 | Phase 2 | Context filter, Backlog Enhancement, Iterations, Iteration Status | Iteration data and Work Item assignment API/runtime availability. |
 | Phase 3 | Team Status, Release Management, Milestones, Quality/Defect | Phase 2 Work Item/Iteration data plus Release/Milestone/Defect test data. |
-| Phase 4 | Notifications, Project Access, synchronized administration journeys, Settings and Audit | WA plus normal users with Admin/Editor across multiple Projects and Teams, plus an unassigned user to confirm implicit No Access. |
+| Phase 4 | Notifications, Project Access, synchronized administration journeys, Settings and Audit | WA plus normal users with Admin/Editor assignments and at least one unassigned Project across multiple Projects and Teams. |

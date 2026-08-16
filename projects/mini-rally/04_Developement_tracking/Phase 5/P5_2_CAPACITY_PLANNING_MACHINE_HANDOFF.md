@@ -1,6 +1,6 @@
 # P5.2 Capacity Planning — Closed BA/Mockup Handoff
 
-> **Historical handoff notice (2026-08-10, updated 2026-08-13 to 3-level):** Any Project Admin/Project Member or editable Capacity-permission wording below is superseded. Current authorization is defined in `02_Capacity_Planning/SRS.md` and Phase 4 `02_Roles_Permissions/SRS.md`: Workspace Admin company-wide; assigned-Project Admin manage; Editor/No Access hidden. (Access model is now 3-level: Workspace Admin / Admin / Editor; the former Viewer level is removed.)
+> **Historical handoff notice (2026-08-14):** Any Project Admin/Project Member, Viewer/No Access or editable Capacity-permission wording below is superseded. Current authorization is defined in `02_Capacity_Planning/SRS.md` and Phase 4 `02_Roles_Permissions/SRS.md`: Workspace Admin company-wide; assigned-Project Admin manages; Editor and unassigned users cannot open Capacity Planning. Viewer/selectable No Access are Future Backlog.
 
 ## Resume status
 
@@ -8,6 +8,7 @@
 - Phase state: `P5.2 BA ACCEPTED + TARGETED UAT PASS + DOCUMENTS ALIGNED -> FEATURE CLOSED`
 - P5.2 is closed for BA/mockup scope. The later P5.1 Epic amendment is also accepted and Portfolio Items has been re-closed. Phase 5 was closed on 2026-07-28 after BA removed Release Tracking from the active scope. Use `PHASE5_DEV_HANDOFF.md` for phase-level continuation.
 - Mockup scope only: session-level React state. This is not production API/persistence/RBAC evidence.
+- **DevInt override 2026-08-14:** `P5-CP-032` is currently Fail because Planned Team Assignment does not match the allocation ledger/team rail. `P5-CP-034` must be retested after that root projection is fixed. The older Pass rows below are retained only as local mockup history.
 - The five 2026-07-27 targeted UAT items remain done. The 2026-07-28 amendment scenarios through `P5-CP-034` now also pass in the browser. Build passes and the final console error log is empty.
 - Git publication is not implied by this document. Re-check the live worktree before any stage/commit/push action.
 
@@ -17,14 +18,14 @@
 2. Plan detail `Teams by Total`:
    - Add Team, Draft capacity editing, capacity forecast, Team progress/hover breakdown.
    - Expanded Team Feature rows and Team-level `Add Features`.
-   - The expanded Feature row has no inline allocation input, `Split` control, `Remove from Team` control or `Unallocated Features in Plan` block. Each row has a settings-gear menu (`Move up` / `Move down` / `Allocate` / `Remove from Plan`) and two extra columns (`Allocation`, `Dependencies`).
+   - The expanded Feature row has no inline allocation input, `Split` control, `Remove from Team` control or `Unallocated Features in Plan` block. Each row is reordered by drag-and-drop and has a settings-gear menu for `Allocate to Teams` and `Remove from Plan`, plus the `Allocation` and `Dependencies` columns.
 3. Plan detail `Features`:
    - Rally-style Feature grid with `Rank`, `ID`, `Name`, `Planned Team Assignment`, `Team`, `Dependencies`, `Rollup`, `Estimated`, and `Complete` (C8-confirmed order).
    - It reuses the Feature-row language from `Teams by Total` but deliberately removes the progress-bar column. Complete/Rollup/Estimated are right-aligned numeric cells.
    - ID shows only the Feature ID. Do not add the `Feature` type badge back into this grid.
    - `Planned Team Assignment` is an inline Team selector only when the Feature has zero-or-one Team allocation. It is yellow `Not assigned` when empty; when one Team is selected the first option is `Unassign`, which clears the Team and returns to yellow. Split Features stay as `N teams` and are edited through Allocate.
    - Rank-only Capacity Cutline, unassigned warning, split Team subrows. The separate Features-tab intro/sort toolbar was removed; do not add it back unless BA explicitly reopens it.
-   - Rank displays dense list order `1..N` from Plan allocation order, not sparse Portfolio rank values. Feature settings menu includes `Move up`, `Move down`, `Allocate`, `Remove from Plan`.
+   - Rank displays dense list order `1..N` from Plan allocation order, not sparse Portfolio rank values. Reorder uses the drag handle; Move up/Move down menu actions are not required. The settings menu provides `Allocate to Teams` and `Remove from Plan`.
    - Rollup warning appears in the Rollup cell when `Rollup > Estimated`; Estimated warning appears when Preliminary, Refined and Allocated estimates are all missing.
    - `Allocate to Teams` dialog supports one/many Teams; blank estimate snapshots refined Feature estimate, entered value is fixed manual allocation.
    - `Add Feature` adds an eligible Feature that is absent from the Plan as `Not assigned`; it must be allocated afterwards.
@@ -75,12 +76,11 @@ The 2026-07-28 browser gate is complete:
 3. `P5-CP-024` **Pass, amended later** - allocation remains dialog-only; the current settings menu contains Allocate and Remove from Plan, with no inline Split/allocation editor.
 4. `P5-CP-026` **Pass** - Project Admin Read-only kept list/detail/sort and removed all manage actions.
 5. `P5-CP-027` **Pass** - Remove from Plan cleared FE-318 from both Teams and recalculated Demand to zero.
-6. `P5-CP-028` **Superseded** - historical one-Team removal scenario. BA later removed `Remove from Team`; current removal is only `Remove from Plan`.
-7. `P5-CP-030` **Pass** - Exceed warning rule: Data & Reporting naturally triggers `Rollup exceeds Estimated`; Team and Feature progress bars show a red warning triangle and fixed-overlay tooltip text. The Team `Features` cell shows the attention badge count, and badge hover reports `N Feature(s) require attention`.
-8. `P5-CP-031` **Pass / Not a Defect after C8** - Features-tab grid uses `Rank`, `ID`, `Name`, `Planned Team Assignment`, `Team`, `Dependencies`, `Rollup`, `Estimated`, `Complete`; split rows and Feature menu behavior remain unchanged.
-9. `P5-CP-032` **Pass** - Features-tab quick assignment selector: FE-315 rendered a yellow `Not assigned` combobox listing the Project Teams. FE-318 stayed as `2 teams`, because split changes remain in the Allocate dialog.
-10. `P5-CP-033` **Pass** - Features-tab ranking/warnings and plan summary breakdown: ranks displayed `1`/`2`, Feature menu contained `Move up`, `Move down`, `Allocate`, `Remove from Plan`, Data & Reporting exposed `Rollup exceeds Estimated`, the Team Capacity rail surfaced the same warning, Publish actions moved beside Back, and `Breakdown` opened `By Points`.
-11. `P5-CP-034` **Pass** - Features-tab unassign/breakdown polish: assigning FE-315 to `Core Platform` changed the selector's first option to `Unassign`; selecting it cleared the Team and returned to yellow `⚠ Not assigned`. The Features-tab intro/sort toolbar was absent while `Add Feature` remained. `Breakdown` opened `By Points` and each Complete/Rollup/Estimated/Capacity row had an aligned bar segment.
+6. `P5-CP-030` **Pass** - Exceed warning rule: Data & Reporting naturally triggers `Rollup exceeds Estimated`; Team and Feature progress bars show a red warning triangle and fixed-overlay tooltip text. The Team `Features` cell shows the attention badge count, and badge hover reports `N Feature(s) require attention`.
+7. `P5-CP-031` **Pass / Not a Defect after C8** - Features-tab grid uses `Rank`, `ID`, `Name`, `Planned Team Assignment`, `Team`, `Dependencies`, `Rollup`, `Estimated`, `Complete`; split rows and Feature menu behavior remain unchanged.
+8. `P5-CP-032` **Historical mockup Pass / DevInt Fail 2026-08-14** - DevInt must resolve Planned Team Assignment from the same allocation ledger/team rail.
+9. `P5-CP-033` **Pass** - Features-tab ranking/warnings and plan summary breakdown: ranks displayed `1`/`2`, Feature menu contained `Move up`, `Move down`, `Allocate`, `Remove from Plan`, Data & Reporting exposed `Rollup exceeds Estimated`, the Team Capacity rail surfaced the same warning, Publish actions moved beside Back, and `Breakdown` opened `By Points`.
+10. `P5-CP-034` **Historical mockup Pass / DevInt retest pending** - unassign must be rerun after `P5-CP-032` is fixed.
 
 P5.2 was accepted and closed for BA/mockup scope on 2026-07-28. Production
 implementation remains outside this handoff.
@@ -97,9 +97,9 @@ BA resolved two of the three prior open decisions and added two UI/behavior requ
 6. Browser UAT passed for `P5-PI-012`, `P5-CP-023`, `-024`, `-026`, `-027`, and `-028`. The final browser console error log was empty. Reload restored the default in-memory permission matrix and Workspace Admin role after the Read-only test.
 7. The metric amendment passed as `P5-CP-029`: FE-318 total was `0 / 6 / 8`, Data & Reporting `0 / 6 / 5`, and Core Platform `0 / 0 / 3` for Complete/Rollup/Estimated. Feature rows and tooltip showed numbers only, while Team rows and tooltip retained percentages. Moving US-4798 from `Completed` back to `In-Progress` changed FE-315 Complete from `5` to `0` without changing Rollup/Estimated (`5 / 5`). Build passed and a clean reload produced no new console errors.
 8. The Features-tab grid rebuild passed as `P5-CP-031`: Rally-style columns are `Planned Team Assignment`, `Team`, `Dependencies`, `Rollup`, `Estimated`, `Complete` per C8; no Feature-grid progress bar; split allocation subrows and the `Allocate` / `Remove from Plan` menu remain.
-9. The quick assignment amendment passed as `P5-CP-032`: ID no longer shows the type badge; `Not assigned` is yellow; zero-or-one allocation rows can be assigned/reassigned from `Planned Team Assignment`; split Feature rows remain `N teams` and are edited through Allocate. Direct assignment uses an existing unassigned value when present, otherwise `Refined > Preliminary`.
+9. The quick assignment amendment passed in the local mockup, but DevInt `P5-CP-032` failed on 2026-08-14 because Planned Team Assignment did not reflect the ledger/team rail. The SRS behavior remains the acceptance target.
 10. The rank/warning/breakdown amendment passed as `P5-CP-033`: rank display is dense `1..N`; Feature menu has Move up/down; Rollup/Estimated cells carry the warning triangles; Team Capacity rail reuses Team warning rules; Publish actions moved to the left near Back; summary `Breakdown` opens the plan-total panel.
-11. The latest Features-tab polish passed as `P5-CP-034`: `Unassign` is available for one-Team Planned Team Assignment rows, the removed intro/sort toolbar stays out of the UI, and the Breakdown rows now carry aligned bar segments.
+11. The local mockup polish for `P5-CP-034` passed historically; DevInt Unassign remains pending retest after the shared-ledger projection is fixed.
 
 ## Session log 2026-07-27 (Claude)
 
@@ -185,7 +185,7 @@ npm.cmd run dev -- --host 127.0.0.1 --port 4175
 ```text
 This machine handoff is retained as the detailed P5.2 history. It is superseded for phase-level continuation by `PHASE5_DEV_HANDOFF.md`. Do not resume the old P5.3 Release Tracking prompt: BA removed that screen from Phase 5 and selected future Reports as the preferred observation direction. Do not stage/commit/push unless asked.
 
-Capacity Planning targeted browser scenarios pass through P5-CP-034. Do not reopen P5.2 behavior unless the user explicitly requests a change. Archived and Cancelled Features remain excluded from Team-level Add Features; active Features across the Project remain visible without a Release filter.
+Capacity Planning local mockup scenarios historically passed through P5-CP-034. Current DevInt disposition is governed by the audit tracker: `P5-CP-032` Fail and dependent Unassign coverage pending retest. Archived and Cancelled Features remain excluded from Team-level Add Features; active Features across the Project remain visible without a Release filter.
 
 Preserve these approved rules: Single Release only; Workspace -> Project -> Team; allocation is plan-specific and may split across Teams; allocation never changes Feature.projectId; Feature has no Plan Estimate; published plans are read-only until reverted; temporary Capacity Planner RBAC is one Full/View row and Workspace Admin stays locked Full; Project Member sees Published plans only; allocation is edited only in the Allocate dialog; there is no `Remove from Team`; `Remove from Plan` removes all rows for the Feature; Estimated resolves Team-assigned Total Allocated > Refined > Preliminary while the allocate-time default stays Refined > Preliminary; Complete is the live total of child Plan Estimate at Completed or later; Rollup is all linked child Plan Estimate; Feature rows show numbers only, Features tab shows totals, expanded Team rows show Team slices, and Team summaries keep number plus percent of manual Capacity. Exceed warnings are advisory: Plan/Team warn on Rollup > Estimated, Rollup > Capacity and Estimated > Capacity; Feature rows warn on Rollup > Estimated.
 

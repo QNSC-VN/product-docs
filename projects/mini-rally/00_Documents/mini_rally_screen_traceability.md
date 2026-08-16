@@ -1,6 +1,6 @@
 ﻿# Mini Rally — Screen Specification & Frontend Traceability
 
-> **Current navigation/access addendum (2026-08-10):** Settings now contains Workspace Settings, Users, Workspaces & Projects, Permission Model and Audit Log. The former editable Roles & Permissions matrix, Workflow Status and Labels screens are not current scope.
+> **Current navigation/access addendum (2026-08-14):** Settings contains Workspace Settings, Users, Workspaces & Projects, Permission Model and Audit Log. Current Project Access includes Admin/Editor only; no assignment means Project hidden/direct access denied. Viewer/selectable No Access and the former editable role matrix are not current scope.
 
 ## 1. Mục đích tài liệu
 
@@ -143,7 +143,7 @@ Role type và permission helper nằm tại [`model.ts`](../03_Mockup%20Design/s
 | Workspace Admin | Company | Assigned internally; không nằm trong Project membership |
 | Admin | Project | All Teams; manage delivery, không quản trị structure/access |
 | Editor | Project + explicit Teams | Backlog/Work Item/Task, Quality, Iteration Status |
-| (No Access) | None | Implicit — Project hidden; direct URL denied |
+| Unassigned user | None | No access row; Project hidden and direct URL denied |
 
 Mockup thể hiện UI outcome để review nghiệp vụ; implementation vẫn phải enforce access ở server. Permission Model là read-only và không có custom role/matrix editing.
 
@@ -258,7 +258,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Rich work item card | Type, ID, title, priority, estimate, owner và indicators | ✅ |
 | Owner quick filter | `filterOwner` local state | ✅ |
 | Open item detail | Click card mở side panel/full detail | ✅ |
-| ~~Viewer read-only~~ | N/A — Viewer level removed; access model is now 3-level (Workspace Admin / Admin / Editor). Editor/Admin có quyền update nên có thể drag | — |
+| Unassigned Project isolation | Project/board hidden; direct route denied | ✅ mockup access gating |
 | Drag/drop between columns | Card có `draggable` attribute | 🟡 Không có `onDragStart`, `onDragOver`, `onDrop`; status không đổi |
 | Filter type/priority/label/my items | Chưa đủ filter prompt | 🟡 Chỉ có owner |
 
@@ -271,7 +271,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Khu vực / yêu cầu | FE hiện tại | Coverage |
 |---|---|---|
 | Header: type, ID, status, title, watch, more | Sticky header | ✅ Watch dùng local state |
-| Description | Textarea cho Editor/Admin (mức `Viewer` read-only đã được gỡ) | ✅ UI / 🟡 không lưu |
+| Description | Editable cho WA/Admin/Editor trong scope; unassigned item không hiển thị | ✅ UI / 🟡 không lưu |
 | Acceptance Criteria | Checklist local state | ✅ UI / 🟡 không lưu |
 | Defect Details conditional | Chỉ render khi `item.type === "Defect"` | ✅ |
 | Related Work Items | Static relation list + Link Existing | ✅ UI / 🟡 link chưa xử lý |
@@ -279,7 +279,7 @@ Không còn trong Backlog: Unplanned strip, Sprint summary/capacity, Sprint filt
 | Attachments | Static file list | 🟡 Upload/download chưa xử lý |
 | Activity Log | Static timeline | ✅ UI / 🟡 dữ liệu |
 | Metadata panel | Owner, Project, Team, Schedule State, Flow State, Defect-only Priority, Plan Estimate, Release, Iteration | ✅ theo Phase 1 detail sidebar |
-| Role behavior | `editable = role !== Viewer` (FE mockup cũ; `Viewer` level đã được gỡ — access model 3-level: Workspace Admin / Admin / Editor) | 🟡 Chưa có field-level permissions; cần re-scope theo Editor/Admin |
+| Access behavior | WA/Admin chỉnh trong Project; Editor chỉnh assigned Teams; unassigned Project/item bị ẩn/denied | ✅ mockup gating; production vẫn phải enforce server-side |
 
 ### SCR-07 — Quality / Defect Management
 

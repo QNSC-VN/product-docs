@@ -16,13 +16,13 @@ type UnitMode = CapacityPlan["viewBy"];
 /**
  * Two independent gates must both pass before a role may change a plan:
  * the temporary Capacity Planner Full/View permission from the saved role
- * matrix, and Project scope (a Project Admin only manages its assigned
+ * matrix, and Project scope (a Admin only manages its assigned
  * Projects). Passing the permission but failing scope, or vice versa, means
  * read-only. Capacity-planning action-level RBAC is intentionally deferred.
  */
 function canManageCapacityPlan(role: Role, projectKey: string) {
   if (role === "Workspace Admin") return true;
-  if (role === "Project Admin") return ROLE_SCOPE.projectAdminProjectKeys.includes(projectKey as typeof ROLE_SCOPE.projectAdminProjectKeys[number]);
+  if (role === "Admin") return ROLE_SCOPE.adminProjectKeys.includes(projectKey as typeof ROLE_SCOPE.adminProjectKeys[number]);
   return false;
 }
 
@@ -729,15 +729,15 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
   const visiblePlans = projectPlans.filter(plan => {
     const matchesSearch = `${plan.id} ${plan.name} ${plan.release}`.toLowerCase().includes(search.toLowerCase());
     const matchesRelease = releaseFilter === "All" || plan.releaseId === releaseFilter;
-    // A Project Member only sees a plan once it is Published; Draft plans are
+    // A Editor only sees a plan once it is Published; Draft plans are
     // planning-in-progress and stay hidden from them entirely.
-    const visibleToRole = role !== "Project Member" || plan.status === "Published";
+      const visibleToRole = role !== "Editor";
     return matchesSearch && matchesRelease && visibleToRole;
   });
   const resolvedPlan = activePlanId ? capacityPlans.find(plan => plan.id === activePlanId) || null : null;
   // Mirrors the list rule above so a Draft plan cannot be reached by a Project
   // Member through stale state either.
-  const activePlan = resolvedPlan && role === "Project Member" && resolvedPlan.status !== "Published" ? null : resolvedPlan;
+  const activePlan = resolvedPlan && role !== "Editor" ? resolvedPlan : null;
   const canManageActivePlan = activePlan ? canManageCapacityPlan(role, activePlan.projectKey) : false;
   const canPublishActivePlan = canManageActivePlan;
   const canCreatePlan = canManageCapacityPlan(role, project.key);
@@ -932,8 +932,8 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
   }
 
   if (activePlan) {
-    const visibleTeams = role === "Project Member"
-      ? activePlan.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team.team as typeof ROLE_SCOPE.projectMemberTeams[number]))
+    const visibleTeams = role === "Editor"
+      ? activePlan.teams.filter(team => ROLE_SCOPE.editorTeams.includes(team.team as typeof ROLE_SCOPE.editorTeams[number]))
       : activePlan.teams;
     const sortedTeams = [...visibleTeams].sort((left, right) => teamSort === "capacity" ? right.capacity - left.capacity : left.team.localeCompare(right.team));
     const uniqueFeatureIdsInPlan = new Set(activePlan.allocations.map(allocation => allocation.featureId));
@@ -1469,7 +1469,7 @@ export function CapacityPlanningPage({ role, project, releases, features, workIt
               <div>{plan.release}</div>
               <div><CapacityStatusBadge status={plan.status} /></div>
               <div>{plan.lastUpdated}</div>
-              <div className="text-right"><span className="px-2 py-1 rounded-sm" style={{ color: "#2f6fd6", border: "1px solid #c8d3e0" }}>{role === "Project Member" ? plan.teams.filter(team => ROLE_SCOPE.projectMemberTeams.includes(team.team as typeof ROLE_SCOPE.projectMemberTeams[number])).length : plan.teams.length}</span></div>
+              <div className="text-right"><span className="px-2 py-1 rounded-sm" style={{ color: "#2f6fd6", border: "1px solid #c8d3e0" }}>{role === "Editor" ? plan.teams.filter(team => ROLE_SCOPE.editorTeams.includes(team.team as typeof ROLE_SCOPE.editorTeams[number])).length : plan.teams.length}</span></div>
             </button>
           ))}
           {visiblePlans.length === 0 && <EmptyState title="No Capacity Plans" body="Create a single-Release plan, then add Teams and Features before setting allocations." icon={<BarChart2 size={18} />} />}

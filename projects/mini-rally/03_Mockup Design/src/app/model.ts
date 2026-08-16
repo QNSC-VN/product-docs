@@ -1,4 +1,4 @@
-﻿export type Role = "Workspace Admin" | "Project Admin" | "Project Member";
+﻿export type Role = "Workspace Admin" | "Admin" | "Editor";
 export type ProjectAccessLevel = "Admin" | "Editor";
 export type Page = "home" | "projects" | "backlog" | "iterations" | "track" | "teamBoard" | "teamStatus" | "quality" | "portfolio" | "releaseTracking" | "capacityPlanning" | "releasePlanning" | "releases" | "reports" | "notifications" | "settings";
 export type WorkItemType = "Story" | "Defect" | "Task" | "Feature";
@@ -235,11 +235,11 @@ export const can = {
   edit: (_r: Role) => true,
   delete: (_r: Role) => true,
   manageUsers: (r: Role) => r === "Workspace Admin",
-  manageSprints: (r: Role) => r !== "Project Member",
-  manageFeatures: (r: Role) => r !== "Project Member",
-  manageCapacityPlans: (r: Role) => r !== "Project Member",
+  manageSprints: (r: Role) => r !== "Editor",
+  manageFeatures: (r: Role) => r !== "Editor",
+  manageCapacityPlans: (r: Role) => r !== "Editor",
   manageBacklog: (_r: Role) => true,
-  manageSettings: (r: Role) => r !== "Project Member",
+  manageSettings: (r: Role) => r !== "Editor",
   manageRoles: (r: Role) => r === "Workspace Admin",
   createDefects: (_r: Role) => true,
   viewAdmin: (r: Role) => r === "Workspace Admin",
@@ -259,8 +259,8 @@ export const OWNERS: Owner[] = [
 
 export const DEMO_ACCESS_PROFILES: Record<Role, { name: string; email: string; owner: Owner; label: "Workspace Admin" | "Admin" | "Editor"; scope: string }> = {
   "Workspace Admin": { name: "Marcus Webb", email: "marcus.webb@acme.com", owner: OWNERS[0], label: "Workspace Admin", scope: "All workspace" },
-  "Project Admin": { name: "Priya Nair", email: "priya.nair@acme.com", owner: OWNERS[3], label: "Admin", scope: "Nexus Platform 2025 · All Teams" },
-  "Project Member": { name: "Sarah Chen", email: "sarah.chen@acme.com", owner: OWNERS[1], label: "Editor", scope: "Nexus Platform 2025 · Core Platform" },
+  "Admin": { name: "Priya Nair", email: "priya.nair@acme.com", owner: OWNERS[3], label: "Admin", scope: "Nexus Platform 2025 · All Teams" },
+  "Editor": { name: "Sarah Chen", email: "sarah.chen@acme.com", owner: OWNERS[1], label: "Editor", scope: "Nexus Platform 2025 · Core Platform" },
 };
 
 export const PROJECTS: Project[] = [
@@ -278,9 +278,9 @@ export const SCOPE_PROJECTS: ScopeProject[] = [
 ];
 
 export const ROLE_SCOPE = {
-  projectAdminProjectKeys: ["NXP"],
-  projectMemberProjectKey: "NXP",
-  projectMemberTeams: ["Core Platform"],
+  adminProjectKeys: ["NXP"],
+  editorProjectKey: "NXP",
+  editorTeams: ["Core Platform"],
 } as const;
 
 export const WORK_ITEMS: WorkItem[] = [
@@ -486,7 +486,7 @@ export const FEATURES: Feature[] = [
   { id: "FE-318", name: "Advanced Reporting Module", status: "Developing", priority: "High", owner: OWNERS[3], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Data & Reporting", epicId: "EP-101", preliminaryEstimate: "L", refinedEstimate: 8, refinedWorkItemCountEstimate: 2, rank: 1, createdAt: "Thursday, September 12, 2024 09:15:42", plannedStartDate: "Nov 1, 2024", plannedEndDate: "2025-01-31", marketReleaseDate: "2025-02-01", description: "Consolidated reporting capability for portfolio-level delivery, release health, and export workflows.", notes: "Keep Phase 5 reporting scope separate from generic Reports until Portfolio is closed.", successCriteria: "Leadership can inspect progress from linked Story/Defect items without manually typing percentage.", attachments: ["reporting-discovery-notes.pdf"] },
   { id: "FE-311", name: "Enterprise Authentication Suite (SAML / OIDC)", status: "Done", priority: "High", owner: OWNERS[0], release: "Nexus Platform Q4 2024", releaseId: "REL-001", project: "NXP", team: "Identity & Access", epicId: "EP-101", preliminaryEstimate: "M", refinedEstimate: 5, refinedWorkItemCountEstimate: 1, rank: 2, createdAt: "Wednesday, July 3, 2024 14:22:10", plannedStartDate: "Jul 15, 2024", plannedEndDate: "2024-10-25", marketReleaseDate: "2024-11-01", description: "Enterprise authentication work grouped as one shippable portfolio capability.", notes: "Accepted scope stays visible for rollup regression checks.", successCriteria: "SSO onboarding work is traceable from Feature to child Story evidence.", attachments: ["saml-release-checklist.xlsx"] },
   { id: "FE-322", name: "Mobile Application MVP - iOS & Android", status: "Idea Prioritization", priority: "Medium", owner: OWNERS[4], release: "Unscheduled", project: "MOB", team: "Mobile Experience", preliminaryEstimate: "XL", rank: 3, createdAt: "Wednesday, October 2, 2024 11:05:33", description: "Mobile MVP planning placeholder for a project with no active scoped Release yet.", notes: "Release remains Unscheduled until a Mobile release is created in Plan > Timeboxes.", successCriteria: "Mobile Feature is visible only in Mobile project context." },
-  { id: "FE-315", name: "Backlog Automation & Smart Prioritization Engine", status: "Developing", priority: "High", owner: OWNERS[1], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Core Platform", epicId: "EP-102", preliminaryEstimate: "M", rank: 4, createdAt: "Friday, September 20, 2024 16:40:05", plannedStartDate: "Dec 1, 2024", plannedEndDate: "2025-02-15", description: "Automation feature for backlog sorting, ranking and guided prioritization.", notes: "Use this row for Project Member read-only checks in Core Platform scope.", successCriteria: "Portfolio list and detail preserve project/team permissions." },
+  { id: "FE-315", name: "Backlog Automation & Smart Prioritization Engine", status: "Developing", priority: "High", owner: OWNERS[1], release: "Nexus Platform Q1 2025", releaseId: "REL-002", project: "NXP", team: "Core Platform", epicId: "EP-102", preliminaryEstimate: "M", rank: 4, createdAt: "Friday, September 20, 2024 16:40:05", plannedStartDate: "Dec 1, 2024", plannedEndDate: "2025-02-15", description: "Automation feature for backlog sorting, ranking and guided prioritization.", notes: "Use this row for Editor read-only checks in Core Platform scope.", successCriteria: "Portfolio list and detail preserve project/team permissions." },
   { id: "FE-308", name: "Cross-Project Portfolio Hierarchy & Roadmap View", status: "Problem Discovery", priority: "Medium", owner: OWNERS[2], release: "Nexus Platform Q2 2025", releaseId: "REL-003", project: "NXP", team: "Core Platform", epicId: "EP-102", preliminaryEstimate: "S", rank: 5, createdAt: "Thursday, October 10, 2024 10:30:00", description: "Discovery placeholder for future hierarchy and roadmap needs.", notes: "Theme/Initiative remains out of Phase 5 v1.", successCriteria: "Feature-level hierarchy stays single-level until BA reopens the decision." },
 ];
 
@@ -607,7 +607,7 @@ export const RELEASES_DATA: ReleaseItem[] = [
   { id: "REL-003", name: "Nexus Platform Q2 2025", version: "v4.0.0", status: "Planning", startDate: "Feb 1, 2025", releaseDate: "May 1, 2025", progress: 0, totalItems: 52, completedItems: 0, openDefects: 0, blockedItems: 0, owner: OWNERS[3], description: "Major v4.0 with mobile app, portfolio hierarchy, and redesigned reporting dashboards.", projectKey: "NXP", team: "Core Platform" },
   { id: "REL-004", name: "Nexus Platform v3.3", version: "v3.3.0", status: "Accepted", startDate: "Jul 1, 2024", releaseDate: "Sep 30, 2024", progress: 100, totalItems: 18, completedItems: 18, openDefects: 0, blockedItems: 0, owner: OWNERS[0], description: "Accepted on schedule. Included board view, CSV import, and SSO foundation.", projectKey: "NXP", team: "Core Platform" },
   // Seeded so a second Project has a Release: Capacity Planning requires one to create
-  // a plan, and without it the Project Admin unmanaged-Project RBAC path is untestable.
+  // a plan, and without it the Admin unmanaged-Project RBAC path is untestable.
   { id: "REL-005", name: "Mobile App MVP R1", version: "v1.0.0", status: "Planning", startDate: "Jan 6, 2025", releaseDate: "Mar 28, 2025", progress: 0, totalItems: 12, completedItems: 0, openDefects: 1, blockedItems: 0, owner: OWNERS[3], description: "First Mobile App MVP release covering iOS and Android onboarding scope.", projectKey: "MOB", team: "Mobile Experience" },
 ];
 
@@ -685,11 +685,11 @@ export const ITERATIONS_DATA: IterationItem[] = [
 
 export const WORKSPACE_USERS: WorkspaceUser[] = [
   { name: "Marcus Webb", email: "marcus.webb@acme.com", role: "Workspace Admin", status: "Active", lastLogin: "Oct 22, 2024 9:14 AM", owner: OWNERS[0] },
-  { name: "Sarah Chen", email: "sarah.chen@acme.com", role: "Project Member", status: "Active", lastLogin: "Oct 22, 2024 8:45 AM", owner: OWNERS[1] },
-  { name: "James Okafor", email: "james.okafor@acme.com", role: "Project Member", status: "Active", lastLogin: "Oct 21, 2024 4:30 PM", owner: OWNERS[2] },
-  { name: "Priya Nair", email: "priya.nair@acme.com", role: "Project Admin", status: "Active", lastLogin: "Oct 22, 2024 10:05 AM", owner: OWNERS[3] },
-  { name: "Tom Brennan", email: "tom.brennan@acme.com", role: "Project Admin", status: "Active", lastLogin: "Oct 20, 2024 3:15 PM", owner: OWNERS[4] },
-  { name: "Elena Kowalski", email: "elena.kowalski@acme.com", role: "Project Member", status: "Invited", lastLogin: "—", owner: { name: "Elena Kowalski", initials: "EK", color: "#4a7c6e" } },
+  { name: "Sarah Chen", email: "sarah.chen@acme.com", role: "Editor", status: "Active", lastLogin: "Oct 22, 2024 8:45 AM", owner: OWNERS[1] },
+  { name: "James Okafor", email: "james.okafor@acme.com", role: "Editor", status: "Active", lastLogin: "Oct 21, 2024 4:30 PM", owner: OWNERS[2] },
+  { name: "Priya Nair", email: "priya.nair@acme.com", role: "Admin", status: "Active", lastLogin: "Oct 22, 2024 10:05 AM", owner: OWNERS[3] },
+  { name: "Tom Brennan", email: "tom.brennan@acme.com", role: "Admin", status: "Active", lastLogin: "Oct 20, 2024 3:15 PM", owner: OWNERS[4] },
+  { name: "Elena Kowalski", email: "elena.kowalski@acme.com", role: "Editor", status: "Invited", lastLogin: "—", owner: { name: "Elena Kowalski", initials: "EK", color: "#4a7c6e" } },
 ];
 
 export const WORKFLOW_STATUSES: WorkflowStatusItem[] = [
@@ -730,20 +730,20 @@ export const PLANNED_VS_COMPLETED = [
 ];
 
 export const PERMISSIONS_MATRIX = [
-  { action: "Create Work Items", roles: ["Workspace Admin", "Project Admin", "Project Member"] },
-  { action: "Edit Work Items", roles: ["Workspace Admin", "Project Admin", "Project Member"] },
-  { action: "Delete Work Items", roles: ["Workspace Admin", "Project Admin", "Project Member"] },
-  { action: "Manage Users & Roles", roles: ["Workspace Admin"] },
+  { action: "Create Work Items", roles: ["Workspace Admin", "Admin", "Editor"] },
+  { action: "Edit Work Items", roles: ["Workspace Admin", "Admin", "Editor"] },
+  { action: "Delete Work Items", roles: ["Workspace Admin", "Admin", "Editor"] },
+  { action: "Manage Users & Project Access", roles: ["Workspace Admin"] },
   { action: "Manage Workspace Settings", roles: ["Workspace Admin"] },
-  { action: "Manage Project Settings", roles: ["Workspace Admin", "Project Admin"] },
-  { action: "Manage Iterations", roles: ["Workspace Admin", "Project Admin"] },
-  { action: "Manage Releases", roles: ["Workspace Admin", "Project Admin"] },
-  { action: "Prioritize Backlog", roles: ["Workspace Admin", "Project Admin", "Project Member"] },
-  { action: "Create Defects", roles: ["Workspace Admin", "Project Admin", "Project Member"] },
-  { action: "View Reports", roles: ["Workspace Admin", "Project Admin"] },
-  { action: "Export Reports", roles: ["Workspace Admin", "Project Admin"] },
-  { action: "Comment", roles: ["Workspace Admin", "Project Admin", "Project Member"] },
-  { action: "Upload Attachments", roles: ["Workspace Admin", "Project Admin", "Project Member"] },
+  { action: "Manage Project Settings", roles: ["Workspace Admin"] },
+  { action: "Manage Iterations", roles: ["Workspace Admin", "Admin"] },
+  { action: "Manage Releases", roles: ["Workspace Admin", "Admin"] },
+  { action: "Prioritize Backlog", roles: ["Workspace Admin", "Admin", "Editor"] },
+  { action: "Create Defects", roles: ["Workspace Admin", "Admin", "Editor"] },
+  { action: "View Reports", roles: ["Workspace Admin", "Admin"] },
+  { action: "Export Reports", roles: ["Workspace Admin", "Admin"] },
+  { action: "Comment", roles: ["Workspace Admin", "Admin", "Editor"] },
+  { action: "Upload Attachments", roles: ["Workspace Admin", "Admin", "Editor"] },
 ];
 
 export const DEFECT_ENVIRONMENTS = ["Firefox 118+", "Chrome 118", "All Browsers", "Safari 17", "Mobile iOS"];

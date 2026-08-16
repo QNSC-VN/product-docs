@@ -1,6 +1,6 @@
 # Plan 6 — Convert Screens: Phase 4 Governance
 
-> **Superseded authorization design (2026-08-13):** This completed-plan log describes the former role matrix. The current mockup/SRS uses Workspace Admin plus per-Project `Admin`/`Editor` (No Access is implicit — no `project_members` row); Permission Model is read-only. Keep the checklist below as Figma history only.
+> **Superseded authorization design (2026-08-10):** This completed-plan log describes the former role matrix. The current mockup/SRS uses Workspace Admin plus per-Project `Admin`/`Editor`/`Viewer`/`No Access`; Permission Model is read-only. Keep the checklist below as Figma history only.
 
 ## Goal
 

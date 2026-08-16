@@ -272,7 +272,7 @@ function TeamCapacity({ projectKey, team, iterations, selectedIteration, items, 
 }
 
 export function ReportsPage({ role, readOnly = false, projectKey, team = "All Teams", iterations, items, tasks }: { role: Role; readOnly?: boolean; projectKey: string; team?: string; iterations: IterationItem[]; items: WorkItem[]; tasks: TaskItem[] }) {
-  const canExport = !readOnly && role !== "Project Member";
+  const canExport = !readOnly && role !== "Editor";
   const [selectedReport, setSelectedReport] = useState<ReportView>("burndown");
   const availableIterations = useMemo(() => iterations.filter(iteration => iteration.projectKey === projectKey && (team === "All Teams" || iteration.team === team)), [iterations, projectKey, team]);
   const [selectedIterationId, setSelectedIterationId] = useState("IT-24-3");

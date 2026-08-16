@@ -6,16 +6,16 @@ Phase 1 validates the core work management slice: Project Management, Settings T
 
 | ID | Priority | Scenario | Steps | Expected result | Status |
 |---|---|---|---|---|---|
-| P1-MANAGE-001 | P0 | Open Project Management | Open top-right Settings gear; under Workspace choose Project Management | Project management opens with Projects only; no Teams tab is present | Pass - browser smoke 2026-07-27 |
-| P1-MANAGE-002 | P0 | Settings Teams columns | Open top-right Settings gear; choose Teams | Columns are Key, Team, Project, Status, Lead, Updated and permitted Actions; no Members/Capacity/Velocity columns | Pass (runtime smoke 2026-07-19) |
-| P1-MANAGE-003 | P0 | Create Team happy path | Create Team with Project, lead, name, key, description, status | Team is created under selected Project and available for context/backlog flows | Not Run |
-| P1-MANAGE-004 | P0 | Create Team validation | Submit missing required name/key/project or duplicate key | Validation blocks save with clear errors | Not Run |
-| P1-MANAGE-005 | P1 | Edit Team | Update Team Info fields | Changes persist and updated timestamp changes | Not Run |
-| P1-MANAGE-006 | P1 | Team Members tab | Open Create/Edit Team modal Members tab; add/remove/search member | Searchable member selector works; membership persists | Not Run |
+| P1-MANAGE-001 | P0 | Open Workspaces & Projects | Open top-right Settings gear; choose Workspaces & Projects | One Workspace/Project/Team tree opens with Overview, Details, Users & Permissions and Teams for the selected node as applicable | Not Run - supersedes old separate Project Management smoke |
+| P1-MANAGE-002 | P0 | Project Teams tab columns | Select a Project and open Teams | Columns are Key, Team, Status, Lead and Actions; data belongs only to the selected Project | Not Run - supersedes old separate Teams screen smoke |
+| P1-MANAGE-003 | P0 | Create Team happy path | In selected Project > Teams, create Team with name, key, description, status; optionally add Team lead and Members & Access | Team is created under selected Project; Team lead is optional and can be added later | Not Run |
+| P1-MANAGE-004 | P0 | Create Team validation | Submit missing required name/key or duplicate key | Validation blocks save with clear errors; Team lead and members remain optional | Not Run |
+| P1-MANAGE-005 | P1 | Edit Team | Open selected Project > Teams; update Team Info or optional Team lead/members | Changes persist and synchronized Project/User access views update | Not Run |
+| P1-MANAGE-006 | P1 | Team Members & Access | In Create/Edit Team, add/remove/search users and choose Admin/Editor | Admin receives All Teams; Editor receives the selected Team; membership persists and syncs to User Details | Not Run |
 | P1-MANAGE-007 | P1 | No capacity/velocity fields in Create Team | Inspect Create/Edit Team modal | Capacity and Velocity are not present in Phase 1 team create/edit | Not Run |
-| P1-MANAGE-008 | P0 | Add existing user with Project Access | Project > Users & Permissions; add user as Admin/Editor | Project list and User Details show the same Access Level; Editor Teams match | Not Run |
+| P1-MANAGE-008 | P0 | Add existing user with Project Access | Project > Users & Permissions; add user as Admin or Editor | Project list and User Details show the same Access Level; Admin has All Teams and Editor Teams match | Not Run |
 | P1-MANAGE-009 | P1 | Disable/reactivate company user | Disable user; refresh affected session; reactivate and sign in | Disabled user loses access on refresh; reactivated access follows saved Project assignments | Not Run |
-| P1-MANAGE-010 | P0 | WA-only structure guard | Attempt Project/Team/access mutation as Admin/Editor | UI hides/disables action and backend rejects direct mutation | Not Run |
+| P1-MANAGE-010 | P0 | WA-only structure guard | Attempt Project/Team/access mutation as Admin or Editor | UI hides/disables action and backend rejects direct mutation | Not Run |
 
 ## P1-BACKLOG - Backlog List
 
@@ -40,6 +40,7 @@ Phase 1 validates the core work management slice: Project Management, Settings T
 | P1-CREATE-004 | P0 | Title/Name required | Submit empty or whitespace title | Validation blocks save | Not Run |
 | P1-CREATE-005 | P0 | Project required, Team optional | Create with Project and blank Team; then create with selected Team | Blank Team creates item in Project backlog; selected Team creates item in Team backlog | Not Run |
 | P1-CREATE-005A | P0 | Invalid Team rejected | Select invalid Team for Project or unauthorized context | Validation rejects invalid Project/Team pair with field-level error | Not Run |
+| P1-CREATE-005B | P0 | Owner options follow Team | Create with No Team, then with a selected Team | Owner defaults to `Unassigned`; No Team offers only `Unassigned`; selected Team offers `Unassigned` plus that Team's active members | Not Run |
 | P1-CREATE-006 | P0 | Create with details | Use Create with details | Item is created and user lands on full Work Item Detail | Pass (M5.1 runtime: exactly one US-4822) |
 | P1-CREATE-007 | P1 | Atomic item key generation | Create multiple items quickly in same Project | Unique item keys are generated without collision | Not Run |
 | P1-CREATE-008 | P0 | New Work Item default states | Create Story and Defect without changing state fields | Schedule State and Flow State both default to `Idea` | Pass (M5.1 runtime: US-4822 and DE-1146) |
@@ -55,7 +56,7 @@ Phase 1 validates the core work management slice: Project Management, Settings T
 | P1-WID-005 | P1 | Release/Iteration nullable | Set Release/Iteration to Unscheduled/null | Field saves as unassigned without deleting item | Not Run |
 | P1-WID-006 | P1 | Defect-only priority | Open Story and Defect detail | Priority is editable/visible only where Defect rules require | Not Run |
 | P1-WID-007 | P1 | Summary/collapse panel | Toggle full detail and summary/collapsed panel | UI keeps selected item and does not lose unsaved/saved state unexpectedly | Not Run |
-| P1-WID-008 | P0 | Retired: project-wide read-only tier (Work Item) | N/A — no project-wide read-only tier exists in the 3-level model (Workspace Admin / Admin / Editor); both assignable levels can edit | Fields render read-only; mutation controls are absent and backend rejects direct update | N/A (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor) |
+| P1-WID-008 | P0 | Unassigned Work Item isolation | Open Work Item direct URL as a user without that Project assignment | Item is not exposed; access is denied/not found safely and backend rejects direct update | Not Run |
 | P1-WID-009 | P0 | Schedule/Flow mirror | Change Schedule State six-box control, then change Flow State dropdown | Changing either field immediately persists the same value to the other field | Pass |
 | P1-WID-010 | P0 | Defect State stays independent | Change Defect State, then change Schedule/Flow State | Defect State uses `Submitted/Open/Fixed/Closed/Closed Declined` and does not mirror Schedule/Flow State | Not Run |
 
@@ -67,12 +68,12 @@ Phase 1 validates the core work management slice: Project Management, Settings T
 | P1-TASK-002 | P0 | Add Task happy path | Add Task with required name, owner and estimate if available | Task is created as child of Work Item | Pass (M5.1 runtime: TA-482201 under US-4822) |
 | P1-TASK-003 | P0 | Add Task name required | Submit empty task name | Validation blocks save | Not Run |
 | P1-TASK-004 | P1 | Task table columns | Open Tasks tab with tasks | Columns include Rank, ID, Name, State, Owner, Project, Teams, To Do, Actuals, Estimate | Not Run |
-| P1-TASK-005 | P1 | Task totals row | Add/update To Do and Actuals | Totals row calculates To Do, Actuals and derived Estimate correctly | Pass (A3 mockup: Estimate = To Do + Actuals) |
+| P1-TASK-005 | P1 | Task totals row | Add/update Estimate, To Do and Actual independently | Totals row sums each persisted field independently; Estimate is not derived from To Do + Actual | Not Run under 2026-08-14 rule |
 | P1-TASK-006 | P0 | Open Task Detail | Click Task ID | Task Detail opens with Details and Revision History only; no Tasks tab | Pass (M5.1 Create with details opened TA-482201) |
 | P1-TASK-007 | P1 | Reassign Work Product | Change Task parent/work product | New parent must be in valid project/team scope | Not Run |
 | P1-TASK-008 | P0 | Task state catalog remains separate | Inspect and edit a child Task State | Task uses only `Defined`, `In-Progress`, `Completed`; US/DE `Idea/Accepted/Release` values are not offered | Pass |
 | P1-TASK-009 | P0 | Shared Task identity across screens | Edit a Task on Task Dashboard, then open Team Status; repeat in reverse | The same Task ID, State and edited values appear on both screens | Pass (M4 runtime: TA-482106) |
-| P1-TASK-009A | P0 | Task Dashboard inline edit | Edit Name, State, Owner, To Do and Actuals inline | Values update the same Task record without opening Task Detail; Estimate is read-only derived | Pass (A3 mockup) |
+| P1-TASK-009A | P0 | Task Dashboard inline edit | Edit Name, State, Owner, Estimate, To Do and Actual inline | Values update the same Task record without opening Task Detail; all three hour fields are independently editable | Not Run under 2026-08-14 rule |
 | P1-TASK-009B | P0 | All Tasks complete parent | Complete the final non-Completed child Task | Parent Story/Defect Schedule State and Flow State automatically move to `Completed` | Pass (M4 runtime: US-4821) |
 | P1-TASK-010 | P0 | Reopen Task auto-reverses completed parent | Complete all Tasks, then reopen one Task | Task metrics recalculate and parent US/DE automatically moves from `Completed` to `In-Progress`; manual parent edit remains allowed | Pass (M4 rerun: TA-482106 reopened; US-4821 Completed -> In-Progress) |
 | P1-TASK-011 | P1 | Task inherits parent Iteration | Move parent US/DE to another Iteration | The Task is counted in the parent’s new Iteration and has no independent Iteration selector | Pass (M4/M5.2 runtime) |
@@ -81,9 +82,9 @@ Phase 1 validates the core work management slice: Project Management, Settings T
 
 | ID | Priority | Scenario | Steps | Expected result | Status |
 |---|---|---|---|---|---|
-| P1-TIME-001 | P0 | To Do/Actual persistence and derived Estimate | Update To Do and Actual hours | Values persist and reload correctly; Estimate recalculates as To Do + Actual | Not Run |
+| P1-TIME-001 | P0 | Independent Task hours | Create with Estimate and blank To Do, then edit Estimate, To Do and Actual separately | Create copies Estimate once to blank To Do; after creation all three values persist independently and do not recalculate each other | Not Run |
 | P1-TIME-002 | P0 | Negative time rejected | Enter negative values | Validation rejects negative values | Not Run |
-| P1-TIME-003 | P1 | Completed does not auto-zero To Do | Set a Task to Completed while To Do remains greater than 0 | Task state changes to Completed, but To Do stays as entered; Estimate remains To Do + Actual | Not Run |
+| P1-TIME-003 | P1 | Task State does not mutate hours | Set a Task to Completed and reopen it | State changes, while Estimate, To Do and Actual all stay exactly as entered | Not Run |
 | P1-CONTENT-001 | P0 | Description/Notes/Release Notes persistence | Edit rich text fields; save; refresh | Content persists and renders safely | Not Run |
 | P1-CONTENT-002 | P0 | Rich text sanitization | Try script/unsafe HTML in rich text field | Unsafe content is sanitized and not executed | Not Run |
 | P1-ATT-001 | P0 | Upload attachment | Upload supported file | Metadata and storage key are saved; attachment appears in list | Not Run |

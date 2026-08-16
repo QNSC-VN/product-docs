@@ -57,8 +57,7 @@ BA reconciliation update 2026-07-24:
 
 - Workspace Admin.
 - Project `Admin`.
-
-Project `Editor` and `No Access` do not enter Timeboxes.
+- Project `Editor` does not enter Timeboxes. A user without a Project assignment cannot see or directly access Timeboxes.
 
 ## 4. Terminology
 
@@ -131,6 +130,7 @@ Nghiệp vụ chính:
 | P2-IT-FR-021 | Project and Team context is shown in the detail right panel, not duplicated in the page subtitle or context bar while in Timeboxes. |
 | P2-IT-FR-022 | Start Date must be before or equal to End Date. |
 | P2-IT-FR-023 | State values are Planning, Committed and Accepted. New Iteration defaults to Planning; authorized user manually changes it to Committed when scope is committed. |
+| P2-IT-FR-024 | User without a Project assignment cannot see list/detail and cannot create, update or delete iterations. |
 | P2-IT-FR-025 | Release and Milestone detail/create behavior is not implemented in P2.2. |
 | P2-IT-FR-026 | Iterations created in Timeboxes are available as assignment targets in Backlog list and Work Item Detail. |
 | P2-IT-FR-027 | Assignment search only returns active, non-archived Story/Defect backlog items from the same Project and matching Team scope as the Iteration. Project-level Iterations accept Project backlog items without Team. |
@@ -324,7 +324,7 @@ DELETE /api/v1/iterations/:iterationId
 
 Rules:
 
-- Not available to Editor (no Timeboxes access) or No Access.
+- Not available to Editor or an unassigned user.
 - Should soft-delete/archive, not hard delete.
 - Must reject if iteration has assigned work items unless product explicitly allows archive with assignments.
 
@@ -391,7 +391,7 @@ Access guidance:
 | Workspace Admin | Full access across Projects |
 | Admin | Full create/update/delete access in assigned Project |
 | Editor | Timeboxes hidden; may update Work Item Iteration through approved Backlog/Iteration Status flows only |
-| No Access | Project Iterations hidden |
+| Unassigned user | Project Iterations hidden; direct access denied |
 
 ## 10. Validation Rules
 
@@ -453,6 +453,7 @@ Assignment and board rules:
 | Detail loading | Header may show selected id/name; body shows loading |
 | Detail save pending | Disable changed field or show saving indicator |
 | Detail save error | Keep user value, show field/toast error, allow retry |
+| Unassigned user | Hide Project Iterations and reject direct access safely |
 
 ## 12. Acceptance Criteria
 
@@ -477,7 +478,7 @@ Assignment and board rules:
 19. Detail right panel has Project, Team, Start Date, End Date, State and Planned Velocity.
 20. Project/Team context is not duplicated in the top context bar while user is in Timeboxes detail.
 21. Existing row detail preloads Theme, dates, State and Planned Velocity.
-22. N/A — Editor has no Timeboxes access (module hidden), so a read-only-view-but-cannot-edit tier no longer applies.
+22. User without a Project assignment cannot see, create or edit iterations.
 23. Releases and Milestones are not implemented as P2.2 production capability.
 24. User can assign existing Backlog Story/Defect items to an Iteration from Backlog list or Work Item Detail.
 25. System rejects assignment when work item Project/Team does not match Iteration Project/Team.
@@ -498,7 +499,7 @@ Assignment and board rules:
 | P2-IT-TS-008 | Click existing Sprint 24.3 row | Full-page detail opens with Sprint 24.3 values |
 | P2-IT-TS-009 | Existing row detail date fields | Start/End date prefill as valid date input values |
 | P2-IT-TS-010 | Detail right panel | Project/Team/Start/End/State/Velocity are visible |
-| P2-IT-TS-011 | N/A — Editor has no Timeboxes access (module hidden), so a read-only-view-but-cannot-edit tier no longer applies. | — |
+| P2-IT-TS-011 | Unassigned user opens Timeboxes/direct URL | Project Iterations are hidden or access is denied safely |
 | P2-IT-TS-012 | Try End Date before Start Date | Validation error |
 | P2-IT-TS-013 | Switch workspace selector to another Team | Iterations list reloads and only shows Iterations for that Team/Project |
 | P2-IT-TS-014 | Create Iteration without Team | Iteration is created as Project-level / Project backlog Iteration |

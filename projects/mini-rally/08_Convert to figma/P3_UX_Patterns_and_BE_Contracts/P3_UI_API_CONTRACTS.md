@@ -117,7 +117,7 @@ Two rules that fall out of this and matter to both sides:
 | Actions | Create work item; inline-edit title / estimate / owner / state / iteration / release; reorder rank; bulk assign release or iteration; bulk edit priority / owner; bulk delete |
 | Query states | All six. Sorting, filtering and paging are `refetching`, not `initial-loading`. |
 | Mutation states | Inline edits: `submitting` on the single cell, not the whole row. Bulk actions: the bar shows progress and the affected rows refetch on completion. |
-| Authorization | `work_item:view` / `:create` / `:edit` / `:delete`. Admin and Editor may mutate only in their assigned Project/Team scope; Editor cannot assign Release. No Access rows are absent (no `project_members` row) and direct access is rejected safely. Access in one Project never grants visibility in another. |
+| Authorization | `work_item:view` / `:create` / `:edit` / `:delete`. Admin and Editor may mutate only in their assigned Project/Team scope; Editor cannot assign Release. Viewer is read-only. No Access rows are absent and direct access is rejected safely. Access in one Project never grants visibility in another. |
 | Navigation | `?project=&team=&search=&filters=&sort=&page=`. Clicking a row opens the drawer; clicking the ID opens full detail. |
 | Audit | Field changes are audit-visible in Revision History (`Activity Row`). |
 

@@ -121,8 +121,8 @@ export function BacklogPage({ role, project, team, iterations, releases, feature
 
   const releaseOptions = Array.from(new Set(["Unscheduled", ...releases.map(release => release.name), ...workItemRows.map(item => item.release)])).sort();
   const iterationOptions = Array.from(new Set([...iterations.map(iteration => iteration.name), "Unscheduled", ...workItemRows.map(item => item.iteration)])).sort();
-  const editable = can.manageBacklog(role) && !(role === "Project Admin" && !ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
-  const canEditRelease = editable && role !== "Project Member";
+  const editable = can.manageBacklog(role) && !(role === "Admin" && !ROLE_SCOPE.adminProjectKeys.includes(project.key as typeof ROLE_SCOPE.adminProjectKeys[number]));
+  const canEditRelease = editable && role !== "Editor";
   const activeFilterColumns = BACKLOG_FILTER_COLUMNS.filter(column => filters[column.key] !== undefined);
   const activeFilterCount = activeFilterColumns.length;
   const availableFilterColumns = BACKLOG_FILTER_COLUMNS.filter(column => column.label.toLowerCase().includes(filterColumnSearch.toLowerCase()));

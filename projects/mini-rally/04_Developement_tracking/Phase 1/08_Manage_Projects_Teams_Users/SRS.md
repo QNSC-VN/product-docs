@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P1-PROJECT-MANAGEMENT` |
 | Status | BA/Mockup Ready |
-| Updated date | 2026-08-10 |
+| Updated date | 2026-08-14 |
 | Scope | Project, Project Team and Project-user administration under the top-right Settings gear |
 | Priority | P1 - required |
 | Depends on | Phase 0 App Shell, company Users and Phase 4 Project Access |
@@ -79,7 +79,7 @@ Access-aware navigation:
 - Workspace Admin sees every Project and Team and all structural actions.
 - Admin sees only assigned Projects and automatically sees `All Teams`; Project structure is read-only.
 - Editor sees only assigned Projects and explicitly assigned Teams; Project structure is read-only.
-- No Access Projects and Teams are hidden.
+- Users without an Admin/Editor assignment do not see the Project or its Teams.
 - Selecting another Project resets the main content to `Details`.
 - A non-WA Project header shows contextual `Admin` or `Editor` access so the user understands the current Project scope.
 - No global Project role badge is shown in the top navigation because access can differ by Project.
@@ -107,14 +107,14 @@ Only Workspace Admin sees `Create Project`.
 | Field | Required | Rule |
 |---|---:|---|
 | Project name | Yes | Trimmed non-empty name |
-| Project key | Yes | 2-10 uppercase letters/numbers; immutable after creation |
+| Project key | Yes | 1-10 uppercase letters/numbers after normalization; capped at 10 and immutable after creation |
 | Description | No | Short Project description |
 | Project owner | No | Business owner selected from existing company users |
 | Start date | No | Project start date |
 | Preliminary Estimate | Yes | Fixed T-shirt labels mapped to positive point values |
 | Hours per point | Yes | Positive value used by Capacity Planning and Reports |
 
-After save, the new Project is added to the tree and list and becomes selected. All normal users remain No Access until Workspace Admin grants Project access.
+After save, the new Project is added to the tree and list and becomes selected. Normal users have no assignment until Workspace Admin grants Admin or Editor access.
 
 ## 5. Project Header And Tabs
 
@@ -134,8 +134,7 @@ Tabs by access:
 | Workspace Admin | Edit | Edit | Edit |
 | Admin | Read-only | Read-only | Read-only |
 | Editor | Read-only | Hidden | Read-only, assigned Teams only |
-
-> A user with no `project_members` row has implicit **No Access**: all Project tabs are hidden.
+| Unassigned user | Hidden | Hidden | Hidden |
 
 ## 6. Project Details
 
@@ -215,8 +214,8 @@ Rules:
 
 - Admin automatically displays `All Teams`.
 - Changing a user to Editor opens Team selection and requires at least one active Team.
-- `Remove` opens a confirmation modal, sets the user to No Access (implicit) for the Project and removes Team memberships in that Project.
-- Project access changes take effect for the affected user on their next request (stricter than next sign-in).
+- `Remove` opens a confirmation modal, deletes the Project assignment and removes Team memberships in that Project.
+- Project access changes take effect for the affected user on next sign-in.
 
 ### 7.3 Add Existing User
 
@@ -244,7 +243,7 @@ Teams belong to exactly one parent Project in this MVP.
 | Members | Number of Team members |
 | Actions | Workspace Admin-only Edit, Deactivate or Restore |
 
-Admin and Editor receive read-only Team presentation in their allowed scope. Only Workspace Admin can add, edit, deactivate or restore a Team.
+Admin and Editor receive read-only Team presentation in their assigned scope. Only Workspace Admin can add, edit, deactivate or restore a Team.
 
 ### 8.2 Add/Edit Team Fields
 
@@ -311,7 +310,7 @@ Required behavior:
 |---|---|---|
 | Entry point | Workspace dropdown > Manage Projects | Settings gear > Workspaces & Projects |
 | Structure | Separate Project, Team and User administration | Workspace -> Project -> Team tree |
-| Access model | One global Project Admin/Member role | Admin/Editor independently per Project (no `project_members` row = No Access) |
+| Access model | One global Project role | Admin/Editor independently per Project; no assignment means hidden/denied |
 | Header badge | Global-looking role badge or no access context | Contextual per-Project badge for non-WA users |
 | Project user columns | Disabled, Permission, Team Member | User, Status, Access Level, Action |
 | Access editing | Unclear or separate | Access Level dropdown plus Editor Team selection |
@@ -334,7 +333,7 @@ Required behavior:
 | PM-FR-008 | Point-to-hour conversion is used only by Capacity Planning and Reports. |
 | PM-FR-009 | Users & Permissions uses User, Status, Access Level and Action columns. |
 | PM-FR-010 | Add Existing User never invites or creates a company user. |
-| PM-FR-011 | Admin resolves to All Teams, Editor requires Team selection. |
+| PM-FR-011 | Admin resolves to All Teams; Editor requires at least one active Team. |
 | PM-FR-012 | Workspace Admin is excluded from Project membership and candidate lists. |
 | PM-FR-013 | Admin views Project structure and Users & Permissions read-only. |
 | PM-FR-014 | Editor sees only assigned Projects/Teams and no Users & Permissions tab. |
@@ -347,7 +346,7 @@ Required behavior:
 2. Workspace Admin sees all Projects/Teams and all structural actions.
 3. Admin sees only assigned Projects with All Teams and cannot mutate Project/Team/access structure.
 4. Editor sees only assigned Projects/Teams and cannot view Users & Permissions.
-5. Editor sees assigned Projects/Teams read-only for structure and can edit delivery only in assigned Teams.
+5. A user without Admin/Editor assignment does not see or access the Project.
 6. Workspace Admin is not listed as a Project user.
 7. Project access can be added or changed from User Details and Project Users & Permissions.
 8. Add Team can assign existing users as Admin or Editor.

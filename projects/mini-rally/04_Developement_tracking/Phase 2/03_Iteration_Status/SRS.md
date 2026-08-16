@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P2-ITERATION-STATUS` |
 | Status | Ready for Development |
-| Updated date | 2026-07-24 |
+| Updated date | 2026-08-14 |
 | Scope | Track > Iteration Status |
 | Priority | P2.3 - required |
 | Depends on | Phase 1 Work Item base, Phase 2.1 Backlog Enhancement, Phase 2.2 Timeboxes > Iterations |
@@ -41,8 +41,7 @@ The BA decision is:
 - Workspace Admin.
 - Project `Admin`.
 - Project `Editor` in assigned Teams.
-
-Phase 4 access baseline applies: Workspace Admin/Admin can update assigned Project data; Editor can update assigned Team data; No Access is hidden (no `project_members` row). Production must enforce the same scope in backend/service guards.
+Phase 4 access baseline applies: Workspace Admin/Admin can update assigned Project data; Editor can update assigned Team data; a user without Project assignment cannot see or directly access Iteration Status. Production must enforce the same scope in backend/service guards.
 
 ## 4. Terminology
 
@@ -111,7 +110,7 @@ Nghiệp vụ chính:
 | P2-IS-FR-016 | Tasks metric keeps the `N active` display and counts child Tasks with State other than `Completed` under current Iteration Story/Defect items. |
 | P2-IS-FR-016A | Task is never assigned to Iteration independently; it inherits Iteration through its parent Story/Defect. |
 | P2-IS-FR-016B | A `Totals` row appears immediately below the list column header and shows total Plan Est, Task Est and To Do. |
-| P2-IS-FR-016C | Plan Est total sums scoped Story/Defect Plan Estimates; Task Est total sums child Task `To Do + Actual`; To Do total sums child Task `To Do` for the same scoped parents. |
+| P2-IS-FR-016C | Plan Est total sums scoped Story/Defect Plan Estimates; Task Est total sums the independent child Task Estimate field; To Do total independently sums child Task To Do for the same scoped parents. |
 | P2-IS-FR-017 | Iteration Status list displays only Story/Defect items assigned to the selected Iteration. Child Tasks are not independent rows. |
 | P2-IS-FR-017A | Iteration Status list is sourced from Backlog/work_items where `iterationId` equals the selected Iteration. |
 | P2-IS-FR-018 | List columns are: selection checkbox, rank, ID, Name, Schedule State, Flow State, Iteration, Blocked, Plan Est, Task Est, To Do, Owner. There is no dedicated Type column; Story/Defect type is conveyed by the required `US`/`DE` formatted-ID prefix and type glyph in the identity cell. |
@@ -425,7 +424,7 @@ Production baseline:
 | Re-rank work items if rank controls are enabled | `work_item:rank_update` or `backlog:prioritize` |
 | Open Work Item Detail | `work_item:view` |
 
-Workspace Admin/Admin may update in Project scope; Editor may update in assigned Teams; No Access is hidden (no `project_members` row). Persona names such as PO/PM/Developer/Tester do not grant permissions.
+Workspace Admin/Admin may update in Project scope; Editor may update in assigned Teams; an unassigned user cannot see or directly access the Project. Persona names such as PO/PM/Developer/Tester do not grant permissions.
 
 ## 11. Validation Rules
 
@@ -433,7 +432,7 @@ Workspace Admin/Admin may update in Project scope; Editor may update in assigned
 - Iteration must belong to selected project/workspace scope.
 - Title cannot be empty after trim.
 - Plan Estimate must be numeric and >= 0.
-- Owner must be active and assignable in the project/team.
+- Owner must be `Unassigned` or an active member of the Work Item Team; a `No team` Work Item allows only `Unassigned`.
 - Schedule State and Flow State must be one of: Idea, Defined, In-Progress, Completed, Accepted, Release.
 - Iteration update must target an Iteration in the same Project and matching Team scope, or `Unscheduled` if unassignment is allowed.
 - Type in Add Item modal must be Story or Defect.
@@ -528,7 +527,7 @@ Suggested P2.3 estimate: 14.0h.
 | Carry-over unfinished work | Deferred | Depends on Close Iteration workflow |
 | Saved Views | Deferred | Can be added after list/filter contract stabilizes |
 | Release and Milestone management | Deferred | Phase 3 |
-| Project Access enforcement | Required | Follow the fixed Phase 4 Workspace Admin/Admin/Editor baseline (No Access is implicit — no `project_members` row) |
+| Project Access enforcement | Required | Follow the fixed Phase 4 Workspace Admin/Admin/Editor baseline; unassigned Project is hidden/denied |
 | Chart drilldown | Follow-up | `View Charts` is placeholder in P2.3 |
 
 ## 16. BA Readiness Conclusion

@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P4-SETTINGS-AUDIT` |
 | Status | BA/Mockup Ready |
-| Updated date | 2026-08-10 |
+| Updated date | 2026-08-14 |
 | Scope | Workspace settings, Users, Workspaces & Projects, Permission Model, Audit Log and destructive confirmations |
 | Priority | P4.3 - required for Governance |
 | Depends on | P4.2 Project Access & Permissions |
@@ -42,20 +42,20 @@ Visibility depends on Workspace authority and the current Project Access Level. 
 | P4-SET-04 | Labels | Label management and Work Item tagging | Deferred |
 | P4-SET-05 | Users | Company user directory, details, invitation and Project Access | Done / BA confirmed |
 | P4-SET-06 | Permission Model | Read-only explanation of fixed access levels | Done / BA confirmed |
-| P4-SET-07 | Audit Log | Administrative/settings event list and filters | Done / BA confirmed |
+| P4-SET-07 | Audit Log | Workspace Admin-only read-only event list; exact event scope and technical/business detail formatting are Not Required for current acceptance | Done / BA accepted as-is |
 | P4-SET-08 | Destructive Confirmations | Guardrail for remove, archive, deactivate and delete actions | Done / BA confirmed |
 
 ## 3. Settings Navigation By Access
 
-| Entry | Workspace Admin | Admin | Editor | No Access |
-|---|---:|---:|---:|---:|
-| Profile & Account | View/Edit own profile | View/Edit own profile | View/Edit own profile | View/Edit own profile |
-| My Permissions | View all effective access | View own assigned Projects | View own assigned Projects/Teams | View own access or no-access state |
-| Workspace Settings | View/Edit | Hidden | Hidden | Hidden |
-| Users | View/Edit | Hidden | Hidden | Hidden |
-| Workspaces & Projects | Full administration | Assigned Projects read-only | Assigned Projects/Teams read-only | Hidden |
-| Permission Model | View | View | Hidden | Hidden |
-| Audit Log | View | Hidden | Hidden | Hidden |
+| Entry | Workspace Admin | Admin | Editor |
+|---|---:|---:|---:|
+| Profile & Account | View/Edit own profile | View/Edit own profile | View/Edit own profile |
+| My Permissions | View all effective access | View own assigned Projects | View own assigned Projects/Teams |
+| Workspace Settings | View/Edit | Hidden | Hidden |
+| Users | View/Edit | Hidden | Hidden |
+| Workspaces & Projects | Full administration | Assigned Projects read-only | Assigned Projects/Teams read-only |
+| Permission Model | View | View | Hidden |
+| Audit Log | View | Hidden | Hidden |
 
 Admin does not receive Project, Team or user-access administration controls. Only Workspace Admin changes company structure and access.
 
@@ -127,7 +127,7 @@ List columns:
 - `Status`
 - `Last Login`
 
-Rules:
+Current acceptance rules:
 
 - Search matches name, phone number or email.
 - Status filter supports All, Active, Invited and Disabled.
@@ -151,7 +151,7 @@ Workspace Admin is assigned internally and cannot be changed, disabled or remove
 For a normal user, Workspace Admin can:
 
 - Add more than one Project Access row.
-- Select `Admin` or `Editor` independently per Project (No Access is implicit when no Project row exists).
+- Select `Admin` or `Editor` independently per Project.
 - Assign one or more Teams only when the level is Editor.
 - Review all changed Project access before confirming save.
 
@@ -159,8 +159,7 @@ Rules:
 
 - Admin automatically displays All Teams.
 - Editor requires at least one Team.
-- No Access hides the Project and has no Team membership.
-- Removing a Project Access row is equivalent to No Access for that Project.
+- Removing a Project Access row removes the assignment and all Team memberships; the Project is then hidden and denied to that user.
 - The same Project cannot be added twice for one user.
 - Saving must update `Workspaces & Projects > Project > Users & Permissions` in the same session.
 
@@ -175,7 +174,7 @@ Workspace Admin detail instead displays `No Project Membership` because its auth
 
 ### 6.5 Effective Time
 
-- Project Access and Team membership changes apply to the affected user at next request (stricter than next sign-in).
+- Project Access and Team membership changes apply to the affected user at next sign-in.
 - Company disable/removal applies at the affected user's next page refresh.
 
 ## 7. Permission Model
@@ -212,10 +211,11 @@ Rules:
 
 - Time displays weekday, day, month, year, hour, minute and second.
 - Search supports Actor name and Time text.
-- Detail is one clear business sentence describing the completed action.
+- Time, Actor and Detail remain the visible columns.
 - Separate Action and Entity columns are not shown.
+- Authentication/security events and technical identifiers may remain in Detail. Filtering them out or rewriting every row as a business sentence is not required in the current phase.
 
-Included events:
+Recommended administrative events, when available:
 
 - Workspace Settings save.
 - User invitation and company status change.
@@ -225,10 +225,12 @@ Included events:
 - Project create/edit/archive/restore/delete.
 - Team create/edit/deactivate/restore.
 
-Excluded events:
+Execution activity boundary:
 
 - Work Item, Task, Note, attachment or execution-status activity.
 - Those events belong to item Activity/Revision History, not administrative Audit Log.
+
+The exact Audit Log event catalog, before/after formatting and separation of security logs are not acceptance blockers. Any future cleanup belongs in Future Backlog unless BA reactivates it.
 
 ## 10. Destructive Confirmations
 
@@ -268,7 +270,7 @@ High-risk rules:
 7. A normal user can hold different access levels in different Projects.
 8. Project access changed in Users is synchronized with Workspaces & Projects.
 9. Permission Model is explanatory and read-only.
-10. Audit Log contains only administrative/settings events with Time, Actor and Detail.
+10. Audit Log is Workspace Admin-only/read-only with Time, Actor and Detail. Exact event inclusion and technical/business detail formatting are Not Required for current acceptance.
 11. Destructive Project, Team and access actions require the approved confirmation pattern.
 12. Workflow Status, Labels and Notification Preferences remain outside active Phase 4 settings.
 

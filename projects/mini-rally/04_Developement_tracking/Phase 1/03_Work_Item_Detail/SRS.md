@@ -47,13 +47,14 @@ BA confirmed the current Detail state display contract:
 | WID-FR-007 | Sidebar hiển thị Owner, Project, Team, Schedule State, Flow State, Plan Estimate, Release, Milestones, Iteration. Nếu Work Item là Defect thì hiển thị thêm Priority. |
 | WID-FR-008 | Field update phải persist DB và ghi activity log. |
 | WID-FR-009 | Project/team/status/release/iteration dropdown chỉ hiển thị option hợp lệ. |
-| WID-FR-010 | User không có Access Level trong Project không thấy item và direct URL phải bị từ chối an toàn; Editor chỉ sửa trong assigned Teams, ngoài scope read-only. |
+| WID-FR-010 | User không có Admin/Editor assignment trong Project không thấy item và direct URL phải bị từ chối an toàn. |
 | WID-FR-011 | Refresh/direct URL detail phải load đúng item. |
 | WID-FR-012 | Schedule State và Flow State dùng cùng catalog `Idea/Defined/In-Progress/Completed/Accepted/Release`; đổi một field phải phản ánh field còn lại trong MVP. |
 | WID-FR-012A | UI rendering: Schedule State uses the six-box control; Flow State uses a dropdown. |
 | WID-FR-013 | Rule Schedule/Flow áp dụng cho Story/Defect; child Task tiếp tục chỉ dùng `Defined/In-Progress/Completed`. |
 | WID-FR-014 | Work Item có zero/one Release và zero/many Milestones. Milestone selector luôn giữ visible các giá trị đã chọn; đổi Release không tự thêm/xóa Milestone. Nếu đã có Release, chỉ option thêm mới bị lọc theo Milestone liên kết Release đó. |
 | WID-FR-015 | Gán Work Item vào Iteration chỉ thay đổi membership; không tự chuyển Iteration sang Committed và không khóa scope. Lifecycle Iteration tham chiếu Phase 2. |
+| WID-FR-016 | Owner selector phải đồng nhất Quick Create: `Unassigned` luôn có; Work Item có Team thì chỉ thêm active members của Team đó; Work Item `No team` chỉ cho `Unassigned`. |
 
 ## 4. Screen Mapping với Mockup
 
@@ -121,6 +122,7 @@ Patch request supports partial update:
 - `title` required, max 500.
 - `storyPoint >= 0`.
 - `teamId` must be active team linked to project.
+- `assigneeId` is nullable. A named Owner must be an active member of the selected Team; if `teamId` is null, `assigneeId` must also be null/Unassigned.
 - `scheduleState` and `flowState` must be one of `Idea`, `Defined`, `In-Progress`, `Completed`, `Accepted`, `Release`.
 - Story/Defect update của một trong hai field phải lưu cùng giá trị cho field còn lại trong MVP; không dùng legacy `Code Review`, `Testing` hoặc spelling `Released`.
 - `priority` is accepted only for Defect and must be one of `Low`, `Normal`, `High`, `Urgent`, `None`.
@@ -148,9 +150,10 @@ Patch request supports partial update:
 2. Details tab render Description/Attachments/Notes/Release Notes.
 3. Sidebar updates persist after refresh.
 4. Invalid team/release/iteration from another project is rejected.
-5. Editor sees fields read-only outside assigned Teams and editable inside assigned Teams.
+5. User không có Project assignment không thấy item và direct URL bị từ chối an toàn.
 6. Every update writes activity log with old/new value.
 7. Collapse icon returns user to summary panel state without losing selected item.
+8. Owner dropdown shows `Unassigned` plus active members of the Work Item Team; no Team shows only `Unassigned`.
 
 ## 10. Implementation Breakdown
 

@@ -1,16 +1,15 @@
 # Mini Rally - Project Access Use Case Matrix
 
-> **Correction 2026-08-13 (BA-confirmed):** the Access Model is **3-level — Workspace Admin, Admin, Editor.** The `Viewer` and `No Access` levels are **removed**. "No Access" remains the implicit state of a user who has no `project_members` row for a Project (the Project is hidden and direct URLs are denied). This revises the earlier 4-level wording; all matrices below are updated to the three levels.
-
 ## 1. Purpose
 
-This document is the business-facing authorization map for Mini Rally. It uses the approved 2026-08-10 model (corrected to 3-level on 2026-08-13) and supersedes the former PM/BA/Developer/QA role matrix.
+This document is the business-facing authorization map for Mini Rally. It uses the approved 2026-08-14 model and supersedes the former PM/BA/Developer/QA and Viewer/No Access matrices.
 
 ## 2. Authorization Model
 
 - `Workspace Admin` is the only company-level role. It is assigned internally and has company-wide authority.
 - Workspace Admin is not a Project member and does not appear in Project user or Team-member candidates.
-- Every normal user receives one Access Level independently in each Project: `Admin` or `Editor`. A user with no Project row has implicit **No Access** (the Project is hidden).
+- Every normal user receives one Access Level independently in each Project: `Admin` or `Editor`.
+- A user without a Project assignment does not see that Project and direct access is denied safely. This is not a selectable Access Level.
 - Access in one Project never grants access to another Project.
 - Business personas such as PM, BA, Developer or QA do not grant permissions.
 
@@ -21,45 +20,38 @@ This document is the business-facing authorization map for Mini Rally. It uses t
 | Workspace Admin | Company | Manage all users, Projects, Teams, access and delivery data |
 | Admin | Assigned Project, All Teams | Manage delivery features; Project/Team/user-access structure remains read-only |
 | Editor | Assigned Project and explicit Teams | Manage Backlog Work Items/Tasks, Quality Defects and Iteration Status in assigned Teams |
-| (No Access) | None | Implicit — no `project_members` row. Project is hidden and direct URLs are denied safely |
+| Unassigned user | None | No Project assignment; Project is hidden and direct URLs are denied safely |
 
 ## 4. Company And Structure
 
-| Use Case | Workspace Admin | Admin | Editor |
-|---|---:|---:|---:|
-| Sign in/out and manage own profile | Yes | Yes | Yes |
-| View accessible Project/Team context | All | Assigned Project / All Teams | Assigned Project / assigned Teams |
-| Edit Workspace Settings | Yes | No | No |
-| Invite/disable/remove company user | Yes | No | No |
-| Create/edit/archive/restore/delete Project | Yes | No | No |
-| Create/edit/deactivate/restore Team | Yes | No | No |
-| Assign Project Access Level | Yes | No | No |
-| Assign Team membership | Yes | No | No |
-| View Project Details/Teams | Yes | Read-only | Scoped read-only |
-| View Project Users & Permissions | Yes | Read-only | No |
-| View Permission Model | Yes | Own permissions only | Own permissions only |
-| View Audit Log | Yes | No | No |
+| Use Case | Workspace Admin | Admin | Editor | Unassigned user |
+|---|---:|---:|---:|---:|
+| Sign in/out and manage own profile | Yes | Yes | Yes | Yes |
+| View accessible Project/Team context | All | Assigned Project / All Teams | Assigned Project / assigned Teams | No |
+| Edit Workspace Settings | Yes | No | No | No |
+| Invite/disable/remove company user | Yes | No | No | No |
+| Create/edit/archive/restore/delete Project | Yes | No | No | No |
+| Create/edit/deactivate/restore Team | Yes | No | No | No |
+| Assign Project Access Level | Yes | No | No | No |
+| Assign Team membership | Yes | No | No | No |
+| View Project Details/Teams | Yes | Read-only | Scoped read-only | No |
+| View Project Users & Permissions | Yes | Read-only | No | No |
+| View Permission Model | Yes | Own permissions only | Own permissions only | Own permissions only |
+| View Audit Log | Yes | No | No | No |
 
 ## 5. Delivery Features
 
-| Feature / Action | Workspace Admin | Admin | Editor |
-|---|---:|---:|---:|
-| Backlog / Work Item / Task - View | All | Project | Assigned Teams |
-| Backlog / Work Item / Task - Create/Edit/Delete | All | Project | Assigned Teams |
-| Iteration Status - View | All | Project | Assigned Teams |
-| Iteration Status - Edit | All | Project | Assigned Teams |
-| Timeboxes: Iteration/Release/Milestone - View | All | Project | No |
-| Timeboxes: Create/Edit/Archive | All | Project | No |
-| Team Status - View | All | Project | Assigned Teams |
-| Team Status - Edit | All | Project | No |
-| Quality Defects - View | All | Project | Assigned Teams |
-| Quality Defects - Create/Edit/Delete | All | Project | Assigned Teams |
-| Portfolio Items - View | All | Project | No |
-| Portfolio Items - Manage | All | Project | No |
-| Capacity Planning - View | All | Project | No |
-| Capacity Planning - Manage | All | Project | No |
-| Release Tracking / Reports - View | All | Project | No |
-| Release Tracking controls, where provided | All | Project | No |
+| Feature / Action | Workspace Admin | Admin | Editor | Unassigned user |
+|---|---:|---:|---:|---:|
+| Backlog / Work Item / Task - View | All | Project | Assigned Teams | No |
+| Backlog / Work Item / Task - Create/Edit/Delete | All | Project | Assigned Teams | No |
+| Iteration Status - View/Edit | All | Project | Assigned Teams | No |
+| Timeboxes: Iteration/Release/Milestone - View/Manage | All | Project | No | No |
+| Team Status - View/Edit | All | Project | No | No |
+| Quality Defects - View/Create/Edit/Delete | All | Project | Assigned Teams | No |
+| Portfolio Items - View/Manage | All | Project | No | No |
+| Capacity Planning - View/Manage | All | Project | No | No |
+| Release Tracking / Reports | All | Project | No | No |
 
 ## 6. Notifications
 
@@ -79,6 +71,7 @@ This document is the business-facing authorization map for Mini Rally. It uses t
 - Each Project row has its own Access Level.
 - `Admin` automatically shows `All Teams`.
 - `Editor` requires one or more explicit Teams.
+- Removing a row removes the Project assignment and all Team scope for that Project.
 
 ### Project-centric
 
@@ -91,16 +84,21 @@ This document is the business-facing authorization map for Mini Rally. It uses t
 ### Team creation/edit
 
 - Workspace Admin can select existing users while creating/editing a Team.
-- Selecting `Admin` grants Project Admin access and therefore All Teams.
+- Selecting `Admin` grants Admin access and therefore All Teams.
 - Selecting `Editor` grants Project Editor access and membership in that Team.
-- All three journeys update the same Project access and Team membership data.
+- All three journeys update the same Project access and Team membership state.
 
-## 8. Effective Time
+## 8. Future Backlog
 
-- Project Access Level and Team membership changes take effect on the user's next request (shipped behavior — stricter than next sign-in).
+- `Viewer` Project-wide read-only access.
+- A selectable `No Access` value. Current behavior removes the assignment instead.
+
+## 9. Effective Time
+
+- Project Access Level and Team membership changes take effect on the user's next sign-in.
 - Company disable/removal takes effect on the user's next page refresh.
 
-## 9. UI Outcomes
+## 10. UI Outcomes
 
 | Outcome | Meaning |
 |---|---|

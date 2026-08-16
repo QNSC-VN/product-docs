@@ -1,14 +1,16 @@
 # Mini Rally — Reconciled BA/FE Source of Truth
 
-**Effective date:** 2026-07-28
-**Applies to:** Phase 0–5 BA documents, test pack and frontend mockup.
+**Effective date:** 2026-08-14
+**Applies to:** Phase 0–6 BA documents, test pack and frontend mockup.
 **Scope:** business behavior, screen behavior and session-level FE mock state only. Database, API, infrastructure and persistence after browser refresh remain outside this source.
 
 **Phase 6 addendum (2026-07-31):** Reports are BA/mockup confirmed under `Phase 6/PHASE6_REPORTS_BUSINESS_AND_DATA_CONTRACT.md`. Portfolio Release Tracking is BA/mockup approved and closed for DEV handoff under `Phase 6/01_Release_Tracking/SRS.md`. These Phase 6 contracts supersede the earlier Future Backlog wording for these items only; the closed Phase 0–5 baseline remains unchanged.
 
-**C1-C10 BA correction addendum (confirmed 2026-08-06, aligned 2026-08-09):** Team is optional on Work Items; Portfolio menu is Portfolio Items/Capacity Planning/Release Tracking; Iteration Status has no separate Type column; Team Status allows Filters and pagination but not local Search/Show Fields; User list excludes Phone and Teams while User Details keeps Phone; Notification Preferences remains Future Backlog; Velocity defaults to Last 10 and persists the user's 5/10 choice; Capacity Features use `Dependencies → Rollup → Estimated → Complete`; Iterations omit Project in single-Project scope but retain Task Estimate; Work Item Owner defaults to current user with explicit Unassigned and membership-scoped options.
+**C1-C10 BA correction addendum (confirmed 2026-08-06, aligned 2026-08-09; Owner rule superseded 2026-08-14):** Team is optional on Work Items; Portfolio menu is Portfolio Items/Capacity Planning/Release Tracking; Iteration Status has no separate Type column; Team Status allows Filters and pagination but not local Search/Show Fields; User list excludes Phone and Teams while User Details keeps Phone; Notification Preferences remains Future Backlog; Velocity defaults to Last 10 and persists the user's 5/10 choice; Capacity Features use `Dependencies → Rollup → Estimated → Complete`; Iterations omit Project in single-Project scope but retain Task Estimate. Work Item and Task Owner default to `Unassigned`; when Team is selected, options are `Unassigned` plus that Team's active members; with No Team, only `Unassigned` is available.
 
-**Project Access reconciliation (confirmed 2026-08-10, corrected to 3-level 2026-08-13):** `Workspace Admin` is the only company-level authority. Every other user receives `Admin` or `Editor` independently per Project; a user with no `project_members` row for a Project has implicit No Access (the Project is hidden and direct URLs are denied). The former `Viewer` level is removed, so the access model is now 3-level: Workspace Admin / Admin / Editor. Only Workspace Admin manages company users, Projects, Teams, Project access and Team membership. This addendum supersedes every older WA/Project Admin/Project Member global-role rule.
+**Live-test business alignment (confirmed 2026-08-14; Artifact scope amended 2026-08-15):** Project Key is required, immutable, unique and normalized to 1–10 uppercase alphanumeric characters. Task Estimate/To Do/Actual are independent after the one-time create copy from Estimate to a blank To Do; Task State never changes hours. Team Status shows active members of the selected Team plus `Unassigned` for null-owner Tasks. Release/Milestone assignments are made from existing Work Item and Portfolio Item surfaces; creating new items from an Artifact tab is Future Backlog. Release Detail contains no progress/Task-rollup widgets. Capacity Planned Team Assignment reads and writes the Plan allocation ledger. Audit Log's exact event coverage and sentence format are Not Required for current acceptance.
+
+**Project Access reconciliation (confirmed 2026-08-14):** `Workspace Admin` is the only company-level authority. Every other user may receive `Admin` or `Editor` independently per Project. A user without an assignment has no Project Access row; the Project is hidden and direct access is denied. Viewer and selectable No Access are Future Backlog. Only Workspace Admin manages company users, Projects, Teams, Project access and Team membership. This supersedes every older global-role rule.
 
 ## 1. Use this document
 
@@ -41,7 +43,7 @@ Release <-> Milestone
 5. New Iteration defaults to `Planning`. Assigning a US/DE does not change it. An authorized user manually changes it to `Committed` when the scope is committed. `Committed` never locks scope.
 6. Plan > Backlog shows only Story/Defect items whose Iteration is `Unscheduled`. Assigning a Story/Defect to an Iteration removes it from Backlog and makes it visible in that Iteration's execution/status views; moving it back to `Unscheduled` returns it to Backlog.
 7. Task is always a child of Story/Defect, inherits its parent Work Item context and never appears as a standalone Backlog/Iteration Status row.
-8. Task `Estimate`, `To Do` and `Actual` are independent hour fields. If the Owner enters Estimate first, the system copies that same value to To Do once; after that, the fields are manually editable independently. Marking a Task `Completed` sets To Do to 0; reopening does not auto-restore To Do.
+8. Task `Estimate`, `To Do` and `Actual` are independent hour fields. On Task creation only, when Estimate is entered and To Do is blank, the system copies Estimate to To Do once. After creation, editing a field or changing Task State, including complete/reopen, never changes the other hour fields.
 9. All child Tasks `Completed` auto-change the parent US/DE to `Completed`. Reopening any Task auto-changes the parent to `In-Progress`. Manual parent status changes remain available.
 10. When an Iteration is non-empty and all assigned US/DE are `Accepted`, it auto-changes to `Accepted`. Manual Iteration status changes remain available; the system does not auto-reverse it.
 11. Portfolio Items use `Epic -> Feature -> Story/Defect -> Task`. Rally's `Initiative` concept is labelled `Epic` in Mini Rally. Epic is Project-level and has no Team or Release assignment. Feature is the lowest Portfolio Item type and the only Portfolio Item type that attaches directly to Story/Defect. A Feature has zero or one Epic; a Story/Defect has zero or one Feature. The Portfolio header Type selector has only `Epic` and `Feature`: Epic renders only in `All Teams`; specific Team + Epic shows `Filter not show item`; specific Team + Feature shows only that Team's Features.
@@ -65,7 +67,7 @@ Release <-> Milestone
 
 ## 4. Screen and navigation boundaries
 
-| Area | Current Phase 0–5 behavior |
+| Area | Current Phase 0–6 behavior |
 |---|---|
 | Plan | Backlog (Unscheduled Story/Defect only) and Timeboxes |
 | Track | Iteration Status (List-only) and Team Status |
@@ -75,12 +77,16 @@ Release <-> Milestone
 | Portfolio > Release Tracking | **Not included in closed Phase 5. Phase 6 BA/mockup approved and closed for DEV handoff.** Dedicated surface governed by `Phase 6/01_Release_Tracking/SRS.md`; it is the final item in the Portfolio menu. |
 | Portfolio > Release Planning | Future Backlog; not active in Phase 5 MVP |
 | Team Board / Iteration Board | Future Backlog; absent from active navigation |
-| Settings gear > Workspaces & Projects | Single Workspace -> Project -> Team administration tree. Workspace Admin alone performs Project/Team CRUD and manages Project access; Admin/Editor see only their allowed read-only structure. Project-specific Preliminary Estimate points and Hours per point are configurable by Workspace Admin. |
+| Settings gear > Workspaces & Projects | Sole Project-management surface; no separate `Manage Projects` page or top-level Workspace dropdown entry. Single Workspace -> Project -> Team administration tree. Workspace Admin alone performs Project/Team CRUD and manages Project access; Admin/Editor see only their assigned read-only structure. Project-specific Preliminary Estimate points and Hours per point are configurable by Workspace Admin. |
 | Settings gear | Personal: Profile & Account, My Permissions. Administration: Workspace Settings, Users, Workspaces & Projects, Permission Model and Audit Log, filtered by effective access. |
-| Settings > Users | WA-only company directory. List columns are Name, Email, Phone Number, Status and Last Login. User Details separates General from Project Access; normal users may have different Access Levels per Project. |
-| Settings > Permission Model | Read-only explanation of Workspace Admin plus per-Project Admin and Editor (No Access is implicit when no Project row exists). No custom E/R/D/H matrix editing in this MVP. |
+| Settings > Users | WA-only company directory. List columns are Name, Email, Role, Status and Last Login; Phone and Team membership belong in User Details, not the list. User Details separates General from Project Access; normal users may have different Access Levels per Project. |
+| Settings > Permission Model | Read-only explanation of Workspace Admin plus per-Project Admin and Editor. No custom E/R/D/H matrix editing in this MVP. |
 
 Iteration Status shows current-context Story/Defect rows assigned to the selected Iteration only. `Tasks — N active` counts all persisted child Tasks under the scoped US/DE. The Totals row derives Plan Estimate from scoped US/DE and Task Estimate/To Do from their child Tasks; Task Estimate is the explicit Task Estimate field, not `To Do + Actual`.
+
+Release Detail Artifacts show directly assigned Story, Defect and Feature records. Milestone Detail Artifacts support direct Story, Defect, Feature and Epic records; a directly assigned Feature contributes its Story/Defect descendants, and a directly assigned Epic contributes child Features plus their Story/Defect descendants, to the inherited artifact/rollup scope. Direct and inherited populations are de-duplicated by stable ID and do not rewrite descendant assignments. Creating a new item from Release/Milestone Artifacts, including the shared Work Item/Portfolio Item `Create with details` journeys with prefilled Release/Milestone, is Future Backlog. Release progress, accepted progress, burnup and Task rollups appear only in `Portfolio > Release Tracking`, never in Timeboxes > Release Detail.
+
+Team Status is scoped by the Team selected in its top filter. It lists that Team's active members and groups every null-owner scoped Task under `Unassigned` with `0h` capacity; it must not show an outside-Team member group. Task counts include every persisted child Task whose parent US/DE belongs to the selected Iteration exactly once. Task State uses the full labels `Defined`, `In-Progress`, `Completed` and is inline-editable.
 
 ## 5. Identity and mock-state contract
 
@@ -97,10 +103,12 @@ Every normal user receives an independent Access Level for each Project:
 | Access level | Scope | Effective behavior |
 |---|---|---|
 | Admin | Assigned Project, automatically All Teams | Full delivery management, including Timeboxes, Release/Milestone, Team Status, Quality, Portfolio, Capacity and Reports; Project/Team/access structure remains read-only |
-| Editor | Assigned Project and one or more assigned Teams | Create/Edit/Delete team-scoped US/DE/Task and Quality Defects; update Iteration Status; view Team Status read-only for assigned Teams; no planning or administration modules |
-| (No Access) | None | Implicit — no `project_members` row. Project is hidden and direct access is rejected safely |
+| Editor | Assigned Project and one or more assigned Teams | Create/Edit/Delete team-scoped US/DE/Task and Quality Defects; update Iteration Status; no planning or administration modules |
+| Unassigned user | No Project assignment | Project is hidden and direct access is rejected safely; this is not a selectable permission |
 
-Only Workspace Admin can invite/disable company users, CRUD Projects/Teams, assign Project access or maintain Team membership. Access in one Project never grants visibility in another Project. Project access and Team membership changes apply on the user's next request; company disable/removal applies on next refresh.
+Only Workspace Admin can invite/disable company users, CRUD Projects/Teams, assign Project access or maintain Team membership. Access in one Project never grants visibility in another Project. Project access and Team membership changes apply on next sign-in; company disable/removal applies on next refresh.
+
+Project Key is required, unique and immutable after creation. Input is normalized to uppercase `A-Z/0-9`, limited to 1–10 characters, and is invalid when normalization leaves it empty.
 
 The detailed fixed capability baseline and synchronized User/Project/Team access journeys are governed by `Phase 4/02_Roles_Permissions/SRS.md`.
 

@@ -16,7 +16,7 @@
 Phase 1 cần đủ field để quản lý estimate và actual ở mức cơ bản:
 
 - Story/Defect có `Plan Estimate` theo point.
-- Task có `To Do`, `Actual` theo giờ; `Estimate` là giá trị derived/read-only theo công thức `Estimate = To Do + Actual`.
+- Task có ba field giờ độc lập: `Estimate`, `To Do`, `Actual`. Khi tạo Task, nếu có Estimate và To Do để trống thì copy Estimate sang To Do đúng một lần.
 - Task list có totals row.
 
 ## 2. DB Gap cần xử lý
@@ -29,14 +29,14 @@ DB design đã bổ sung các column sau vào `work_items`; production implement
 | `todo_hours` | DECIMAL(8,2) NULL | Task | Lưu remaining To Do |
 | `actual_hours` | DECIMAL(8,2) NULL | Task | Lưu actual input tối thiểu Phase 1 |
 
-Phase 1 đã chốt `actual_hours` là giá trị nhập tay. Nếu sau này làm timesheet, `actual_hours` có thể chuyển thành cached aggregate từ bảng time entries. `estimate_hours` không nhập tay độc lập trong current scope; nếu vẫn lưu/cache thì phải recalculate từ `todo_hours + actual_hours`.
+Phase 1 đã chốt cả ba giá trị là input nghiệp vụ độc lập sau khi Task được tạo. Nếu sau này làm timesheet, `actual_hours` có thể chuyển thành cached aggregate từ bảng time entries; thay đổi đó không được suy ngược To Do hoặc Estimate nếu chưa có quyết định BA mới.
 
 ## 3. DB ↔ UI Field Mapping
 
 | UI field | Applies to | API DTO | DB source/target | Unit | Rule |
 |---|---|---|---|---|---|
 | Plan Estimate | Story/Defect | `planEstimate` | `work_items.story_point` | points | Decimal >= 0, nullable |
-| Estimate | Task | `estimateHours` | Derived/cache from `todo_hours + actual_hours` | hours | Read-only; always equals To Do + Actual |
+| Estimate | Task | `estimateHours` | Task Estimate field | hours | Decimal >= 0; independent after create |
 | To Do | Task | `todoHours` | `work_items.todo_hours` | hours | Decimal >= 0 |
 | Actual | Task | `actualHours` | `work_items.actual_hours` | hours | Decimal >= 0 |
 | Task Estimate total | Parent Work Item task tab | `totals.estimateHours` | SUM child `estimate_hours` | hours | Derived |
@@ -48,8 +48,8 @@ Phase 1 đã chốt `actual_hours` là giá trị nhập tay. Nếu sau này là
 | ID | Requirement |
 |---|---|
 | TIME-FR-001 | Work Item sidebar Plan Estimate maps to story points. |
-| TIME-FR-002 | Task create modal accepts To Do and Actual; Estimate is shown read-only as To Do + Actual. |
-| TIME-FR-003 | Task detail allows editing To Do/Actual; Estimate is recalculated and read-only. |
+| TIME-FR-002 | Task create modal accepts Estimate, To Do and Actual; when Estimate is entered and To Do is blank, copy Estimate to To Do once. |
+| TIME-FR-003 | Task detail allows independent editing of Estimate, To Do and Actual; changing one does not recalculate another. |
 | TIME-FR-004 | Task list shows Estimate/To Do/Actuals. |
 | TIME-FR-005 | Totals row sums visible/all child task time fields consistently. |
 | TIME-FR-006 | Time fields cannot be negative. |
@@ -85,9 +85,10 @@ Task list totals:
 - Totals should be calculated server-side for data integrity.
 - FE can recalculate optimistically after local update.
 - Null task time values count as 0 in totals.
-- `Estimate = To Do + Actual` at all times; do not validate Actual against Estimate as an independent field.
+- Estimate, To Do and Actual are independent after creation; no equality formula is enforced.
+- The only automatic time-field behavior is the create-time Estimate-to-To Do copy when To Do is blank.
 - `To Do = 0` does not automatically mark Completed unless explicitly decided later.
-- Setting Task State to Completed does not automatically zero To Do.
+- Setting Task State to Completed or reopening it does not change Estimate, To Do or Actual.
 
 ## 7. Activity Log Rules
 
@@ -101,11 +102,11 @@ Task list totals:
 ## 8. Acceptance Criteria
 
 1. Plan Estimate saved on Story/Defect and visible after refresh.
-2. Task To Do/Actual saved and visible after refresh; Estimate recalculates to To Do + Actual.
+2. Task Estimate/To Do/Actual save and reload independently; changing one does not change the others.
 3. Negative values are rejected.
-4. Totals row equals sum of child task To Do, Actual and derived Estimate.
+4. Totals row independently sums child Task Estimate, To Do and Actual.
 5. Updating Actual creates Revision History entry.
-6. Users without edit permission (e.g. outside assigned Team scope) cannot edit time fields.
+6. User không có Admin/Editor assignment không xem hoặc sửa time fields của Project.
 
 ## 9. Open Questions
 

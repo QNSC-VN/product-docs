@@ -161,13 +161,13 @@ const INITIAL_USERS: UserRecord[] = WORKSPACE_USERS.map((user, index) => ({
 
 const ROLES: { code: WorkspaceRoleCode; label: string }[] = [
   { code: "workspace_admin", label: "Workspace Admin" },
-  { code: "project_admin", label: "Project Admin" },
-  { code: "project_member", label: "Project Member" },
+  { code: "project_admin", label: "Admin" },
+  { code: "project_member", label: "Editor" },
 ];
 
 function mapRoleToProd(role: Role): WorkspaceRoleCode {
   if (role === "Workspace Admin") return "workspace_admin";
-  if (role === "Project Admin") return "project_admin";
+  if (role === "Admin") return "project_admin";
   return "project_member";
 }
 
@@ -527,11 +527,11 @@ export function ProjectsPage({ role, createRequest = 0, onCreateRequestHandled }
   const [archiveTeamTarget, setArchiveTeamTarget] = useState<TeamRecord | null>(null);
   const [restoreTeamTarget, setRestoreTeamTarget] = useState<TeamRecord | null>(null);
   const canManageCompanyStructure = role === "Workspace Admin";
-  const visibleProjectKeys = role === "Project Admin"
-    ? [...ROLE_SCOPE.projectAdminProjectKeys] as readonly string[]
+  const visibleProjectKeys = role === "Admin"
+    ? ROLE_SCOPE.adminProjectKeys as readonly string[]
     : null;
   const visibleProjects = visibleProjectKeys ? projects.filter(project => visibleProjectKeys.includes(project.key)) : projects;
-  const canManageProject = (project: ProjectRecord) => role === "Workspace Admin" || (role === "Project Admin" && ROLE_SCOPE.projectAdminProjectKeys.includes(project.key as typeof ROLE_SCOPE.projectAdminProjectKeys[number]));
+  const canManageProject = (_project: ProjectRecord) => role === "Workspace Admin";
   const allTeamNames = Array.from(new Set(teams.map(team => team.name))).sort();
 
   useEffect(() => {

@@ -15,21 +15,22 @@
 BA confirmed the Phase 0 Project baseline for current audit/handoff:
 
 - Project Create/Edit fields are: Project Name, Project Key, Owner, Project Start Date, Teams and Description.
-- Project Key is required, unique, immutable after create, 2-10 chars, uppercase alphanumeric.
+- Project Key is required, unique and immutable after create. Current accepted UI behavior normalizes to uppercase alphanumeric, allows 1-10 characters and caps additional input at 10 characters.
 - Start Date means **Project Start Date**.
 - Linked Teams are displayed/selected only when Team data/code is available; if Team data is missing, mark the test **Not Tested**, not failed.
 - Team create/edit/member administration is handled under Settings/Team scope, not as a Phase 0 Project CRUD requirement.
 
-## 0.2 Project Access Reconciliation - 2026-08-13
+## 0.2 Project Access Reconciliation - 2026-08-10
 
 The approved administration UI is now `Settings gear > Workspaces & Projects`, governed by `Phase 1/08_Manage_Projects_Teams_Users/SRS.md`.
 
-Permission rules in this addendum supersede older Project Manager/PO/Dev/QA/Viewer and project-role wording below:
+Permission rules in this addendum supersede older persona and project-role wording below:
 
 - Workspace Admin alone performs Project/Team CRUD and manages Project access/Team membership.
-- Normal users receive Admin or Editor independently per Project. A user with no `project_members` row has implicit No Access (the Project is hidden and direct URLs are denied).
+- Normal users receive Admin or Editor independently per Project.
 - Admin has full delivery authority in an assigned Project but Project/Team/access structure is read-only.
 - Editor is limited to assigned Teams and approved delivery work.
+- A user without an Admin/Editor assignment has no Project Access row; the Project is hidden and direct access is denied.
 - Project owner is business metadata and does not grant access automatically.
 - Detailed access rules are governed by `Phase 4/02_Roles_Permissions/SRS.md`.
 - API/database sections in this Phase 0 draft must implement these effective rules even where legacy field names still say role/member.
@@ -75,8 +76,6 @@ Workspace ACME
 | View Users & Permissions | Yes | Read-only | No |
 | Manage Project access/Team membership | Yes | No | No |
 
-> A user with no `project_members` row for a Project has implicit **No Access**: the Project is hidden and direct URLs are denied. (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor)
-
 Permission codes:
 
 ```text
@@ -103,11 +102,11 @@ project.team.manage
 | PRJ-FR-001 | List chỉ project user được phép truy cập trong workspace hiện tại. |
 | PRJ-FR-002 | Create project yêu cầu name, unique key, owner. |
 | PRJ-FR-003 | Create atomically tạo Project và settings mặc định; Project owner không tự động nhận Project Access. |
-| PRJ-FR-004 | Project key unique trong workspace, normalize uppercase. |
+| PRJ-FR-004 | Project key unique trong workspace; UI normalize lowercase thành uppercase, loại ký tự không hợp lệ, cho phép 1-10 ký tự A-Z/0-9 và cap input vượt 10 ký tự. |
 | PRJ-FR-005 | Project key immutable sau khi đã sinh Work Item; MVP có thể immutable ngay từ create. |
 | PRJ-FR-006 | Project owner phải là active company user; đây là business metadata, không tự cấp Project Access. |
 | PRJ-FR-007 | Chỉ company user hợp lệ mới được gán Project Access. Workspace Admin không được thêm như Project user. |
-| PRJ-FR-008 | Mỗi user có tối đa một Access Level đang hiệu lực trong một Project: Admin hoặc Editor; không có `project_members` row = No Access (implicit). |
+| PRJ-FR-008 | Mỗi user có tối đa một Access Level đang hiệu lực trong một Project: Admin hoặc Editor. Không có assignment nghĩa là user không truy cập Project. |
 | PRJ-FR-009 | Remove member không xóa authored/assigned/history data. |
 | PRJ-FR-010 | Archive là soft state; project trở thành read-only và ẩn mặc định khỏi active list. |
 | PRJ-FR-011 | Create/Edit/Archive/Restore/Delete Project chỉ Workspace Admin. |
@@ -136,7 +135,7 @@ project.team.manage
 2. Search existing active company users chưa thuộc Project.
 3. Add user và chọn Admin/Editor; Editor phải chọn Team.
 4. Update Access Level hoặc Remove khỏi Project.
-5. Access có hiệu lực ở next request (stricter than next sign-in) và đồng bộ với User Details → Project Access.
+5. Access có hiệu lực ở next sign-in và đồng bộ với User Details → Project Access.
 
 ### UC-PRJ-03 Archive Project
 
@@ -218,7 +217,7 @@ created_at TIMESTAMP
 updated_at TIMESTAMP
 ```
 
-`default_assignee_id` nếu có phải là active user có `Admin` access hoặc `Editor` access trong ít nhất một Team của Project; Workspace Admin và user không có Project access không hợp lệ.
+`default_assignee_id` nếu có phải là active user có `Admin` access hoặc `Editor` access trong ít nhất một Team của Project; Workspace Admin và user chưa được gán Project không hợp lệ.
 
 ### 7.4 Workflow dependency
 
@@ -316,7 +315,7 @@ List response:
 | UI field | Request field | DB target | Mục đích | Validation/editability |
 |---|---|---|---|---|
 | Project Name | `name` | `projects.name` | Tên project | Required, trim, 2–255 |
-| Project Key | `key` | `projects.key` | Prefix work item/route | Required, 2–10, uppercase A–Z/0–9; immutable sau create |
+| Project Key | `key` | `projects.key` | Prefix work item/route | Required, 1–10 uppercase A–Z/0–9 sau normalize; cap ở 10; immutable sau create |
 | Description | `description` | `projects.description` | Mô tả scope/outcome | Nullable text |
 | Project Owner | `ownerId` | `projects.owner_id` | Người chịu trách nhiệm | Chọn bằng user ID; phải active company member |
 | Start Date | `startDate` | `projects.start_date` | Timeline | Nullable/ISO date theo policy |
@@ -345,11 +344,11 @@ Các field UI-only như modal open, selected Team checkbox, submit loading và v
 |---|---|---|---|
 | Membership ID | `project_members.id` | Action key | Hidden |
 | User | `project_members.user_id → users` | Name/email/avatar | Chỉ active company user; loại Workspace Admin |
-| Access Level | Project access assignment | Authorization trong Project | Admin hoặc Editor; removed row = No Access (implicit) |
+| Access Level | Project access assignment | Authorization trong Project | Admin hoặc Editor; removed row = không còn Project assignment |
 | Status | `project_members.status` | Active/removed badge | Filter |
 | Joined At | `project_members.joined_at` | Audit | Nullable |
 | Add Member userId | Insert `project_members.user_id` | Thêm user | Không gửi name/email làm FK |
-| Change Access Level | Update Project access | Đổi quyền | Có hiệu lực ở next request |
+| Change Access Level | Update Project access | Đổi quyền | Có hiệu lực ở next sign-in |
 | Remove | Update status/soft remove | Mất project access | Không xóa authored/history |
 
 ### 7.10 Team/Project link mapping
@@ -443,7 +442,7 @@ Create request example:
 
 ## 9. Business Rules và Validation
 
-- Key: 2–10 ký tự đề xuất, uppercase A–Z/0–9, bắt đầu bằng chữ, không whitespace.
+- Key: required; sau normalize phải còn 1–10 ký tự uppercase A–Z/0–9. UI có thể tự uppercase, loại ký tự không hợp lệ và cap phần vượt quá 10; kết quả rỗng hoặc trùng key bị reject.
 - Name: 2–255 ký tự.
 - `end_date >= start_date`.
 - Workspace archived không create/update project.

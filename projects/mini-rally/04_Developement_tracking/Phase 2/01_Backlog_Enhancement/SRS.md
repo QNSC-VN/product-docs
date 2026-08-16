@@ -36,6 +36,7 @@ P2.1 không biến Backlog thành Sprint Planning. Iteration assignment trong Ba
 - Workspace Admin.
 - Project `Admin`.
 - Project `Editor` in assigned Teams.
+- User phải có Project `Admin` hoặc Team-scoped `Editor` assignment.
 
 ## 3A. Business Rules / Business Flow
 
@@ -90,7 +91,7 @@ Nghiệp vụ chính:
 | P2-BL-FR-015 | User có quyền edit có thể bulk assign Release cho selected items. |
 | P2-BL-FR-015A | User có quyền edit có thể bulk assign Iteration cho selected items. |
 | P2-BL-FR-016 | User có quyền manage backlog có thể reorder backlog; production cập nhật `rank`. |
-| P2-BL-FR-017 | Admin được chỉnh Backlog trong assigned Project; Editor được chỉnh trong assigned Teams; No Access (no `project_members` row) không thấy Project. |
+| P2-BL-FR-017 | Admin được chỉnh Backlog trong assigned Project; Editor được chỉnh trong assigned Teams; user không được gán Project không thấy Project và direct access bị từ chối. |
 | P2-BL-FR-018 | Sprint summary và Sprint planning không xuất hiện trong Backlog P2.1; Iteration assignment chỉ là field của Work Item. |
 | P2-BL-FR-019 | KPI/metric summary strip không hiển thị trong Backlog; pattern này giữ lại cho Iteration Status, Dashboard hoặc Reports. |
 | P2-BL-FR-020 | Manage Filters nằm bên trái trong filter banner; user chọn nhiều column bằng checkbox và Apply để combine filter. |
@@ -292,14 +293,14 @@ Access baseline:
 
 - Workspace Admin and Admin may manage Backlog in allowed Project scope.
 - Editor may manage US/DE/Task only in explicitly assigned Teams and cannot assign Release.
-- No Access Project/items are absent from list/search and direct access is rejected safely.
+- User không được gán Project không thấy Project/items trong list/search; direct access và mutation bị từ chối an toàn.
 
 ## 9. Validation Rules
 
 - Title cannot be empty after trim.
 - Plan Estimate must be numeric and >= 0.
 - Priority update is rejected for Story unless product later allows story priority.
-- Owner must be assignable in current project/team context.
+- Owner must be `Unassigned` or an active member of the Work Item Team; a `No team` Work Item allows only `Unassigned`.
 - Release must belong to the same project.
 - Iteration must belong to the same project/team context.
 - Reorder neighbors must belong to the same project/backlog scope.
@@ -311,6 +312,7 @@ Access baseline:
 - Empty: show empty state after filters/search.
 - Inline saving: edited cell may show pending state; list must not jump.
 - Inline error: rollback cell value and show field-level/toast error.
+- Denied: user không được gán Project không thấy Backlog; direct URL bị từ chối an toàn.
 - Bulk action empty: selected bar hidden when no row selected.
 - Reorder disabled: first row cannot move up; last row cannot move down.
 
@@ -331,14 +333,14 @@ Access baseline:
 13. Inline title edit persists and is visible after refresh.
 14. Inline Defect Priority edit persists; Story priority remains unavailable.
 15. Inline Plan Estimate rejects negative values.
-16. Inline Owner validates active Project Access and Team scope; No Access and Workspace Admin are not assignable delivery owners.
+16. Inline Owner offers `Unassigned` plus active members of the Work Item Team; `No team` offers only `Unassigned`. User không được gán Project và Workspace Admin không phải delivery owner hợp lệ.
 17. Inline Release validates same-project release.
 18. Inline Iteration validates same-project/team iteration and updates `iterationId`.
 19. Work Item Detail right panel shows Iteration and allows the same assignment rule.
 20. Bulk assign Release updates all selected valid items or fails all.
 21. Bulk assign Iteration updates all selected valid items or fails all.
 22. Reorder updates item rank and preserves order after refresh.
-23. N/A — the access model has no read-only-at-Project-scope tier; Editor can edit within assigned Teams.
+23. User không được gán Project không thể edit inline, bulk assign hoặc reorder.
 24. Sprint summary and Sprint planning are not present in Backlog P2.1.
 
 ## 12. Test Scenarios
@@ -356,7 +358,7 @@ Access baseline:
 | P2-BL-TS-009 | Workspace Admin changes Team in create form to a team outside selected Project | Validation rejects invalid Project/Team pair |
 | P2-BL-TS-010 | Bulk assign selected to Q1 2025 | All selected valid items move to release |
 | P2-BL-TS-011 | Move item down then refresh | Order remains changed |
-| P2-BL-TS-012 | N/A — the access model has no read-only-at-Project-scope tier; Editor can edit within assigned Teams. | — |
+| P2-BL-TS-012 | Unassigned user opens Backlog/direct item URL | Project/item is hidden or access is denied safely |
 | P2-BL-TS-013 | Invalid release from another project | API returns validation error |
 | P2-BL-TS-014 | Select Name and Owner in Manage Filters, apply both values | Result matches both filter conditions |
 | P2-BL-TS-015 | Search work by `US-4821` while filters are open | Quick search still works independently from Manage Filters |

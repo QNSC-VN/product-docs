@@ -1,6 +1,6 @@
 # Mini Rally / Agile Work Management Tool - Database Design
 
-> **Authorization model update (2026-08-10, corrected to 3-level 2026-08-13):** Mini Rally has one system role, `workspace_admin`, assigned internally. Normal-user authorization is stored per Project as `admin` or `editor` only; absence/removed `project_members` row means implicit `No Access` (the Project is hidden and direct URLs are denied). The `viewer` value is no longer stored. PM/BA/Developer/QA are personas, not authorization rows. Permission Model is read-only.
+> **Authorization model update (2026-08-10):** Mini Rally has one system role, `workspace_admin`, assigned internally. Normal-user authorization is stored per Project as `admin`, `editor` or `viewer`; absence/removed Project access means `No Access`. PM/BA/Developer/QA are personas, not authorization rows. Permission Model is read-only.
 
 ## 1. Mục tiêu thiết kế DB
 
@@ -434,7 +434,7 @@ Mapping normal user vào Project và lưu Access Level hiện hành.
 | id | UUID / BIGINT | Primary key |
 | project_id | UUID | FK → projects.id |
 | user_id | UUID | FK → users.id |
-| access_level | VARCHAR(20) | admin, editor; removed/no row = implicit No Access (Project hidden) |
+| access_level | VARCHAR(20) | admin, editor, viewer; removed/no row = No Access |
 | status | VARCHAR(50) | active, removed |
 | joined_at | TIMESTAMP |  |
 | created_at | TIMESTAMP |  |
@@ -526,7 +526,7 @@ Unique constraint:
 UNIQUE(team_id, user_id)
 ```
 
-`team_members` không thay thế `project_members`. User phải là active company user có Project Access trước khi được thêm vào Team. Project `Admin` tự động có All Teams và không cần Team membership row; `Editor` cần explicit Team membership. (Mức `Viewer` đã được gỡ — access model hiện hành là 3-level: Workspace Admin / Admin / Editor.)
+`team_members` không thay thế `project_members`. User phải là active company user có Project Access trước khi được thêm vào Team. Project `Admin` tự động có All Teams và không cần Team membership row; `Editor` cần explicit Team membership; `Viewer` không phải Team member.
 
 ---
 

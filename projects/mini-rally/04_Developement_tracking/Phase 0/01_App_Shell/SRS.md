@@ -43,13 +43,13 @@ Nếu SRS này mâu thuẫn với prompt cũ, dùng quyết định reconciliati
 
 ## 3. Actor
 
-> Access reconciliation 2026-08-13: `Workspace Admin` là quyền cấp công ty duy nhất. User thường nhận `Admin` hoặc `Editor` riêng cho từng Project. Các tên Project Admin, Project Member, PO, BA, Developer và QA không phải role quyền toàn cục.
+> Access reconciliation 2026-08-14: `Workspace Admin` là quyền cấp công ty duy nhất. User thường chỉ nhận `Admin` hoặc `Editor` riêng cho từng Project. User không có assignment thì Project bị ẩn và direct access bị từ chối. `Viewer` và selectable `No Access` thuộc Future Backlog.
 
 - Authenticated User: user có session hợp lệ.
 - Workspace Admin: thấy toàn bộ administration và mọi Project/Team.
 - Admin Access Level: thấy Project được gán, All Teams và các module delivery; cấu trúc Project/Team/access là read-only.
 - Editor Access Level: chỉ thấy Project và Team được gán cùng các module delivery được phép chỉnh sửa.
-- No Access (implicit): không có `project_members` row; không thấy Project và không truy cập được direct URL.
+- Unassigned user: không thấy Project và không truy cập được direct URL; đây không phải Access Level để chọn.
 - Anonymous User: không được render authenticated shell.
 
 ## 4. Navigation Information Architecture
@@ -192,7 +192,7 @@ Tham chiếu schema: [`mini_rally_database_design.md`](../../../01_DB%20design/m
 | Avatar | `session.user.avatarUrl` | `users.avatar_url` | Avatar header | Nullable; null → initials từ `full_name` |
 | Account status | `session.user.status` | `users.status` | Quyết định có render authenticated shell | Chỉ `active` được render shell |
 | Workspace authority | `session.workspaceAuthority` | Internal `user_role_assignments → roles.code` | Nhận biết Workspace Admin | Chỉ có `workspace_admin`; normal user nhận `null` |
-| Selected Project Access | `session.projectAccessLevel` | `project_members.access_level` của Project đang chọn | Hiển thị trong My Permissions và gate Project route/action | `admin`, `editor`; không có row = `No Access` |
+| Selected Project Access | `session.projectAccessLevel` | Assignment của Project đang chọn | Hiển thị trong My Permissions và gate Project route/action | `admin`, `editor`; không có assignment = Project ẩn/direct access denied |
 | Effective capabilities | `session.effectiveCapabilities[]` | Workspace Admin grant hoặc fixed policy của `project_members.access_level` + Team membership | Gate menu/action/route | Backend tính theo current Project/Team; không dùng global Project role name |
 | Unread count | `notificationUnreadCount` | `notifications.user_id`, `read_at IS NULL` | Badge notification | Derived `COUNT(*)`; không lưu count riêng |
 | Session expiry | `session.expiresAt` | `auth_sessions.expires_at` | Refresh/redirect login | Không hiển thị mặc định; dùng cho session lifecycle |
@@ -277,7 +277,7 @@ Project context response phải gồm project summary, workspace summary, member
 - Admin/Editor chỉ thấy Project/Team thuộc effective access; không tự động thấy Project khác.
 - Admin có delivery management trong Project được gán nhưng không chỉnh Project/Team/access structure.
 - Editor chỉ mutation delivery data trong Team được gán.
-- No Access Project không xuất hiện trong navigation, selector, search hoặc cached result.
+- User không được gán Project không thấy Project trong navigation, selector, search hoặc cached result; direct access bị từ chối an toàn.
 
 ## 12. UI States
 
@@ -306,7 +306,7 @@ Mỗi context selector/page outlet phải cover:
 2. Refresh ở `/backlog` vẫn mở Backlog và đúng context.
 3. Back/Forward đổi active navigation chính xác.
 4. Đổi project khiến page data đổi và không còn dữ liệu project cũ.
-5. Editor chỉ thấy Project/Team được gán ở trạng thái phù hợp; direct URL ngoài scope nhận Access Denied/Not Found an toàn. (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor)
+5. User chỉ thấy Project được gán Admin/Editor; direct URL ngoài scope nhận Access Denied/Not Found an toàn.
 6. Đổi Access Level làm mất quyền vào route hiện tại phải redirect khi quyền mới có hiệu lực.
 7. Page con throw exception chỉ làm hỏng page outlet; TopNav vẫn hoạt động.
 8. Menu đúng thứ tự đã chốt; Plan đứng sau Home và Backlog là item con mặc định.

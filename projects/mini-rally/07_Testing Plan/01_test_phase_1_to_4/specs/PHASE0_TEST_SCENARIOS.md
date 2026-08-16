@@ -53,7 +53,7 @@ Phase 0 validates the base platform: Microsoft SSO authentication, app shell, fi
 | P0-PRJ-001 | P0 | Project list loads accessible projects | Open `/projects` | List shows only projects user can access | Not Run |
 | P0-PRJ-002 | P0 | Create Project happy path | Create project with Project Name, Project Key, Owner, Project Start Date, Description and estimation settings | Project/settings are created; owner metadata does not grant Project Access automatically | Not Run |
 | P0-PRJ-003 | P0 | Duplicate project key rejected | Create project with existing key | Validation rejects duplicate key | Not Run |
-| P0-PRJ-004 | P0 | Invalid key rejected | Create project with key below 2 chars, above 10 chars or non-uppercase-alphanumeric chars | Field-level or form validation rejects input | Not Run |
+| P0-PRJ-004 | P0 | Project Key normalization and validation | Enter lowercase, spaces/symbols, more than 10 characters, then an input that becomes empty after normalization | Input normalizes to uppercase A-Z/0-9 and caps at 10; any normalized value from 1–10 characters is allowed; empty-after-normalization is rejected | Not Run |
 | P0-PRJ-005 | P0 | Project key immutable | Edit an existing project | Key is read-only or cannot be changed | Not Run |
 | P0-PRJ-006 | P1 | Search project | Search by project name/key | Matching projects show; non-matching hidden | Not Run |
 | P0-PRJ-007 | P1 | Status filter active/archived | Filter active and archived | Active/archived results match state; empty state appears when no result | Not Run |

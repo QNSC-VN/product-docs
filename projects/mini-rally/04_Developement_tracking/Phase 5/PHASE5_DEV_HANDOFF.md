@@ -5,11 +5,11 @@
 | Attribute | Value |
 |---|---|
 | Status | `PHASE 5 BA/MOCKUP CLOSED -> DEV HANDOFF READY` |
-| Effective date | 2026-07-28 |
+| Effective date | 2026-08-14 |
 | Closed scope | P5.1 Portfolio Items and P5.2 Capacity Planning |
-| Removed from Phase 5 | Release Planning and Release Tracking |
-| Future direction | Reports may later provide cross-release observation; no Report is specified or implemented by this handoff |
-| Production implementation | Not started |
+| Removed from Phase 5 | Release Planning; Release Tracking moved to active Phase 6 |
+| Phase 6 reference | Release Tracking and Reports are governed by `../Phase 6/` |
+| DevInt status | Implemented with confirmed open gaps `P5-PI-016` and `P5-CP-032`; dependent Unassign retest remains pending |
 | Primary BA owner | Product/BA |
 | Intended readers | DEV, QA, solution architect and Claude document reviewer |
 
@@ -166,12 +166,12 @@ Epic Detail uses the shared Portfolio Item layout:
 
 Feature create/detail must support:
 
-- Project, Team, Epic, Name, State, Preliminary Estimate, Owner and Release where applicable.
+- Project (inherited from current context and read-only), Team, Epic, Name, State, Preliminary Estimate, Owner and Release where applicable.
 - `Create` returns to the list.
 - `Create with details` creates once and opens Feature Detail.
 - `Epic = Unassigned` removes the parent link.
 - Project-scoped Epic and Release choices only.
-- Changing Project must clear an invalid cross-Project Epic/Feature relationship rather than preserve bad data.
+- Project never changes after creation; Epic, Team and Release choices remain scoped to that fixed Project.
 
 Feature Detail:
 
@@ -227,7 +227,7 @@ Rules:
 - Task Estimate, To Do and Actual are independent.
 - Entering Estimate first copies that value to To Do once.
 - Later edits are independent.
-- Completing a Task sets To Do to 0.
+- Task `Estimate`, `To Do` and `Actual` are independent. On Task creation only, an entered Estimate copies once to a blank To Do; completing or reopening a Task never changes any hour field.
 - Reopening does not restore To Do.
 
 ## 5. P5.2 Capacity Planning
@@ -397,14 +397,14 @@ The exhaustive visual/button catalog is in `02_Capacity_Planning/BUSINESS_FLOW_A
 - Add Feature.
 - Planned Team Assignment / Unassign.
 - Allocate / add split row / remove split row / Save / Cancel.
-- Move up / Move down.
+- Drag-and-drop Feature Rank; no Move up / Move down menu requirement.
 - Remove from Plan.
 - Breakdown.
 - Publish Without Updating Fields.
 - Publish.
 - Revert to Draft.
 
-All mutation controls are hidden or disabled in Published state.
+All mutation controls are hidden or disabled when a plan is Published.
 
 ## 6. Access and Authorization Boundary
 
@@ -412,7 +412,7 @@ All mutation controls are hidden or disabled in Published state.
 
 - Workspace Admin: manage every Project.
 - Project `Admin`: manage Portfolio Items in the assigned Project.
-- Project `Editor` and `No Access`: Portfolio is hidden.
+- Project `Editor` and unassigned users: Portfolio is hidden and direct access is rejected.
 - Access in one Project grants nothing in another Project.
 - Archive and create/edit actions require management permission.
 
@@ -420,7 +420,7 @@ All mutation controls are hidden or disabled in Published state.
 
 - Workspace Admin manages plans in every Project.
 - Project `Admin` manages Draft/Published plans in the assigned Project.
-- Project `Editor` and `No Access` cannot open Capacity Planning.
+- Project `Editor` and unassigned users cannot open Capacity Planning.
 - Permission Model is explanatory and read-only; Capacity permissions are not customized per action.
 - DEV must enforce Project access server-side and not rely on hidden UI controls.
 
@@ -495,7 +495,7 @@ The mockup evidence in that file proves BA behavior and visual direction only. D
 - Cross-screen identity.
 - Project/Team negative scope.
 - Project `Admin` assigned-Project manage scope and denied unassigned-Project scope.
-- `Editor`/`No Access` hidden scope. (Viewer level removed; access model is now 3-level: Workspace Admin / Admin / Editor.)
+- Project `Editor` and unassigned-user hidden/denied scope.
 - Draft visibility and Published lock.
 - Split allocation atomicity.
 - Remove from Plan across all Teams.
