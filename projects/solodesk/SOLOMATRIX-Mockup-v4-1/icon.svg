@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SoloMatrix">
+  <!-- Icon SoloMatrix: nền màu thương hiệu #0E6360 (đúng --brand của mobile.html), khối chữ SM vẽ bằng path thuần — không phụ thuộc font, không dùng logo QNSC. Nội dung nằm trong vùng an toàn maskable (80% giữa). -->
+  <rect width="512" height="512" fill="#0E6360"/>
+  <g fill="#FFFFFF">
+    <!-- chữ S khối, lưới ô 30px, góc trên trái (76,151) -->
+    <path d="M76,151 h150 v30 h-120 v60 h120 v30 h-150 v-60 h120 v-60 h-120 z"/>
+    <!-- chữ M khối: hai chân + đỉnh -->
+    <path d="M286,151 h30 v210 h-30 z M406,151 h30 v210 h-30 z M316,181 h30 v30 h-30 z M376,181 h30 v30 h-30 z M346,211 h30 v30 h-30 z"/>
+  </g>
+</svg>

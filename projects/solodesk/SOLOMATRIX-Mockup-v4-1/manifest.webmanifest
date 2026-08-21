@@ -1,0 +1,21 @@
+{
+  "name": "SoloMatrix — Bán hàng và kê khai",
+  "short_name": "SoloMatrix",
+  "description": "Sổ bán hàng, kê khai thuế và kết nối dịch vụ cho hộ kinh doanh — dùng trên điện thoại, chạy được khi mất mạng.",
+  "lang": "vi",
+  "dir": "ltr",
+  "start_url": "mobile.html",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#E3EEED",
+  "theme_color": "#0E6360",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
