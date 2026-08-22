@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P4-SETTINGS-AUDIT` |
 | Status | BA/Mockup Ready |
-| Updated date | 2026-08-14 |
+| Updated date | 2026-08-17 |
 | Scope | Workspace settings, Users, Workspaces & Projects, Permission Model, Audit Log and destructive confirmations |
 | Priority | P4.3 - required for Governance |
 | Depends on | P4.2 Project Access & Permissions |
@@ -181,7 +181,7 @@ Workspace Admin detail instead displays `No Project Membership` because its auth
 
 Permission Model is a read-only business reference.
 
-- It explains Workspace Admin and the four Project Access Levels.
+- It explains Workspace Admin and the two current Project Access Levels: `Admin` and `Editor`. `Viewer` and selectable `No Access` remain Future Backlog.
 - It describes action outcomes as Allowed, Read-only or Hidden.
 - Disabled is a temporary UI state caused by validation, dependency or lifecycle rules, not an assignable permission.
 - It does not expose an editable E/R/D/H role matrix.
@@ -255,7 +255,7 @@ High-risk rules:
 
 - Delete Project requires typing the Project key.
 - Remove company user access requires typing the user name.
-- Remove user from Project requires a clear confirmation but no typed text.
+- Remove user from Project requires typing the target user name before `Remove Access` is enabled.
 - A blocked action shows the dependency reason and does not allow confirmation.
 - Successful administrative actions create Audit Log entries.
 

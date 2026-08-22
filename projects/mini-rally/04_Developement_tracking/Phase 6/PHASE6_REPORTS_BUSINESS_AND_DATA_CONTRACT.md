@@ -37,7 +37,7 @@ This document is the canonical Phase 6 report contract. If an older Phase 6 plan
 | Scheduled work | Story or Defect currently assigned to the Iteration. Feature and Task points are not included in point totals. |
 | Task scope | Tasks whose parent Story/Defect is in the selected Project, Team and Iteration scope. |
 | Accepted-equivalent | The item has reached `Accepted`. A later `Release` state remains accepted-equivalent and must not make the item disappear from reports. |
-| `acceptedDate` | Timestamp that established the item's current Accepted outcome; set on entering `Accepted`, retained into `Release`, cleared on reopen, and set again on a later re-acceptance. Audit/event history preserves every transition. |
+| `acceptedDate` | Timestamp that established the item's current accepted-equivalent outcome; set when entering `Accepted` or directly entering `Release`, retained for `Accepted -> Release`, cleared on reopen, and set again on a later Accepted/Release transition. Audit/event history preserves every transition. |
 | Points | `Story.planEstimate` or `Defect.planEstimate`. |
 | Hours | Task `estimate`, `todo`, `actuals`, or persisted member capacity, depending on the metric. |
 

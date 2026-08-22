@@ -64,8 +64,9 @@ Velocity is recalculated from current Iteration assignment:
 
 - moving an item out of an old Iteration removes it from that Iteration's bar;
 - moving an item into an old Iteration adds it to that Iteration's bar;
+- Work Item Iteration selectors must allow an eligible completed Iteration in the same Project/Team scope to be selected; an elapsed end date or completed Iteration status does not lock reassignment;
 - changing Plan Estimate changes the current chart result;
-- entering `Accepted` sets `acceptedDate`; moving onward to `Release` retains it; reopening clears it; a later re-acceptance sets the new timestamp. Audit/event history retains the earlier transitions.
+- entering the accepted-equivalent family through `Accepted` or directly through `Release` sets `acceptedDate`; moving from `Accepted` to `Release` retains it; reopening clears it; a later re-acceptance/re-release sets the new timestamp. Audit/event history retains the earlier transitions.
 
 Unlike Burndown, Velocity is not frozen by a daily or Iteration-end snapshot.
 
@@ -118,7 +119,7 @@ StoryOrDefect {
 }
 ```
 
-`acceptedDate` is set when the item enters Accepted and retained when it moves to Release. If the item is reopened to a non-accepted state, clear the current `acceptedDate`; a later transition back to Accepted sets the new timestamp. The Audit Log/event history must retain earlier acceptance and reopen events even though the current field changes.
+`acceptedDate` is set when the item first enters the accepted-equivalent family through Accepted or a direct Release transition, and retained when it moves from Accepted to Release. If the item is reopened to a non-accepted state, clear the current `acceptedDate`; a later transition back to Accepted/Release sets the new timestamp. The Audit Log/event history must retain earlier acceptance and reopen events even though the current field changes.
 
 ## 9. Mockup limitation
 

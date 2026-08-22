@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P3-TEAM-STATUS` |
 | Status | Ready for Development |
-| Updated date | 2026-08-14 |
+| Updated date | 2026-08-17 |
 | Scope | `Track > Team Status` |
 | Priority | P3.1 - required |
 | Depends on | Phase 1 Work Item base, Phase 2.1 Backlog Enhancement, Phase 2.2 Timeboxes > Iterations, Phase 2.3 Iteration Status |
@@ -40,9 +40,9 @@ BA live-retest confirmation 2026-08-14: Team Status uses only active members of 
 
 - Workspace Admin.
 - Project `Admin`.
-Project `Editor` does not enter Team Status. A user without a Project assignment cannot see or directly access Team Status.
+- Project `Editor` in an assigned Project/Team, with read-only access.
 
-Phase 4 access baseline applies. Workspace Admin and Admin may view/update Team Status in allowed Project scope; Editor and unassigned users do not access Team Status. Production must enforce permissions in the API even when the UI hides controls.
+Phase 4 access baseline applies. Workspace Admin and Admin may view/update Team Status in allowed Project scope. Editor may view Team Status for assigned Project/Team scope but cannot edit Capacity, Task Name or Task State from this screen. A user without a Project assignment cannot see or directly access Team Status. Production must enforce mutation permissions even when the UI hides or disables controls.
 
 ## 4. Terminology
 
@@ -123,7 +123,7 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 - Authorized users can inline edit Task Name, Task State, Owner, To Do, Actuals and Estimate directly from the Task Dashboard table.
 - Task State options in the Task Dashboard are the same task-level values used by Team Status: `Defined`, `In-Progress`, `Completed`.
 - Inline Task Dashboard edits update the task row without forcing the user to open Task Detail.
-- Editor and unassigned users cannot open Team Status/Task Dashboard.
+- Editor may open Team Status read-only. The Work Item Detail Task Dashboard continues to follow the normal Work Item/Task edit permission; an unassigned user cannot open either surface.
 - Clicking the Task ID still opens Task Detail; editing inline fields must not accidentally open Task Detail.
 
 ## 6. Functional Requirements
@@ -170,7 +170,7 @@ The Work Item Detail `Tasks` tab is treated as the Task Dashboard for the select
 | P3-TS-FR-036 | Parent Story/Defect auto-completion must not remove the user's ability to manually change the parent status from existing Work Item edit surfaces. |
 | P3-TS-FR-037 | Work Item Detail `Tasks` tab acts as the Task Dashboard for the selected parent Story/Defect. |
 | P3-TS-FR-038 | Authorized users can inline edit Task Name, State, Owner, To Do, Actuals and Estimate from the Task Dashboard table. |
-| P3-TS-FR-039 | Editor and unassigned users do not access Team Status/Task Dashboard; direct access and mutation are rejected safely. |
+| P3-TS-FR-039 | Editor may access Team Status for assigned Project/Team scope in read-only mode; Team Status mutation is rejected. Task Dashboard uses the normal Work Item/Task permission. Unassigned users are denied. |
 | P3-TS-FR-040 | Clicking Task ID opens Task Detail; inline editing fields must not trigger Task Detail navigation. |
 | P3-TS-FR-041 | Reopening a Task after all child Tasks had been Completed must recalculate metrics and automatically set the parent Story/Defect status to `In-Progress`. This applies even when the parent had been manually promoted to `Accepted`; `Accepted` is not exempt from the reopen roll-up. |
 | P3-TS-FR-042 | Member rows come only from active membership of the Team selected in the top context filter; outside-Team owners are not shown as current Team members. |
@@ -455,8 +455,7 @@ All calculations must use the same filtered task set returned by the selected Pr
 |---|---:|---:|---:|---:|
 | Workspace Admin | Yes | Yes | Yes | Yes |
 | Admin in assigned Project | Yes | Yes | Yes | Yes |
-| Editor in assigned Project | Hidden | No | No | No |
-| Editor in assigned Project | No | No | No | No |
+| Editor in assigned Project/Team | Yes | No | No | No |
 | Unassigned user | No | No | No | No |
 
 This mapping is fixed by Project Access Level; there is no field-level permission editor in the MVP.
@@ -489,7 +488,7 @@ This mapping is fixed by Project Access Level; there is no field-level permissio
 24. Task Dashboard supports inline edit for Task Name, State, Owner, To Do, Actuals and Estimate.
 25. Task Dashboard inline controls do not trigger Task Detail navigation; Task ID remains the explicit navigation control.
 26. Capacity is inline editable at member group level for authorized users.
-27. Editor and unassigned users cannot open Team Status/Task Dashboard or mutate its fields.
+27. Editor can open Team Status for assigned Project/Team scope but all Team Status mutation controls are read-only/hidden; unassigned users cannot open it.
 28. Inline edit validation errors are visible and do not silently corrupt table data.
 29. Row click opens the existing detail flow without triggering when clicking inline controls.
 30. Team Board, drag/drop, WIP limits and board transition rules are not required for P3.1.
@@ -520,8 +519,8 @@ This mapping is fixed by Project Access Level; there is no field-level permissio
 | P3-TS-TS-017 | Edit inline field in Task Dashboard | Task Detail does not open |
 | P3-TS-TS-018 | Source state Accepted is returned by backend | UI displays Completed |
 | P3-TS-TS-019 | Source state Idea is returned by backend | UI displays Defined |
-| P3-TS-TS-020 | Editor/unassigned user opens Team Status | Navigation is hidden or access is denied safely |
-| P3-TS-TS-021 | Editor/unassigned user calls PATCH task API directly | API returns 403 |
+| P3-TS-TS-020 | Editor opens Team Status in assigned Project/Team | Page loads read-only; no Capacity/Task mutation is available |
+| P3-TS-TS-021 | Editor or unassigned user calls Team Status PATCH API directly | API returns 403 |
 | P3-TS-TS-022 | Request Iteration from another Team | API rejects with validation/access error |
 | P3-TS-TS-023 | Click task row outside inline inputs | Existing detail route opens |
 | P3-TS-TS-024 | Click State dropdown | Row detail does not open |
@@ -540,7 +539,7 @@ This mapping is fixed by Project Access Level; there is no field-level permissio
 | P3-TS-03 | Implement capacity storage | Upsert member capacity by Project/Team/Iteration/User |
 | P3-TS-04 | Implement task patch behavior | Update task title/state from Team Status |
 | P3-TS-05 | Implement parent Work Product roll-up and status automation | Task state changes recalculate parent progress; all completed -> parent Completed; reopen -> parent In-Progress |
-| P3-TS-06 | Implement permission guards | WA/Admin access plus Editor/unassigned hidden-and-denied enforcement |
+| P3-TS-06 | Implement permission guards | WA/Admin update access, Editor read-only access in assigned scope, and unassigned-user denial |
 | P3-TS-07 | Build Team Status route/page | `Track > Team Status` page with approved layout |
 | P3-TS-08 | Build Iteration selector reuse | Same selector pattern as Iteration Status |
 | P3-TS-09 | Build grouped dense table | Header, totals row, group rows, task rows |

@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P1-PROJECT-MANAGEMENT` |
 | Status | BA/Mockup Ready |
-| Updated date | 2026-08-14 |
+| Updated date | 2026-08-22 |
 | Scope | Project, Project Team and Project-user administration under the top-right Settings gear |
 | Priority | P1 - required |
 | Depends on | Phase 0 App Shell, company Users and Phase 4 Project Access |
@@ -40,7 +40,7 @@ This SRS defines business flow and mockup behavior. API payloads and database im
 - Configure Project Details, Preliminary Estimate values and point-to-hour conversion.
 - Add existing company users to a Project and set per-Project Access Level.
 - Create, view, edit, deactivate and restore Teams as Workspace Admin.
-- Add users and Access Levels while creating a Team.
+- Maintain Team membership from active users already eligible in the selected Project, without granting Project Access from the Team flow.
 - Keep User, Project and Team access journeys synchronized.
 - Confirm destructive or high-impact Project, Team and Project-user actions.
 
@@ -107,7 +107,7 @@ Only Workspace Admin sees `Create Project`.
 | Field | Required | Rule |
 |---|---:|---|
 | Project name | Yes | Trimmed non-empty name |
-| Project key | Yes | 1-10 uppercase letters/numbers after normalization; capped at 10 and immutable after creation |
+| Project key | Yes | 2-10 uppercase letters/numbers; immutable after creation |
 | Description | No | Short Project description |
 | Project owner | No | Business owner selected from existing company users |
 | Start date | No | Project start date |
@@ -199,7 +199,7 @@ This tab associates existing company users with the selected Project. It never c
 | User count | Shows current Project users in the result |
 | Add Existing User | WA-only selector of eligible company users not already in the Project |
 
-Workspace Admin is excluded from the Project list and candidate selector. Disabled company users cannot be newly added.
+Workspace Admin is excluded from the Project Access candidate selector but always appears in the Project list as a system-generated, read-only row with a fixed `Workspace Admin` badge. The row is independent of Team membership. Disabled company users cannot be newly added.
 
 ### 7.2 List Columns
 
@@ -207,14 +207,16 @@ Workspace Admin is excluded from the Project list and candidate selector. Disabl
 |---|---|
 | User | Name, avatar and email |
 | Status | Company account status |
-| Access Level | `Admin` or `Editor`; dropdown for Workspace Admin and read-only for Admin |
-| Action | `Remove` for Workspace Admin; dash for read-only users |
+| Access Level | `Admin` or `Editor` for Project Access rows; derived WA rows show fixed `Workspace Admin` |
+| Action | `Remove` for editable Admin/Editor assignments; dash for Admin viewers and derived WA rows |
 
 Rules:
 
 - Admin automatically displays `All Teams`.
 - Changing a user to Editor opens Team selection and requires at least one active Team.
 - `Remove` opens a confirmation modal, deletes the Project assignment and removes Team memberships in that Project.
+- The WA system row has no Admin/Editor dropdown or Project removal action, creates no Project Access and is excluded from Project-member metrics; WA Team membership is maintained separately from the Team.
+- When no normal user has Project Access, the WA row remains visible and the list must not show a full-list `No members in this project yet` empty state.
 - Project access changes take effect for the affected user on next sign-in.
 
 ### 7.3 Add Existing User
@@ -250,18 +252,20 @@ Admin and Editor receive read-only Team presentation in their assigned scope. On
 | Field | Required | Rule |
 |---|---:|---|
 | Team name | Yes | Trimmed non-empty name |
-| Team key | Yes | 2-10 uppercase letters/numbers; immutable after creation |
-| Team lead | No | Selected from eligible existing company users |
+| Team key | Yes | Auto-generated from Team name by the current product rule; editable before first save; final value must be unique and contain 2-10 uppercase letters/numbers; immutable after creation |
+| Team lead | No | Selected from active members of this Team; selecting a lead never grants separate access or Owner privilege |
 | Status | Yes for edit | `Active` or `Deactive` |
-| Members & Access | No | Select existing users and set Admin or Editor |
+| Members | No | Maintained from active users already eligible in the selected Project; Project Access is read-only in this flow |
 
 Member and access rules:
 
-- Admin sets Project Access Level to Admin and automatically uses All Teams.
-- Editor grants Project Editor access and adds the user to the new Team.
-- Existing higher access is not reduced by adding a Team.
-- Disabled users and Workspace Admin are not selectable as Team members.
-- Newly created Team and assignments appear in both User Project Access and Project Users & Permissions.
+- Team membership never creates, upgrades, downgrades or removes Project Access.
+- Eligible normal-user candidates must already have active Admin or Editor Project Access in the selected Project. Active Admins already resolve to `All Teams`; they are treated as effective members and are not offered as new Team-member candidates.
+- An active Workspace Admin is an eligible derived Project candidate even though it has no `project_members` row; it receives no Admin/Editor Project Access assignment and is not added automatically to other Teams.
+- Disabled users, users outside the selected Project and users already effective in the Team are excluded from the candidate list.
+- Team Lead must be an active member of that Team. Assigning Team Lead status alone must not create Team membership or change Work Item Owner eligibility.
+- Removing WA from a Team removes only the Team membership; Workspace access remains unchanged.
+- Newly created Team and membership changes appear in Team Details. Existing Project Access remains unchanged; WA appears only as a derived Project user and an operational Team member when explicitly added.
 
 ### 8.3 Team Details
 
@@ -271,7 +275,9 @@ Selecting a Team shows:
 - Status.
 - Team lead.
 - Member count.
-- Member name and email list.
+- Member name, email and access badge list; WA uses the fixed `Workspace Admin` badge.
+
+Only Workspace Admin sees the `Add` member button. It opens a modal with search and the eligible candidate list defined in section 8.2. Save adds only Team membership; cancel makes no change. If there is no eligible candidate, the modal shows an empty state and does not fall back to the company directory.
 
 ## 9. Project And Team Lifecycle
 
@@ -282,7 +288,7 @@ Selecting a Team shows:
 | Archive Project | Workspace Admin | Confirmation; Project becomes read-only and leaves active selectors |
 | Restore Project | Workspace Admin | Returns Archived Project to Active |
 | Delete Project | Workspace Admin | Typed Project-key confirmation, then removes Project from administration tree |
-| Add/Edit Team | Workspace Admin | Maintains Team and optional member access |
+| Add/Edit Team | Workspace Admin | Maintains Team fields and membership without changing Project Access |
 | Deactivate/Restore Team | Workspace Admin | Confirmation; history remains available |
 
 Archived Project and deactivated Team history must be preserved. Dependency rules may block an action and must explain the blocker before confirmation.
@@ -293,15 +299,16 @@ Three administration journeys use one source of truth:
 
 1. `Users > User Details > Project Access`.
 2. `Workspaces & Projects > Project > Users & Permissions`.
-3. `Workspaces & Projects > Project > Teams > Add/Edit Team`.
+3. `Workspaces & Projects > Project > Teams > Team Details > Add member`.
 
 Required behavior:
 
 - Adding Project access from User Details adds the user to the Project list.
 - Adding an existing user from Project Users & Permissions adds a Project Access row in User Details.
-- Creating a Team with an Editor adds that Team to the Editor's Project Access.
+- Adding an eligible Editor to a Team updates that Editor's Team scope under the existing Project Access row; it does not create a new Project Access row.
 - Admin always resolves to All Teams in every journey.
 - Removing Project access clears that Project's Team memberships everywhere.
+- Adding or removing WA from a Team updates Team Details without adding, removing or changing the always-visible WA system row in Project Users & Permissions.
 - The mockup demonstrates shared session state; refresh/API persistence remains development-owned.
 
 ## 11. Changes From Previous Mockup
@@ -314,9 +321,9 @@ Required behavior:
 | Header badge | Global-looking role badge or no access context | Contextual per-Project badge for non-WA users |
 | Project user columns | Disabled, Permission, Team Member | User, Status, Access Level, Action |
 | Access editing | Unclear or separate | Access Level dropdown plus Editor Team selection |
-| WA in Project users | Included as Admin | Excluded; WA has workspace authority and no Project membership |
+| WA in Project users | Included as Admin | Always shown as a system-generated read-only `Workspace Admin` row; no Admin/Editor Project Access and no Team-membership dependency |
 | Team management | Separate workspace Teams page | Teams managed inside selected Project by WA only |
-| Add Team | Team fields only | Team fields plus existing user and Admin/Editor assignment |
+| Add Team member | Inline company-user selector | `Add` button opens a modal limited to eligible users already in the selected Project; Team membership never grants Project Access |
 | Estimation | No Project estimation setup | Fixed T-shirt labels with editable points and Hours per point |
 
 ## 12. Functional Requirements
@@ -334,11 +341,17 @@ Required behavior:
 | PM-FR-009 | Users & Permissions uses User, Status, Access Level and Action columns. |
 | PM-FR-010 | Add Existing User never invites or creates a company user. |
 | PM-FR-011 | Admin resolves to All Teams; Editor requires at least one active Team. |
-| PM-FR-012 | Workspace Admin is excluded from Project membership and candidate lists. |
+| PM-FR-012 | Workspace Admin is excluded from Admin/Editor Project Access candidates but may be manually added to active Teams as an operational member. |
 | PM-FR-013 | Admin views Project structure and Users & Permissions read-only. |
 | PM-FR-014 | Editor sees only assigned Projects/Teams and no Users & Permissions tab. |
 | PM-FR-015 | Remove Project user and destructive structure actions require confirmation. |
 | PM-FR-016 | User, Project and Team access journeys remain synchronized. |
+| PM-FR-017 | WA Team membership never creates a Project Access assignment or changes Workspace authority; remove affects only the selected Team membership. |
+| PM-FR-018 | Active WA may be Project Owner and may be Team Lead or Work Item Owner only in a Team where it is an active member. |
+| PM-FR-019 | Every Project Users & Permissions list always includes the WA system row; the row has no dropdown/Remove action, creates no Project Access and is excluded from Project-member metrics. |
+| PM-FR-020 | Team Details uses an `Add` button and modal whose candidates are active eligible users already in the selected Project plus the active WA system user; users outside the Project, disabled users and existing effective Team members are excluded. |
+| PM-FR-021 | Adding or removing a Team member never creates or changes Project Access; Team Lead must be an active Team member and does not receive separate Owner privilege. |
+| PM-FR-022 | New Team Key is auto-generated from Team Name, can be edited before the first successful save, and becomes immutable after creation. |
 
 ## 13. Acceptance Criteria
 
@@ -347,12 +360,17 @@ Required behavior:
 3. Admin sees only assigned Projects with All Teams and cannot mutate Project/Team/access structure.
 4. Editor sees only assigned Projects/Teams and cannot view Users & Permissions.
 5. A user without Admin/Editor assignment does not see or access the Project.
-6. Workspace Admin is not listed as a Project user.
+6. Workspace Admin is not assignable as Project Admin/Editor and always appears in every Project Users & Permissions list as a read-only system row with a `Workspace Admin` badge.
 7. Project access can be added or changed from User Details and Project Users & Permissions.
-8. Add Team can assign existing users as Admin or Editor.
+8. Team Details `Add` opens a modal that lists only eligible active Project users plus active WA, and saving changes only Team membership.
 9. Changes from every access journey appear in the other journeys in the same session.
 10. Confirmation is required before removing a Project user or applying a destructive structure action.
 11. Project-specific estimation settings are saved and displayed consistently.
+12. Removing WA from a Team removes only that Team membership and keeps Workspace authority unchanged.
+13. The WA system row remains visible when a Project has no normal members and never changes Project-member metrics.
+14. A user outside the selected Project or a disabled user never appears in the Team-member candidate modal.
+15. Team Lead must be an active member of the Team; the Team Lead label alone does not change Work Item Owner eligibility.
+16. Creating a Team auto-fills Team Key; Workspace Admin may edit it before save, invalid/duplicate values are rejected, and edit mode keeps the saved key read-only.
 
 ## 14. Open Questions
 

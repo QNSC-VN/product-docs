@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P5-PORTFOLIO-ITEMS` |
 | Status | BA accepted; P5.1 Portfolio Items (`Epic -> Feature`) closed for BA/mockup scope |
-| Updated date | 2026-08-14 |
+| Updated date | 2026-08-17 |
 | Scope | `Portfolio > Portfolio Items` Epic + Feature hierarchy, Feature create/detail/children, Epic create/detail/children |
 | Priority | P5.1 - Portfolio Item foundation; Epic amendment is now part of the accepted P5.1 baseline |
 | Depends on | Phase 1 Backlog Work Item base, Phase 2 list conventions, Phase 3 Release Management and Phase 4 Project Access |
@@ -117,7 +117,7 @@ Columns: Type, ID, Name (inline edit), Priority (Defect only, inline edit), Est 
 
 Each row can expand to reveal its linked Tasks, read-only: ID, Name, state badge, Owner, Estimate, To Do/Actual hours.
 
-`Add Item` opens the same creation flow Backlog uses, restricted to Story/Defect, pre-filled with this Feature's Project/Team, and automatically linked to this Feature.
+`Add Item` opens the same creation flow Backlog uses, restricted to Story/Defect, with Project auto-filled from the current Feature/active Project context and read-only, Team pre-filled from the Feature, and the new item automatically linked to this Feature.
 
 Clicking anywhere on a Children row other than an inline-edit control opens the **same full-page Work Item Detail used everywhere else in the app** (Backlog, Iteration Status, Team Board, Quality) - identical tabs and fields, nothing reduced or Portfolio-specific. "Back" from that page returns to the flat Portfolio Items list (the same behavior every other entry point into that page already has).
 
@@ -132,7 +132,7 @@ Work Item Detail shows a `Feature` field in the right rail:
 - `Unassigned` is allowed.
 - The selectable Feature list is scoped to the Work Item's Project.
 - Archived Features are not offered as new assignment targets.
-- A Work Item's Project is selected during creation and is read-only after the Work Item is created. The user may change or clear the Feature, but every selectable Feature must belong to that fixed Project.
+- A Work Item's Project is inherited from the active Project context during creation and is read-only both during and after creation. The user may change or clear the Feature, but every selectable Feature must belong to that fixed Project.
 
 Plan > Backlog is the planning backlog only. It shows Story/Defect rows whose Iteration is `Unscheduled`. Assigning a row to an Iteration removes it from Backlog and makes it visible in that Iteration's execution/status views. Moving it back to `Unscheduled` returns it to Backlog.
 
@@ -215,7 +215,7 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 | P5-PI-FR-010 | Feature Detail Children tab lists every Story/Defect linked to the Feature with Backlog-equivalent search/filter/sort/resize/pagination. |
 | P5-PI-FR-011 | User with `manageFeatures` can inline-edit Name, Priority (Defect), Est, Owner, Schedule State and Release directly from the Children tab. |
 | P5-PI-FR-012 | User can expand a Children-tab row to see its linked Tasks read-only. |
-| P5-PI-FR-013 | User can add a new Story/Defect to a Feature via `Add Item`, pre-assigned to the Feature. |
+| P5-PI-FR-013 | User can add a new Story/Defect to a Feature via `Add Item`; Project is inherited from the current Feature/active Project context and read-only, and the item is pre-assigned to the Feature. |
 | P5-PI-FR-014 | Clicking a Children-tab row (outside inline-edit controls) opens the same full Work Item Detail page used by Backlog/Iteration Status/Team Board/Quality. |
 | P5-PI-FR-015 | Feature Detail shows Owner and Project first in the right panel, shows Preliminary Estimate and optional refined top-down estimates without any Feature Plan Estimate field, moves the old Progress field to left Details as `Total Accepted Children`, and keeps progress indicators computed from linked Story/Defect plus the confirmed top-down denominator formulas. |
 | P5-PI-FR-026 | `Total Accepted Children` uses the same progress-meter visual format as the right-panel progress bars and lets the user switch between Points and Count. |
@@ -276,7 +276,7 @@ The progress indicators are read-only everywhere they are shown. A Feature with 
 8. Feature Detail Details tab shows all fields listed in Â§5.1.
 9. Feature Detail Children tab shows Backlog-equivalent search/filter/sort/resize/pagination over linked Story/Defect.
 10. Children-tab rows are inline-editable on the confirmed fields and expandable to show linked Tasks read-only.
-11. `Add Item` creates a new Story/Defect already linked to the current Feature.
+11. `Add Item` creates a new Story/Defect already linked to the current Feature; Project is auto-filled from the current Feature/active Project context and cannot be changed in the create modal.
 12. Clicking a Children-tab row opens the full Work Item Detail page, identical to opening the same item from Backlog.
 13. Feature has no Plan Estimate field; Preliminary Estimate remains the rough Feature sizing field; optional Refined Estimate and Refined Work Item Count Estimate provide top-down denominators for the `Estimated Progress by...` bars; the old Progress field is shown in the left Details area as `Total Accepted Children`; the four progress indicators remain read-only.
 13a. The Portfolio Items list does not show a generic `Progress` column; it shows two progress-bar columns: `Percent Done By Story Plan Estimate` and `Percent Done By Story Count`.

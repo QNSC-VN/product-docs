@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P4-PROJECT-ACCESS` |
 | Status | BA/Mockup Ready |
-| Updated date | 2026-08-14 |
+| Updated date | 2026-08-22 |
 | Scope | Workspace authority, Project Admin/Editor assignment, Team scope, permission presentation and safe denied states |
 | Depends on | Phase 0 identity/context and Phase 1 Project Management |
 | Mockup sources | `SettingsPage.tsx`, `WorkspaceProjectsPanel.tsx`, `layout.tsx`, `model.ts` |
@@ -30,9 +30,13 @@ The former global labels `Project Admin` and `Project Member` are retired. This 
 
 - Assigned internally.
 - Has full company, Project and delivery authority.
-- Is not added as a Project user or Team member.
-- Does not appear in Project `Users & Permissions` rows or `Add Existing User` candidates.
-- Its User Details are fully read-only.
+- Does not receive an Admin/Editor Project Access assignment and remains excluded from Project Access `Add Existing User` candidates.
+- May be manually added to or removed from one or more active Teams as an operational member; it is not added to every Team automatically.
+- Team membership does not increase, reduce or replace Workspace authority.
+- Always appears as a system-generated, read-only row in every Project `Users & Permissions` list with a fixed `Workspace Admin` badge, independent of Project Access and Team membership.
+- Appears in a Team member view only when manually added to that Team.
+- Its Workspace authority and account fields are read-only; Team membership is managed from the owning Team.
+- An active Workspace Admin is eligible to be Project Owner. It is eligible to be Team Lead or Work Item Owner only for a Team where it is an active member.
 - Alone manages company users, Projects, Teams, Project access and Team membership.
 
 ### 2.2 Per-Project Access Levels
@@ -104,6 +108,8 @@ Workspace authority
 
 Permission Model is a fixed, read-only explanation. Custom E/R/D/H matrix editing is not in scope.
 
+For Workspace Admin, Workspace authority grants access. Team membership controls only operational membership, Team Lead/Work Item Owner eligibility and member display; it is not an authorization dependency.
+
 ## 5. Access Management Journeys
 
 ### 5.1 User-Centric
@@ -133,16 +139,20 @@ Settings > Workspaces & Projects
 The list columns are exactly `User`, `Status`, `Access Level`, `Action`.
 
 - `Add Existing User` never invites or creates a company user.
-- Access Level offers only Admin and Editor.
+- The editable Access Level dropdown offers only Admin and Editor; a derived WA row displays fixed `Workspace Admin` and has no dropdown.
 - Remove requires confirmation, deletes the Project assignment and clears Team memberships.
-- Workspace Admin is excluded from rows and candidates.
+- Workspace Admin is excluded from Project Access candidates but always appears as a system-generated, read-only row with fixed `Workspace Admin` access and no Project-access action.
+- The WA system row creates no `project_members` record, is excluded from Project-member metrics and remains visible even when the Project has no normal-user assignments.
 
-### 5.3 Team-Creation
+### 5.3 Team Membership
 
-- Workspace Admin may select existing users while adding a Team.
-- An Admin assignment always receives `All Teams`.
-- Editor becomes Project Editor and joins the new Team.
-- All access journeys update one shared assignment source.
+- Workspace Admin maintains membership from Team Details through an `Add` modal.
+- Normal-user candidates must already have active Admin or Editor Project Access in the selected Project. Users outside the Project and disabled users are excluded.
+- Admin already resolves to `All Teams` and is not offered as a new Team-member candidate for an individual Team.
+- An active Workspace Admin is an eligible derived Project candidate even without a `project_members` row; adding it creates Team membership only and keeps the fixed `Workspace Admin` badge.
+- Adding or removing a Team member never creates, changes or removes Project Access.
+- Team Lead must be an active Team member. The Team Lead label grants no separate Project permission or Work Item Owner eligibility.
+- Team membership changes update the Team scope under the existing Project assignment; the WA exception remains independent of Project Access.
 
 ## 6. Navigation And Demo Behavior
 
@@ -164,7 +174,7 @@ The list columns are exactly `User`, `Status`, `Access Level`, `Action`.
 
 - Project access and Team membership changes take effect on the affected user's next sign-in.
 - Company disable/removal takes effect on the affected user's next page refresh.
-- Project assignment, Team membership and Project-user removal create administrative Audit events.
+- Project assignment, Team membership including WA add/remove, and Project-user removal create administrative Audit events.
 - Delivery changes remain in item/activity history.
 
 ## 9. Acceptance Criteria
@@ -175,10 +185,15 @@ The list columns are exactly `User`, `Status`, `Access Level`, `Action`.
 4. Editor requires at least one active Team and is restricted to those Teams.
 5. A user with no assignment has no Project Access row; the Project is hidden and direct access is denied.
 6. Viewer and selectable No Access are absent from current forms, dropdowns, badges and Permission Model.
-7. Workspace Admin is excluded from Project membership and candidate lists.
-8. User-centric, Project-centric and Team-creation journeys stay synchronized.
-9. Only Workspace Admin manages users, Projects, Teams, Project access and Team membership.
-10. Permission Model is read-only and shows only Workspace Admin, Admin and Editor.
+7. Every Project Users & Permissions list always shows Workspace Admin as a read-only system row with fixed `Workspace Admin` badge, no dropdown and no Remove action.
+8. The WA system row creates no Project Access assignment, is excluded from Project-member metrics and does not depend on Team membership.
+9. Workspace Admin remains excluded from Admin/Editor Project Access candidates but may be manually added to or removed from active Teams.
+10. An active WA may be Project Owner and, when it belongs to the Team, Team Lead or Work Item Owner for that Team.
+11. User-centric, Project-centric and Team-membership journeys stay synchronized.
+12. Only Workspace Admin manages users, Projects, Teams, Project access and Team membership.
+13. Permission Model is read-only and shows only Workspace Admin, Admin and Editor.
+14. Team-member candidates are limited to active eligible users already in the selected Project plus active WA; users outside the Project, disabled users and existing effective Team members are excluded.
+15. Team membership changes never create or change Project Access, and Team Lead must remain an active Team member.
 
 ## 10. Open Questions
 
