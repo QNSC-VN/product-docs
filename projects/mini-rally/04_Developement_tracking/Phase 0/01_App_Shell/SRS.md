@@ -122,7 +122,7 @@ No top-level `Releases` navigation is active. Release Management belongs under `
 | SHELL-FR-003 | Hiển thị project context trên các project routes. |
 | SHELL-FR-003A | Context selector hiển thị hierarchy `Workspace → Project → Team`; một Team có thể xuất hiện dưới nhiều Project. |
 | SHELL-FR-004 | Reserved cho multi-tenant phase sau; không áp dụng UI single-company MVP. |
-| SHELL-FR-005 | Khi đổi project, invalidate/refetch toàn bộ project-scoped query. |
+| SHELL-FR-005 | Khi đổi Project hoặc Team từ context selector, navigate về Home của context mới và invalidate/refetch toàn bộ Project/Team-scoped query. Không giữ route hoặc dữ liệu của context cũ. |
 | SHELL-FR-006 | Active navigation phải phản ánh URL hiện tại. |
 | SHELL-FR-007 | Breadcrumb phải được sinh từ route metadata, không hard-code theo page state. |
 | SHELL-FR-008 | Main navigation được filter theo permission và feature flag. |
@@ -160,7 +160,7 @@ Nguồn sự thật:
 | Shell area | Mockup component | Yêu cầu production |
 |---|---|---|
 | Top navigation | `TopNav` | Chuyển từ `currentPage` state sang URL router |
-| Workspace hierarchy dropdown | `TopNav` trong `components/layout.tsx` | Workspace cố định → accessible Projects → Teams |
+| Workspace hierarchy dropdown | `TopNav` trong `components/layout.tsx` | Workspace cố định → accessible Projects → Teams; chọn Project/Team mới chuyển về Home và reload dữ liệu theo context mới |
 | Main menu | `NAV_ITEMS` trong `components/layout.tsx` | Home → Plan (Backlog, Timeboxes) → Track (Iteration Status, Team Status) → Quality → Portfolio (Portfolio Items, Capacity Planning, Release Tracking) → Reports; không có top-level Releases/Team Board/Release Planning |
 | Context bar | `ContextBar`, `CtxSelect` | Selector thật; sync URL/query |
 | User menu | `TopNav` user dropdown | Bỏ demo role switch trong production |
@@ -305,7 +305,7 @@ Mỗi context selector/page outlet phải cover:
 1. Login thành công mở đúng last valid workspace/project hoặc selector page.
 2. Refresh ở `/backlog` vẫn mở Backlog và đúng context.
 3. Back/Forward đổi active navigation chính xác.
-4. Đổi project khiến page data đổi và không còn dữ liệu project cũ.
+4. Đổi Project hoặc Team chuyển về Home của context mới, refetch dữ liệu và không còn route/dữ liệu của context cũ.
 5. User chỉ thấy Project được gán Admin/Editor; direct URL ngoài scope nhận Access Denied/Not Found an toàn.
 6. Đổi Access Level làm mất quyền vào route hiện tại phải redirect khi quyền mới có hiệu lực.
 7. Page con throw exception chỉ làm hỏng page outlet; TopNav vẫn hoạt động.
@@ -319,6 +319,7 @@ Mỗi context selector/page outlet phải cover:
 - Direct URL với workspace/project không thuộc membership.
 - Role thay đổi trong lúc đang mở Settings.
 - Network chậm khi switch project.
+- Switch Team trong cùng Project khi đang ở Backlog/Quality/Iteration Status.
 - API project context thất bại.
 - Browser refresh/deep link/back/forward.
 - Mobile/tablet overflow smoke test.

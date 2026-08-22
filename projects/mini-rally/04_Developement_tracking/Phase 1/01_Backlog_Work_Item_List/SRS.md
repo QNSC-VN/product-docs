@@ -64,6 +64,7 @@ BA confirmed the current Work Item state display contract:
 | BL-FR-012 | Soft-deleted item không hiển thị. |
 | BL-FR-013 | Schedule State của Story/Defect dùng đúng `Idea/Defined/In-Progress/Completed/Accepted/Release`; không hiển thị legacy `Code Review/Testing`. |
 | BL-FR-014 | Trong MVP, đổi Schedule State hoặc Flow State phải đồng thời cập nhật field còn lại về cùng giá trị. |
+| BL-FR-015 | User có `work_item.delete` trong đúng Project/Team scope có thể xóa Defect sau confirmation; hệ thống soft-delete và loại item khỏi active lists. |
 
 ## 5. Screen Mapping với Mockup
 
@@ -144,6 +145,7 @@ Response:
 
 - View Backlog cần permission `work_item.view`.
 - Create button chỉ enable khi có `work_item.create`.
+- Delete Defect chỉ hiển thị/enable khi có `work_item.delete`; API vẫn phải enforce Project/Team scope.
 - API phải enforce project/team access; UI hide không đủ.
 - User không có Admin/Editor assignment không thấy Backlog và direct URL bị từ chối.
 
@@ -156,6 +158,7 @@ Response:
 5. Click `itemKey` mở full Work Item Detail.
 6. User không có quyền project không xem được item qua direct API.
 7. Soft-deleted item không xuất hiện.
+8. Authorized user confirms Delete Defect, item is soft-deleted and disappears from Backlog; cancel keeps it unchanged.
 
 ## 10. Implementation Breakdown
 

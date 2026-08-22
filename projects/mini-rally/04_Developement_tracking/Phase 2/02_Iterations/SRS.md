@@ -6,7 +6,7 @@
 |---|---|
 | Module ID | `P2-ITERATION-MANAGEMENT` |
 | Status | Draft for Development |
-| Updated date | 2026-07-24 |
+| Updated date | 2026-08-17 |
 | Scope | Plan > Timeboxes > Iterations |
 | Priority | P2.2 - required |
 | Depends on | Phase 0 Project/Team context, Phase 1 Work Item base, Phase 2.1 Backlog Enhancement |
@@ -90,7 +90,7 @@ Nghiệp vụ chính:
 - Project and optional Team context is read from the workspace selector in the top navigation.
 - Khi user chọn Team nào thuộc Project nào, Timeboxes/Iterations chỉ hiển thị Iterations thuộc đúng Project/Team đó.
 - Khi tạo Iteration, Project được auto-fill theo context hiện tại; Team có thể để trống để tạo Project-level / Project backlog Iteration.
-- Account hiện tại trong mockup là Workspace Admin, nên vẫn có quyền đổi Project/Team trong quick create/detail nếu cần.
+- Project is inherited from the active Project context and read-only in quick create/detail. Team remains optional and may be selected only from Teams valid for that Project.
 - Iteration belongs to one Project. Team is optional: blank Team means Project-level / Project backlog Iteration; selected Team means Team-scoped Iteration.
 - A Work Item can belong to zero or one Iteration at a time.
 - Moving a Work Item to another Iteration updates the same `iterationId`; it does not duplicate the item.
@@ -106,7 +106,7 @@ Nghiệp vụ chính:
 | P2-IT-FR-001A | Timeboxes reads current Project and optional Team from the workspace selector. |
 | P2-IT-FR-001B | Iterations list shows Iterations belonging to the selected Project and, when Team is supplied, the selected Team. |
 | P2-IT-FR-001C | Create Iteration auto-fills Project from current context and allows Team to remain blank for Project-level / Project backlog Iteration. |
-| P2-IT-FR-001D | Workspace Admin may override Project/Team in create/detail, but selected Team must be valid for selected Project if Team is supplied. |
+| P2-IT-FR-001D | Workspace Admin/Admin cannot change Iteration Project inside create/detail. To create in another Project, change the global Project context first. Team may be changed only to a Team valid for the fixed Project. |
 | P2-IT-FR-001E | `All Teams` is not required for Iteration Status in Phase 0-4; Project-level Iteration is represented by blank Team. |
 | P2-IT-FR-002 | Timeboxes page defaults to type `Iterations`. |
 | P2-IT-FR-003 | Type dropdown is hidden in Phase 2; Timeboxes shows Iterations only. |
@@ -117,7 +117,7 @@ Nghiệp vụ chính:
 | P2-IT-FR-008 | Date columns sort oldest-newest/newest-oldest; numeric columns sort smallest-largest/largest-smallest; text columns sort A-Z/Z-A. |
 | P2-IT-FR-009 | User can filter Iterations by State: All, Planning, Committed, Accepted. |
 | P2-IT-FR-010 | User with manage iteration permission can open quick create modal with `Create Iteration`. |
-| P2-IT-FR-011 | Quick create modal contains Type, Project, optional Team, Name, Start Date, End Date, State. |
+| P2-IT-FR-011 | Quick create modal contains Type, read-only Project, optional Team, Name, Start Date, End Date, State. |
 | P2-IT-FR-012 | Quick create modal required fields: Name, Start Date, End Date, State. |
 | P2-IT-FR-013 | Quick create `Create Iteration` creates an Iteration without opening detail after successful save. |
 | P2-IT-FR-014 | Quick create `Create with details` opens a full-page Iteration detail view. |
@@ -153,7 +153,7 @@ Nghiệp vụ chính:
 | Create with details | Modal secondary action | Opens full-page detail, not modal detail |
 | Row click | Any iteration row | Opens full-page detail |
 | Detail left | Theme, Notes editors | Editable rich-text/text fields |
-| Detail right | Project/Team/date/state/velocity | Editable fields with validation |
+| Detail right | Project/Team/date/state/velocity | Project read-only; other fields editable with validation and normal permission rules |
 | Detail header | Type badge, ID, name | No create button in header |
 | Assigned work items | Iteration detail follow-up panel/section if implemented | Review/search existing Backlog Story/Defect assigned by `iterationId` |
 
@@ -468,7 +468,7 @@ Assignment and board rules:
 9. `Create Iteration` opens quick create modal.
 10. Quick create modal includes Type, Project, optional Team, Name, Start Date, End Date and State.
 11. Quick create auto-fills Project from the active workspace selector context and allows Team to remain blank for Project backlog scope.
-12. Workspace Admin can override Project/Team where enabled, but selected Team must belong to selected Project when supplied.
+12. Project is read-only in Iteration create/detail; changing Project requires changing the global Project context first. Selected Team must belong to the fixed Project when supplied.
 13. Name, Start Date, End Date and State are required.
 14. `Create with details` opens full-page detail, not a modal detail.
 15. Clicking an existing row opens full-page detail.
@@ -503,7 +503,7 @@ Assignment and board rules:
 | P2-IT-TS-012 | Try End Date before Start Date | Validation error |
 | P2-IT-TS-013 | Switch workspace selector to another Team | Iterations list reloads and only shows Iterations for that Team/Project |
 | P2-IT-TS-014 | Create Iteration without Team | Iteration is created as Project-level / Project backlog Iteration |
-| P2-IT-TS-015 | Workspace Admin selects Team outside selected Project | Validation rejects invalid Project/Team pair |
+| P2-IT-TS-015 | Workspace Admin opens Iteration create/detail and tries another Project or Team outside the fixed Project | Project remains read-only; invalid Team is absent or rejected |
 | P2-IT-TS-016 | Inspect Timeboxes type options in P2.2 production | Release/Milestone options are not visible; no P2.2 dev scope |
 | P2-IT-TS-017 | Assign existing Story from same Project and matching Team scope to Sprint 24.3 | Story is assigned and appears in Iteration Status |
 | P2-IT-TS-018 | Assign item from another Team into Team-scoped Iteration | Validation rejects assignment |

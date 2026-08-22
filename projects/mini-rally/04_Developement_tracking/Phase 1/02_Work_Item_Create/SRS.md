@@ -6,6 +6,7 @@
 |---|---|
 | Module ID | `P1-WI-CREATE` |
 | Trạng thái | Draft for Development |
+| Ngày cập nhật | 2026-08-22 |
 | Phạm vi | Tạo Story/Defect từ Backlog |
 | Ưu tiên | P1 — bắt buộc |
 | Phụ thuộc | Backlog, Project/Team context, Work Item DB |
@@ -42,7 +43,8 @@ BA confirmed Work Item create team policy:
 | WIC-FR-003 | Field `Title/Name` là required. |
 | WIC-FR-004 | Project required, default current project. |
 | WIC-FR-005 | Team optional; default blank/Project backlog unless current Team context is explicitly selected and valid for the Project. |
-| WIC-FR-006 | Owner defaults to `Unassigned`. When a Team is selected, options are `Unassigned` plus active members of that Team. When Team is blank/`No team`, Owner remains `Unassigned` only. |
+| WIC-FR-006 | Owner defaults to the authenticated current user only when that user is eligible in the selected Project/Team. Otherwise it defaults to `Unassigned`. User can always explicitly choose `Unassigned`/`No Entry`. |
+| WIC-FR-006A | Named Owner candidates use the shared assignment rule: active Admin in the selected Project; active Editor only when assigned to the selected active Team; active WA only when it is an active member of the selected Team. With blank Team, Editor/WA Team members are not offered. Team Lead has no bypass. |
 | WIC-FR-007 | Plan Estimate nullable, không âm. |
 | WIC-FR-008 | `Create` tạo item và quay lại Backlog/list refresh. |
 | WIC-FR-009 | `Create with details` tạo item rồi mở Work Item Detail của item vừa tạo. |
@@ -60,7 +62,7 @@ BA confirmed Work Item create team policy:
 | Project select | Project dropdown | Lấy project user có quyền |
 | Team select | Team dropdown | Optional; blank = Project backlog; selected options filter by selected Project |
 | Title | Input placeholder | Required |
-| Owner | Dropdown | Default `Unassigned`; selected Team adds only its active members; blank/`No team` offers no named Owner |
+| Owner | Dropdown | Default authenticated current user only if eligible; explicit `Unassigned`/`No Entry`; named users use the shared Project/Team assignment rule |
 | Plan Estimate | Number input | Map story points |
 | Cancel | Button | Đóng modal, không mutate |
 | Create | Button | POST rồi refresh list |
@@ -75,7 +77,7 @@ BA confirmed Work Item create team policy:
 | Workspace | Server-derived | `work_items.workspace_id` | Tenant isolation/query | Derived from session/project |
 | Team | `teamId` | `work_items.team_id` | Team owner | Nullable; null = Project backlog; if provided, must exist in active `project_teams` for selected Project |
 | Title/Name | `title` | `work_items.title` | Item name | Required, trim, max 500 |
-| Owner | `assigneeId` | `work_items.assignee_id` | Responsible user | Default/null = `Unassigned`; named value must be an active member of selected Team; no Team means named Owner is not allowed |
+| Owner | `assigneeId` | `work_items.assignee_id` | Responsible user | Default authenticated current user only if eligible; nullable for `Unassigned`/`No Entry`; named user must satisfy the shared Project/Team assignment rule |
 | Plan Estimate | `planEstimate` | `work_items.story_point` | Story point estimate | Nullable; decimal >= 0 |
 | Schedule State | Server default | `work_items.schedule_state` | Initial schedule state | Default `Idea`; mirror Flow State trong MVP |
 | Flow State | Server default | `work_items.flow_state` | Initial flow state | Default `Idea`; mirror Schedule State trong MVP |
@@ -144,7 +146,8 @@ Response:
 7. Activity log có `work_item.created`.
 8. Creating without Team succeeds and places the item in the Project backlog.
 9. Creating with a Team validates that Team belongs to the selected Project.
-10. Owner defaults to `Unassigned`; after Team selection, only active members of that Team become named Owner options. Clearing Team clears an invalid named Owner back to `Unassigned`.
+10. Owner defaults to the authenticated current user only when eligible; otherwise it defaults to `Unassigned`. Membership or Team changes refresh the available named Owner options.
+11. With a selected Team, Admin, assigned Editor and active WA Team member are offered according to the shared rule; with blank Team, Editor/WA Team members are not offered and Team Lead has no special bypass.
 
 ## 10. Implementation Breakdown
 

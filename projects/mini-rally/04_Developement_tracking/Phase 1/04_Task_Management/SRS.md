@@ -66,7 +66,7 @@ BA confirmed the current Task contract:
 | Name | `title` | `work_items.title` | Task name | Required |
 | State | `state` | `work_items.status_id → workflow_statuses` | Task state | Phase 1 states: Defined/In-Progress/Completed |
 | Owner | `assignee` | `work_items.assignee_id → users` | Task owner | Nullable |
-| Project | `project` | `work_items.project_id → projects` | Scope | Same project as parent by default |
+| Project | `project` | `work_items.project_id → projects` | Scope | Always inherited from parent and read-only; Task cannot move to another Project |
 | Teams | `team` | `work_items.team_id → teams` | Responsible team | Nullable/default parent team |
 | To Do | `todoHours` | `work_items.todo_hours` | Remaining work | Decimal >= 0; requires Phase 1 migration |
 | Actuals | `actualHours` | `work_items.actual_hours` | Actual time spent | Decimal >= 0; requires Phase 1 migration |
@@ -84,7 +84,7 @@ BA confirmed the current Task contract:
 | Owner | `assigneeId` | `work_items.assignee_id` | Nullable/Unassigned; named value must be active member of inherited parent Team |
 | Parent work item | route/context | `work_items.parent_id` | Current Story/Defect |
 | Type | server default | `work_items.type='task'` | Not user editable |
-| Project/team | server default | `project_id`, `team_id` | Inherit parent unless provided |
+| Project/team | server default | `project_id`, `team_id` | Project always inherits parent and is not user-editable; Team follows the parent Team rule |
 | State | server default | `status_id` | Default `Defined` |
 
 ## 6. DB ↔ UI Mapping — Task Detail
@@ -155,6 +155,7 @@ Implementation note: endpoints may internally use `work_items`; separate task ro
 11. Inline edits in Task Dashboard are reflected for the same Task ID in Team Status; no independent Task Iteration assignment is available.
 12. Create with Estimate and blank To Do copies Estimate to To Do once; all later edits and Task State transitions leave the three hour fields independent.
 13. Owner options are `Unassigned` plus active members of the inherited parent Team; a `No team` parent exposes only `Unassigned`.
+14. Task Project always equals the parent Story/Defect Project and is read-only in Task create, inline edit and Task Detail.
 
 ## 11. Implementation Breakdown
 
